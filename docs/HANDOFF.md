@@ -13,7 +13,7 @@ Read these existing artifacts instead of treating this handoff as a replacement 
 - [README](../README.md): features, setup, checks, implementation map, and limitations.
 - [PRODUCT](../PRODUCT.md): approved MVP scope, principles, and open decisions.
 - [DESIGN](../DESIGN.md): current visual system and interaction design.
-- [package.json](../package.json): actual dependencies and commands; npm and its lockfile are the current package tooling.
+- [package.json](../package.json): actual dependencies and commands; pnpm and `pnpm-lock.yaml` are the current package tooling.
 
 The previous dev server used `http://127.0.0.1:5174`. Check whether it is still running before starting another. The smoke script accepts the server URL as an argument; see the README. IndexedDB is origin-specific, so changing hostname or port will appear to lose saved reading data even when the old origin still retains it.
 

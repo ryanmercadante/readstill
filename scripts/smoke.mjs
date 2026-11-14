@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
 
-// Run against an already running dev or preview server: npm run test:e2e -- <url>
+// Run against an already running dev or preview server: pnpm test:e2e <url>
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
 const page = await context.newPage();

@@ -5,11 +5,15 @@ A small RSVP reader: read a passage normally, choose a word, and move into one-w
 ## Run locally
 
 ```sh
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-Open the local URL printed by Vite. `/` is the landing page; **Try it** opens `/reader`. The reader’s Still wordmark returns home. Node 22.12+ is required. This build was checked with Node 26.
+Open the local URL printed by Vite. `/` is the landing page; **Try it** opens `/reader`. The reader’s Still wordmark returns home. Node 22.12+ and pnpm 12.18.0 (pinned in `package.json`) are required. This build was checked with Node 26.
+
+Commit dependency changes together with `pnpm-lock.yaml`. For a reproducible install, use `pnpm install --frozen-lockfile`.
+
+If an older pnpm launcher cannot switch to the pinned version, run commands through Corepack (for example, `corepack pnpm install`).
 
 Saved readings use the same IndexedDB key as the original app. Keep the same hostname and port to retain access to existing data; browser storage belongs to an origin, not a route.
 
@@ -28,16 +32,16 @@ Click **Read** in article view to transition into focus and start playback. The 
 ## Check
 
 ```sh
-npm test
-npm run build
-npx playwright install chromium
-npm run test:e2e -- http://127.0.0.1:5173
-npm run test:a11y -- http://127.0.0.1:5173
+pnpm test
+pnpm build
+pnpm exec playwright install chromium
+pnpm test:e2e http://127.0.0.1:5173
+pnpm test:a11y http://127.0.0.1:5173
 ```
 
 The browser smoke check requires a running dev or preview server. Pass its actual base URL if Vite selected another port. It covers server rendering, landing-to-reader navigation, browser history, direct reader reloads, selection, fixed anchor alignment, playback, sentence replay, save/restore, keyboard controls, hidden-page pause, completion/restart, narrow layout, and reduced motion. Screenshots go to the ignored `.impeccable/review/` directory. Browser data created by this check is isolated from your own browser.
 
-To check the production build locally, run `npm run build`, then `npm run preview`, and pass the printed preview URL to the smoke check.
+To check the production build locally, run `pnpm build`, then `pnpm preview`, and pass the printed preview URL to the smoke check.
 
 The accessibility check runs axe WCAG A/AA scans across the landing page, both reader views, and dialogs at desktop and mobile widths. It also checks keyboard view switching, slider limits and announcements, dialog focus containment/return, and validation associations. Automated checks do not replace screen-reader or physical-device testing.
 
@@ -56,7 +60,7 @@ The accessibility check runs axe WCAG A/AA scans across the landing page, both r
 
 React and TypeScript run in TanStack Start with Vite, following the [official setup](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch). Both routes render on the server and hydrate in the browser. IndexedDB access, playback, and layout measurements stay in browser effects; saved text is never sent to the server. Motion animates the view transition; shadcn's Base UI components provide the interactive controls and dialogs. Fonts are self-hosted. There is no telemetry, upload endpoint, or server-side reading storage.
 
-The build emits `dist/client` assets and `dist/server/server.js`. `npm run preview` serves them locally; production hosting still needs a deployment adapter or server appropriate to the chosen host.
+The build emits `dist/client` assets and `dist/server/server.js`. `pnpm preview` serves them locally; production hosting still needs a deployment adapter or server appropriate to the chosen host.
 
 ## Scope and evidence
 
