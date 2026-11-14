@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-14T04:06:10.638600+00:00",
+  "title": "Design System: Still",
+  "extensions": {
+    "shadows": [
+      {
+        "name": "selected-view",
+        "value": "0 2px 5px #332d2010",
+        "purpose": "Small lift for the pressed view button."
+      },
+      {
+        "name": "dialog",
+        "value": "0 18px 65px #28221830",
+        "purpose": "Modal separation above the translucent backdrop."
+      }
+    ],
+    "motion": [
+      {
+        "name": "word-flight-duration",
+        "value": "0.42s",
+        "purpose": "One article-to-focus or focus-to-article word flight; skipped with reduced motion."
+      },
+      {
+        "name": "word-flight-easing",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Easing for the shared word position and size transition."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-reader",
+        "value": "(min-width: 1500px)"
+      },
+      {
+        "name": "stacked-reader",
+        "value": "(max-width: 800px)"
+      },
+      {
+        "name": "phone",
+        "value": "(max-width: 520px)"
+      },
+      {
+        "name": "short-focus",
+        "value": "(max-height: 740px) and (max-width: 800px)"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Charcoal reading action; minimum height follows the application.",
+      "html": "<button class=\"ds-primary\">Start reading</button>",
+      "css": ".ds-primary{display:inline-flex;align-items:center;justify-content:center;gap:11px;border:0;border-radius:7px;background:var(--ink,#302f2a);color:var(--paper,#f7f5ef);min-height:47px;font-size:12px;font-weight:600;padding:0 24px;cursor:pointer;font-family:'Manrope Variable',sans-serif;}.ds-primary:hover:not(:disabled){background:#514d40}.ds-primary:focus-visible{outline:2px solid var(--accent,#a7462f);outline-offset:5px;}.ds-primary:disabled{opacity:.38;cursor:default}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined header action.",
+      "html": "<button class=\"ds-secondary\">Paste text</button>",
+      "css": ".ds-secondary{display:inline-flex;align-items:center;gap:9px;background:transparent;color:var(--ink,#302f2a);border:1px solid #cec9be;border-radius:7px;padding:10px 16px;font-size:12px;font-weight:650;min-height:42px;cursor:pointer;font-family:'Manrope Variable',sans-serif;}.ds-secondary:hover:not(:disabled){border-color:var(--ink,#302f2a);background:#f0ede5}.ds-secondary:focus-visible{outline:2px solid var(--accent,#a7462f);outline-offset:5px;}.ds-secondary:disabled{opacity:.38;cursor:default}"
+    },
+    {
+      "name": "Ghost icon button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Low emphasis replay action.",
+      "html": "<button class=\"ds-ghost\" aria-label=\"Replay sentence\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/><path d=\"M3 3v5h5\"/></svg></button>",
+      "css": ".ds-ghost{display:inline-flex;align-items:center;justify-content:center;background:transparent;color:var(--ink,#302f2a);border:0;min-width:40px;min-height:42px;border-radius:7px;cursor:pointer}.ds-ghost:hover:not(:disabled){background:#eae6dd}.ds-ghost:focus-visible{outline:2px solid var(--accent,#a7462f);outline-offset:5px;}.ds-ghost:disabled{opacity:.38;cursor:default}"
+    },
+    {
+      "name": "Title field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Optional title field in the paste dialog.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-title\">Title <span>(optional)</span></label><input class=\"ds-field\" id=\"ds-title\" placeholder=\"What are you reading?\" />",
+      "css": ".ds-field-label{display:block;font-size:11px;font-weight:650;margin:17px 0 8px;color:var(--ink,#302f2a);font-family:'Manrope Variable',sans-serif;}.ds-field-label span{font-weight:400;color:var(--muted,#706d64)}.ds-field{background:#fffefa;border:1px solid #cec8bc;color:var(--ink,#302f2a);border-radius:6px;width:100%;padding:12px;font-size:13px;caret-color:var(--accent,#a7462f);font-family:'Manrope Variable',sans-serif;}.ds-field::placeholder{color:#767165}.ds-field:focus-visible{outline:2px solid var(--accent,#a7462f);outline-offset:5px;}"
+    },
+    {
+      "name": "Reading view switch",
+      "kind": "nav",
+      "refersTo": "view-switch",
+      "description": "Pressed state selects Article or Focus; static preview shows Article selected.",
+      "html": "<div class=\"ds-switch\" role=\"group\" aria-label=\"Reading view\"><button aria-pressed=\"true\">Article</button><button aria-pressed=\"false\">Focus</button></div>",
+      "css": ".ds-switch{display:inline-flex;background:#edeae2;border-radius:8px;padding:4px}.ds-switch button{display:flex;align-items:center;gap:7px;min-height:36px;padding:8px 13px;border:0;border-radius:5px;background:transparent;font-size:11px;font-weight:650;color:var(--muted,#706d64);cursor:pointer;font-family:'Manrope Variable',sans-serif;}.ds-switch button[aria-pressed=\"true\"]{background:#fffefa;color:var(--ink,#302f2a);box-shadow:0 2px 5px #332d2010}.ds-switch button:hover:not(:disabled){color:var(--ink,#302f2a)}.ds-switch button:focus-visible{outline:2px solid var(--accent,#a7462f);outline-offset:5px;}.ds-switch button:disabled{opacity:.38;cursor:default}"
+    },
+    {
+      "name": "Active article word",
+      "kind": "custom",
+      "refersTo": "active-word",
+      "description": "Current reading position within serif prose.",
+      "html": "<p class=\"ds-prose\">Make room for <span class=\"ds-current\" aria-current=\"location\">reading</span>.</p>",
+      "css": ".ds-prose{font-family:var(--serif,'Source Serif 4 Variable',Georgia,serif);font-size:22px;font-weight:400;line-height:1.85;color:var(--ink,#302f2a)}.ds-current{cursor:pointer;border-radius:3px;background:var(--tint,#f0ded3);box-shadow:3px 0 0 var(--tint,#f0ded3),-3px 0 0 var(--tint,#f0ded3);color:#7b3525}.ds-current:hover{background:#ebe6dc}"
+    }
+  ],
+  "narrative": {
+    "northStar": "A Quiet Reading Desk",
+    "overview": "Still is a quiet, warm paper reading surface. Serif prose carries the attention; compact sans-serif controls support choosing a pace and returning to context. The article remains open and flat, with no stock imagery.\n\nThis is an implementation record, not user-confirmed branding. The working name, metaphor, descriptive color names and visual direction are provisional. `src/styles.css` is the visual source of truth; `src/App.tsx` supplies interaction and transition behavior. Frontmatter records observed values, not a new token API or a promised global spacing scale.",
+    "keyCharacteristics": [
+      "Warm paper and restrained terracotta emphasis.",
+      "Source Serif 4 reading text with Manrope controls.",
+      "A single brief word transition connects article and focus views."
+    ],
+    "rules": [],
+    "dos": [
+      "Do preserve the shared active word when moving between views.",
+      "Do use serif type for reading and sans-serif type for controls.",
+      "Do retain visible keyboard focus and the reduced-motion bypass."
+    ],
+    "donts": [
+      "Don't treat this provisional identity as user-confirmed branding.",
+      "Don't add stock imagery to the implemented reading surface.",
+      "Don't animate every playback word; the implemented motion connects views."
+    ]
+  }
+}
