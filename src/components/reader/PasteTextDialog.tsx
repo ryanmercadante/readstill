@@ -4,7 +4,15 @@ import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import type { RefObject } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+  DialogHeader,
+  DialogFooter,
+} from "../ui/dialog";
 import { ArrowRight, X } from "lucide-react";
 import { MAX_TEXT_LENGTH } from "../../reader";
 import { SAMPLE_TEXT, SAMPLE_TITLE } from "../../sample";
@@ -24,17 +32,13 @@ export function PasteTextDialog({
 }: PasteTextDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="paste-dialog" finalFocus={returnFocusRef}>
-        <div className="dialog-top">
+      <DialogContent showCloseButton={false} finalFocus={returnFocusRef}>
+        <DialogHeader>
           <DialogTitle>Something worth reading.</DialogTitle>
-          <DialogClose
-            render={<Button variant="ghost" />}
-            className="icon-button"
-            aria-label="Close paste dialog"
-          >
+          <DialogClose render={<Button variant="ghost" />} aria-label="Close paste dialog">
             <X size={20} />
           </DialogClose>
-        </div>
+        </DialogHeader>
         <DialogDescription>
           Paste a passage and make it your own pace. It stays in this browser.
         </DialogDescription>
@@ -52,6 +56,7 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
 
   return (
     <form
+      className="mt-6"
       onSubmit={(e) => {
         e.preventDefault();
         if (!draft.trim()) {
@@ -67,8 +72,8 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
         onImport(draft, draftTitle);
       }}
     >
-      <Label htmlFor="draft-title">
-        Title <span>(optional)</span>
+      <Label className="mt-[17px] mb-2" htmlFor="draft-title">
+        Title <span className="font-normal text-muted-foreground">(optional)</span>
       </Label>
       <Input
         id="draft-title"
@@ -77,7 +82,9 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
         onChange={(e) => setDraftTitle(e.target.value)}
         placeholder="What are you reading?"
       />
-      <Label htmlFor="draft-text">Your text</Label>
+      <Label className="mt-[17px] mb-2" htmlFor="draft-text">
+        Your text
+      </Label>
       <Textarea
         id="draft-text"
         value={draft}
@@ -89,28 +96,23 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
         aria-invalid={!!formError}
         aria-describedby={formError ? "paste-limit paste-error" : "paste-limit"}
       />
-      <p id="paste-limit" className="form-note">
+      <p id="paste-limit" className="text-[10px] leading-[1.8] text-muted-foreground">
         Replaces your current reading. Up to 100,000 characters.
       </p>
       {formError && (
-        <p id="paste-error" className="form-error" role="alert">
+        <p id="paste-error" className="text-[12px] leading-[1.8] text-destructive" role="alert">
           {formError}
         </p>
       )}
-      <div className="dialog-actions">
-        <Button
-          variant="text"
-          className="sample-button"
-          type="button"
-          onClick={() => onImport(SAMPLE_TEXT, SAMPLE_TITLE)}
-        >
+      <DialogFooter>
+        <Button variant="text" type="button" onClick={() => onImport(SAMPLE_TEXT, SAMPLE_TITLE)}>
           Use sample instead
         </Button>
-        <Button variant="default" className="primary-button" type="submit">
+        <Button variant="default" className="max-[520px]:w-full" type="submit">
           Start reading
           <ArrowRight size={17} />
         </Button>
-      </div>
+      </DialogFooter>
     </form>
   );
 }

@@ -53,20 +53,35 @@ export function FocusView({
   }, [word, focusSize, wordRef]);
 
   return (
-    <section className="focus-area" aria-label="One word at a time">
-      <div className="focus-status" role="status">
+    <section
+      className="pt-[46px] text-center max-[800px]:pt-[30px] max-[520px]:pt-[26px] compact-reader:pt-[18px]"
+      aria-label="One word at a time"
+    >
+      <div
+        className="min-h-5 text-[12px] text-muted-foreground max-[520px]:text-[11px]"
+        role="status"
+      >
         {finished
           ? "A moment to let it settle."
           : playing
             ? "One word at a time."
             : "Find your pace. Take your time."}
       </div>
-      <div className="focus-stage" ref={focusStageRef}>
-        <div className="focus-guide top-guide" aria-hidden="true" />
-        <div className="focus-line" style={{ fontSize: focusSize }}>
+      <div
+        className="focus-stage relative mt-2.5 mb-[17px] flex min-h-[clamp(185px,30vh,320px)] w-full items-center overflow-hidden max-[800px]:min-h-[220px] max-[520px]:mb-2 max-[520px]:min-h-[190px] compact-reader:my-1 compact-reader:min-h-[clamp(96px,20dvh,160px)]"
+        ref={focusStageRef}
+      >
+        <div
+          className="absolute top-[23px] left-1/2 h-[19px] w-px bg-[#baa08d] compact-reader:top-[5px] compact-reader:h-3"
+          aria-hidden="true"
+        />
+        <div
+          className="relative h-[1.4em] w-full font-serif leading-[1.4]"
+          style={{ fontSize: focusSize }}
+        >
           <span
             ref={wordRef}
-            className="focus-word"
+            className="focus-word absolute left-1/2 inline-flex whitespace-pre"
             data-testid="focus-word"
             style={{
               visibility: transitioning ? "hidden" : "visible",
@@ -76,9 +91,12 @@ export function FocusView({
             <AnchoredWord word={word} />
           </span>
         </div>
-        <div className="focus-guide bottom-guide" aria-hidden="true" />
+        <div
+          className="absolute bottom-[23px] left-1/2 h-[19px] w-px bg-[#baa08d] compact-reader:bottom-[5px] compact-reader:h-3"
+          aria-hidden="true"
+        />
       </div>
-      <p className="focus-context">
+      <p className="m-0 mb-[17px] text-[12px] leading-[1.7] text-muted-foreground max-[520px]:mx-auto max-[520px]:mb-[7px] max-[520px]:max-w-[260px] max-[520px]:text-[11px] compact-reader:hidden">
         {finished
           ? "You reached the end. Reread a sentence, or start again."
           : "Need the bigger picture? Your passage is one click away."}

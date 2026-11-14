@@ -42,14 +42,15 @@ export function ReaderControls({
   const progress = finished ? 100 : Math.round((index / wordCount) * 100);
 
   return (
-    <footer className="reader-dock">
-      <Progress className="dock-progress" aria-label="Reading progress" value={progress} />
-      <div className="dock-controls">
-        <div className="pace-control">
-          <Label id="pace-label" htmlFor="pace">
+    <footer className="reader-dock fixed bottom-0 left-1/2 z-10 w-[min(100%,1060px)] -translate-x-1/2 bg-background px-[34px] py-0 max-[800px]:px-7 max-[520px]:px-5">
+      <Progress className="h-0.5 bg-border" aria-label="Reading progress" value={progress} />
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-[38px] pt-6 pb-5 max-[800px]:grid-cols-[1fr_auto] max-[800px]:gap-[15px] max-[520px]:gap-3 max-[520px]:py-5">
+        <div className="w-[218px] max-[520px]:w-[140px]">
+          <Label className="flex justify-between font-semibold" id="pace-label" htmlFor="pace">
             Your pace{" "}
-            <span>
-              <strong>{wpm}</strong> WPM
+            <span className="text-[10px] font-medium text-muted-foreground">
+              <strong className="mr-[3px] text-[14px] text-foreground tabular-nums">{wpm}</strong>{" "}
+              WPM
             </span>
           </Label>
           <Slider
@@ -67,14 +68,17 @@ export function ReaderControls({
               getAriaValueText: (_formatted, value) => `${value} words per minute`,
             }}
           />
-          <span className="pace-note" id="pace-note">
+          <span
+            className="block text-[9px] text-muted-foreground max-[520px]:max-w-[140px] max-[520px]:text-[8px] max-[520px]:leading-[1.5]"
+            id="pace-note"
+          >
             A little breathing room at punctuation
           </span>
         </div>
-        <div className="playback-control">
+        <div className="flex items-center gap-2.5 max-[520px]:gap-0.5">
           <Button
             variant="ghost"
-            className="icon-button replay-button"
+            className="max-[520px]:min-w-[34px]"
             title="Replay sentence (R)"
             aria-label="Replay sentence"
             disabled={transitioning || !ready}
@@ -85,7 +89,7 @@ export function ReaderControls({
           <Button
             variant="default"
             ref={playRef}
-            className="play-button"
+            className="play-button min-w-[114px] max-[520px]:min-w-[68px] max-[520px]:px-[15px] max-[520px]:py-0"
             onClick={onPlay}
             disabled={!ready || transitioning}
             aria-label={playing ? "Pause reading" : finished ? "Read again" : "Read passage"}
@@ -97,12 +101,14 @@ export function ReaderControls({
             ) : (
               <Play size={19} fill="currentColor" />
             )}
-            <span>{playing ? "Pause" : finished ? "Read again" : "Read"}</span>
+            <span className="max-[520px]:hidden">
+              {playing ? "Pause" : finished ? "Read again" : "Read"}
+            </span>
           </Button>
-          <div className="step-buttons">
+          <div className="flex gap-0 max-[520px]:flex-col">
             <Button
               variant="ghost"
-              className="icon-button"
+              className="min-w-8 max-[520px]:min-h-[26px]"
               aria-label="Previous word"
               title="Previous word (←)"
               disabled={transitioning || index === 0 || !ready}
@@ -112,7 +118,7 @@ export function ReaderControls({
             </Button>
             <Button
               variant="ghost"
-              className="icon-button"
+              className="min-w-8 max-[520px]:min-h-[26px]"
               aria-label="Next word"
               title="Next word (→)"
               disabled={transitioning || index === wordCount - 1 || !ready}
@@ -122,11 +128,14 @@ export function ReaderControls({
             </Button>
           </div>
         </div>
-        <div className="position-info">
+        <div className="text-right text-[12px] tabular-nums max-[800px]:hidden">
           <span>
-            {index + 1} <span className="position-divider">/</span> {wordCount}
+            {index + 1} <span className="mx-[5px] text-[#a9a292]">/</span> {wordCount}
           </span>
-          <small data-testid="save-status">
+          <small
+            className="mt-2 flex items-center justify-end gap-1 text-[9px] text-muted-foreground"
+            data-testid="save-status"
+          >
             {storageError ? (
               "Progress could not be saved"
             ) : !ready ? (
@@ -142,10 +151,10 @@ export function ReaderControls({
           </small>
         </div>
       </div>
-      <div className="dock-bottom">
+      <div className="flex items-center justify-between gap-3 border-0 border-t border-solid border-border pt-[13px] pb-[max(16px,env(safe-area-inset-bottom))] text-[9px] text-muted-foreground max-[520px]:pt-3 max-[520px]:text-[8px]">
         <span id="reading-shortcuts">
           <kbd>space</kbd> play / pause{" "}
-          <span className="keyboard-extra">
+          <span className="ml-3.5 max-[520px]:hidden">
             <kbd>←</kbd>
             <kbd>→</kbd> move a word
           </span>
@@ -153,7 +162,7 @@ export function ReaderControls({
         <span>Understanding comes before speed.</span>
       </div>
       {storageError && (
-        <p className="storage-notice" role="status">
+        <p className="m-0 pb-2.5 text-[12px] leading-[1.5] text-destructive" role="status">
           This browser couldn’t save your reading. Keep a copy of your text before closing.
         </p>
       )}

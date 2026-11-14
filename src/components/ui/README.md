@@ -2,7 +2,7 @@
 
 These components were installed from the official [shadcn Base UI registry](https://ui.shadcn.com/docs/components) with `shadcn@4.23.0`, using the `base-nova` style in `components.json`.
 
-The component composition, prop forwarding, and Base UI primitives are retained. Components use Tailwind CSS 4 utilities, compiled by `@tailwindcss/vite`, with the shadcn theme mapped to Still's palette and typography in `src/styles.css`. Button and toggle variants use `class-variance-authority`; `cn` is the registry's class-merging helper. The existing reader layout and prose CSS remain in place.
+The component composition, prop forwarding, and Base UI primitives are retained. Components use Tailwind CSS 4 utilities, compiled by `@tailwindcss/vite`, with the shadcn theme mapped to Still's palette and typography in `src/styles.css`. Button and toggle variants use `class-variance-authority`; `cn` is the registry's class-merging helper. Landing and reader layouts, prose, and responsive states also use Tailwind utilities in their components. `src/styles.css` contains only theme tokens, document defaults, and the compact reader media variant.
 
 Tailwind's theme and utilities are imported without Preflight, following the [official existing-project option](https://tailwindcss.com/docs/preflight#disabling-preflight). This preserves the document defaults that the existing design relies on. The component utilities define their own borders, spacing, and typography.
 

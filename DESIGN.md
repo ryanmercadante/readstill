@@ -85,7 +85,7 @@ components:
 
 Still is a quiet, warm paper reading surface. Serif prose carries the attention; compact sans-serif controls support choosing a pace and returning to context. The article remains open and flat, with no stock imagery.
 
-This is an implementation record, not user-confirmed branding. The working name, metaphor, descriptive color names and visual direction are provisional. `src/styles.css` and the Tailwind classes in `src/components/ui/` are the visual source of truth; `src/routes/reader.tsx` coordinates interaction and transitions, with reading surfaces and controls in `src/components/reader/`. Frontmatter records observed values, not a new token API or a promised global spacing scale.
+This is an implementation record, not user-confirmed branding. The working name, metaphor, descriptive color names and visual direction are provisional. `src/styles.css` defines the shared theme and document defaults; Tailwind classes in `src/routes/` and `src/components/` define the layouts and component styling; `src/routes/reader.tsx` coordinates interaction and transitions, with reading surfaces and controls in `src/components/reader/`. Frontmatter records observed values, not a new token API or a promised global spacing scale.
 
 **Key Characteristics:**
 
@@ -109,7 +109,7 @@ The palette pairs warm neutrals with a restrained terracotta accent; exact value
 - **Stone gray** (`muted`): supporting labels; **paper seam** (`line`): dividers and progress track.
 - **Pale cream** (`control-surface`): fields and selected view; **warm inset** (`switch-track`): view switch track; **warm gray wash** (`ghost-hover`): icon hover.
 
-Error text uses the dedicated red (`error`). Other one-off border and selection colors remain in CSS rather than forming a new palette scale.
+Error text uses the dedicated red (`error`). Other one-off border and selection colors remain local utility values or document defaults rather than forming a new palette scale.
 
 ## Typography
 
@@ -122,7 +122,7 @@ Focus words use the serif with a base size of 76px, or 52px when the stage is na
 
 ## Layout
 
-The header has a 1320px maximum width; the reader shell is 1000px with desktop padding of 51px 40px 210px. The article is a centered 680px column. The fixed paper dock is at most 1060px wide and uses three columns for pace, playback and position. Article paragraph spacing is 25px. The CSS uses contextual spacing values, not a named spacing scale.
+The header has a 1320px maximum width; the reader shell is 1000px with desktop padding of 51px 40px 210px. The article is a centered 680px column. The fixed paper dock is at most 1060px wide and uses three columns for pace, playback and position. Article paragraph spacing is 25px. The Tailwind utilities preserve these contextual spacing values, using the standard spacing scale where values match.
 
 At 800px and below, the heading stacks, dock position details disappear and dock controls become two columns. At 520px and below, the view switch fills its row, prose is inset 23px, the play label disappears, step buttons stack and dialogs use 23px padding. Header tagline and extra keyboard hints also disappear. Short screens at most 740px high and 800px wide compress the focus heading to a single line and the stage to `clamp(96px, 20dvh, 160px)`, and hide secondary context. At 1500px and above, reader top padding becomes 65px. The dock includes safe-area bottom padding; the body minimum width is 320px.
 

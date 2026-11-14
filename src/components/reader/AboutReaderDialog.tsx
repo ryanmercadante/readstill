@@ -1,6 +1,13 @@
 import { Button } from "../ui/button";
 import type { RefObject } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+  DialogHeader,
+} from "../ui/dialog";
 import { ArrowRight, X } from "lucide-react";
 
 type AboutReaderDialogProps = {
@@ -12,30 +19,27 @@ type AboutReaderDialogProps = {
 export function AboutReaderDialog({ open, onOpenChange, returnFocusRef }: AboutReaderDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="about-dialog" finalFocus={returnFocusRef}>
-        <div className="dialog-top">
+      <DialogContent showCloseButton={false} finalFocus={returnFocusRef}>
+        <DialogHeader>
           <DialogTitle>A little more focus.</DialogTitle>
-          <DialogClose
-            render={<Button variant="ghost" />}
-            className="icon-button"
-            aria-label="Close about dialog"
-          >
+          <DialogClose render={<Button variant="ghost" />} aria-label="Close about dialog">
             <X size={20} />
           </DialogClose>
-        </div>
-        <DialogDescription>
+        </DialogHeader>
+        <DialogDescription className="text-[14px] leading-[1.8]">
           Still lets you move between a whole passage and one word at a time. You choose the pace.
         </DialogDescription>
-        <p>
+        <p className="text-[14px] leading-[1.8] text-muted-foreground">
           This technique is called rapid serial visual presentation, or RSVP. The colored letter
           provides a steady visual anchor. It isn't a promise of faster reading or better
           comprehension.
         </p>
-        <p>
+        <p className="text-[14px] leading-[1.8] text-muted-foreground">
           Pause, reread, and slow down whenever you need to. The WPM setting controls presentation
           speed; punctuation pauses make the actual pace slower.
         </p>
         <a
+          className="inline-flex items-center gap-2 text-[12px] text-brand"
           href="https://journals.sagepub.com/doi/10.1177/1529100615623267"
           target="_blank"
           rel="noreferrer"
@@ -43,7 +47,7 @@ export function AboutReaderDialog({ open, onOpenChange, returnFocusRef }: AboutR
           Read the research review
           <ArrowRight size={15} />
         </a>
-        <p className="privacy-note">
+        <p className="mt-6 border-0 border-t border-solid border-border pt-[18px] text-[11px] leading-[1.8] text-muted-foreground">
           Your text and position are saved in this browser. Clearing browser data removes them.
           There are no accounts, uploads, or cross-device sync.
         </p>

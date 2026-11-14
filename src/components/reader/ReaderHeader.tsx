@@ -1,6 +1,6 @@
 import { Button } from "../ui/button";
 import { Info, Plus } from "lucide-react";
-import { Wordmark } from "../Wordmark";
+import { SiteHeader } from "../SiteHeader";
 
 type ReaderHeaderProps = {
   disabled: boolean;
@@ -10,13 +10,11 @@ type ReaderHeaderProps = {
 
 export function ReaderHeader({ disabled, onAbout, onPaste }: ReaderHeaderProps) {
   return (
-    <header className="site-header">
-      <Wordmark />
-      <span className="tagline">Make room for reading.</span>
-      <div className="header-actions">
+    <SiteHeader>
+      <div className="ml-auto flex items-center gap-[22px] max-[520px]:gap-[9px]">
         <Button
           variant="ghost"
-          className="icon-button about-button"
+          className="about-button"
           aria-label="About this reader"
           onClick={onAbout}
         >
@@ -24,7 +22,7 @@ export function ReaderHeader({ disabled, onAbout, onPaste }: ReaderHeaderProps) 
         </Button>
         <Button
           variant="outline"
-          className="text-button paste-button"
+          className="paste-button max-[520px]:px-3 max-[520px]:py-[9px]"
           onClick={onPaste}
           disabled={disabled}
         >
@@ -32,6 +30,6 @@ export function ReaderHeader({ disabled, onAbout, onPaste }: ReaderHeaderProps) 
           Paste text
         </Button>
       </div>
-    </header>
+    </SiteHeader>
   );
 }

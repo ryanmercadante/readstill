@@ -26,7 +26,7 @@ export const Route = createRootRoute({
   }),
   shellComponent: RootDocument,
   notFoundComponent: () => (
-    <main className="reader-shell">
+    <main className="mx-auto max-w-[1000px] px-10 pt-[51px] pb-[210px] min-[1500px]:pt-[65px] max-[800px]:px-7 max-[800px]:pt-[37px] max-[520px]:px-[23px] max-[520px]:pt-[30px] max-[520px]:pb-[235px]">
       <h1>This page isn’t here.</h1>
       <p>
         <Link to="/">Return to Still</Link> or <Link to="/reader">open the reader</Link>.

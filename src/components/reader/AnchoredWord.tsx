@@ -5,7 +5,7 @@ export function AnchoredWord({ word }: { word: string }) {
   return (
     <>
       <span>{parts.before}</span>
-      <span className="anchor-letter">{parts.anchor}</span>
+      <span className="anchor-letter text-brand">{parts.anchor}</span>
       <span>{parts.after}</span>
     </>
   );

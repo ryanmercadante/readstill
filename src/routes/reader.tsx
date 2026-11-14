@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useReader } from "../useReader";
 import { SAMPLE_TEXT } from "../sample";
 import { AboutReaderDialog } from "../components/reader/AboutReaderDialog";
+import { SkipLink } from "../components/SkipLink";
 import { AnchoredWord } from "../components/reader/AnchoredWord";
 import { ArticleView } from "../components/reader/ArticleView";
 import { FocusView } from "../components/reader/FocusView";
@@ -156,9 +157,7 @@ function ReaderPage() {
   };
   return (
     <>
-      <a className="skip-link" href="#reading">
-        Skip to reading
-      </a>
+      <SkipLink href="#reading">Skip to reading</SkipLink>
       <ReaderHeader
         disabled={!reader.ready || transitioning}
         onPaste={openPaste}
@@ -168,7 +167,11 @@ function ReaderPage() {
           setAboutOpen(true);
         }}
       />
-      <main id="reading" className={`reader-shell ${view === "focus" ? "is-focus" : ""}`}>
+      <main
+        id="reading"
+        data-view={view}
+        className="group/reader mx-auto max-w-[1000px] px-10 pt-[51px] pb-[210px] min-[1500px]:pt-[65px] max-[800px]:px-7 max-[800px]:pt-[37px] max-[520px]:px-[23px] max-[520px]:pt-[30px] max-[520px]:pb-[235px] compact-reader:data-[view=focus]:pt-[22px]"
+      >
         <ReadingHeading
           title={reader.title}
           sourceIsSample={reader.text === SAMPLE_TEXT}
@@ -217,7 +220,7 @@ function ReaderPage() {
       />
       {flight && (
         <motion.div
-          className="flying-word"
+          className="pointer-events-none fixed top-0 left-0 z-20 font-serif leading-[1.4] whitespace-nowrap"
           aria-hidden="true"
           initial={{ x: flight.left, y: flight.top, fontSize: flight.size }}
           animate={{
