@@ -15,6 +15,7 @@
     "test:theme": "node scripts/theme.mjs",
     "test:e2e": "node scripts/smoke.mjs",
     "test:library": "node scripts/library-smoke.mjs",
+    "test:rich-epub": "node scripts/rich-epub-smoke.mjs",
     "test:a11y": "node scripts/accessibility.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "prepare": "husky"
@@ -27,6 +28,7 @@
     "@tanstack/react-start": "^1.169.5",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",
+    "dompurify": "^3.4.17",
     "fflate": "^0.8.3",
     "idb-keyval": "^6.3.0",
     "lucide-react": "^1.72.0",

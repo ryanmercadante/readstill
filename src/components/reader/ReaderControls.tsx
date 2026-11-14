@@ -16,6 +16,7 @@ type ReaderControlsProps = {
   saving: boolean;
   storageError: string;
   transitioning: boolean;
+  contextPaused?: boolean;
   playRef: RefObject<HTMLButtonElement | null>;
   onPlay: () => void;
   onReplay: () => void;
@@ -33,6 +34,7 @@ export function ReaderControls({
   saving,
   storageError,
   transitioning,
+  contextPaused = false,
   playRef,
   onPlay,
   onReplay,
@@ -40,6 +42,28 @@ export function ReaderControls({
   onWpmChange,
 }: ReaderControlsProps) {
   const progress = finished ? 100 : Math.round((index / wordCount) * 100);
+
+  if (contextPaused)
+    return (
+      <footer className="reader-dock fixed bottom-0 left-1/2 z-10 w-[min(100%,1060px)] -translate-x-1/2 bg-background px-5">
+        <Progress className="h-0.5 bg-border" aria-label="Reading progress" value={progress} />
+        <div className="flex flex-wrap justify-between gap-2 pt-4 pb-[max(20px,env(safe-area-inset-bottom))] text-xs text-muted-foreground">
+          <span>{finished ? "Chapter complete" : "Reading paused"}</span>
+          <span data-testid="save-status">
+            {storageError
+              ? "Changes are not saved"
+              : saving
+                ? "Saving on this device…"
+                : "Saved on this device"}
+          </span>
+        </div>
+        {storageError && (
+          <p role="status" className="mt-0 text-xs leading-relaxed text-destructive">
+            {storageError}
+          </p>
+        )}
+      </footer>
+    );
 
   return (
     <footer className="reader-dock fixed bottom-0 left-1/2 z-10 w-[min(100%,1060px)] -translate-x-1/2 bg-background px-[34px] py-0 max-[800px]:px-7 max-[520px]:px-5">
@@ -81,7 +105,7 @@ export function ReaderControls({
             className="max-[520px]:min-w-[34px]"
             title="Replay sentence (R)"
             aria-label="Replay sentence"
-            disabled={transitioning || !ready}
+            disabled={transitioning || !ready || contextPaused}
             onClick={onReplay}
           >
             <RotateCcw size={19} />
@@ -91,7 +115,7 @@ export function ReaderControls({
             ref={playRef}
             className="play-button min-w-[114px] max-[520px]:min-w-[68px] max-[520px]:px-[15px] max-[520px]:py-0"
             onClick={onPlay}
-            disabled={!ready || transitioning}
+            disabled={!ready || transitioning || contextPaused}
             aria-label={playing ? "Pause reading" : finished ? "Read again" : "Read passage"}
           >
             {playing ? (

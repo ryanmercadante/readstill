@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { tokenize, wordDuration } from "../lib/reader";
+import { wordDuration } from "../lib/reader";
 import {
   initialPosition,
   MAX_READINGS,
@@ -11,6 +11,7 @@ import {
 import type { Library, Reading } from "../lib/library";
 import { loadLibrary, saveLibrary } from "../lib/library-storage";
 import type { StoredLibrary } from "../lib/library-storage";
+import { chapterSequence, chapterText, positionAt, sequenceIndex } from "../lib/reader-document";
 
 const initialLibrary: Library = {
   readings: [sampleReading],
@@ -31,9 +32,9 @@ export function useReader() {
   const position = library.positions[reading.id] ?? initialPosition(reading);
   const chapter = reading.chapters.find((c) => c.id === position.chapterId) ?? reading.chapters[0];
   const chapterIndex = reading.chapters.indexOf(chapter);
-  const paragraphs = useMemo(() => tokenize(chapter.text), [chapter.text]);
-  const words = useMemo(() => paragraphs.flat(), [paragraphs]);
-  const index = position.index;
+  const words = useMemo(() => chapterSequence(chapter), [chapter]);
+  const text = useMemo(() => chapterText(chapter), [chapter]);
+  const index = Math.max(0, sequenceIndex(chapter, position));
   const finished = position.finished;
   const current = words[index] ?? words[0];
   const wpm = library.wpm;
@@ -104,20 +105,15 @@ export function useReader() {
         ...state,
         positions: {
           ...state.positions,
-          [reading.id]: {
-            chapterId: chapter.id,
-            index: next,
-            finished: done,
-            updatedAt: Date.now(),
-          },
+          [reading.id]: positionAt(chapter, next, done),
         },
       }));
     },
-    [reading.id, chapter.id],
+    [reading.id, chapter],
   );
 
   useEffect(() => {
-    if (!playing || !current) return;
+    if (!playing || !current || current.context) return;
     let frame = 0;
     const start = performance.now();
     const tick = (now: number) => {
@@ -125,14 +121,17 @@ export function useReader() {
         if (index >= words.length - 1) {
           setPlaying(false);
           move(index, true);
-        } else move(index + 1);
+        } else {
+          if (words[index + 1].context) setPlaying(false);
+          move(index + 1);
+        }
         return;
       }
       frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [playing, current, index, wpm, words.length, move]);
+  }, [playing, current, index, wpm, words, move]);
 
   const seek = useCallback(
     (next: number) => {
@@ -143,9 +142,11 @@ export function useReader() {
   );
   const replay = useCallback(() => seek(current.sentenceStart), [current, seek]);
   const togglePlay = useCallback(() => {
-    if (finished) move(0);
-    setPlaying((p) => !p);
-  }, [finished, move]);
+    if (finished) {
+      move(0);
+      setPlaying(!words[0].context);
+    } else if (!current.context) setPlaying((p) => !p);
+  }, [finished, move, words, current]);
   const setWpm = useCallback(
     (value: number) => setLibrary((state) => ({ ...state, wpm: value })),
     [],
@@ -161,9 +162,23 @@ export function useReader() {
       ...state,
       positions: {
         ...state.positions,
-        [reading.id]: { chapterId: id, index: 0, finished: false, updatedAt: Date.now() },
+        [reading.id]: positionAt(
+          reading.chapters.find((c) => c.id === id)!,
+          0,
+        ),
       },
     }));
+  };
+  const continueAfterBlock = (blockId: string) => {
+    const from = words.findIndex((entry) => entry.blockId === blockId);
+    if (from < 0 || !words[from].context) return;
+    if (from === words.length - 1) {
+      setPlaying(false);
+      move(from, true);
+    } else {
+      move(from + 1);
+      setPlaying(!words[from + 1].context && !document.hidden);
+    }
   };
   const addReading = (item: Reading) => {
     if (library.readings.length >= MAX_READINGS)
@@ -209,7 +224,10 @@ export function useReader() {
     addReading,
     removeReading,
     restore,
-    text: chapter.text,
+    text,
+    context: current.context,
+    continueAfterBlock,
+    wordCount: words.filter((word) => !word.context).length,
     title: reading.title,
     index,
     wpm,
@@ -222,7 +240,6 @@ export function useReader() {
     // A changed position is unsaved in the very render that displays it,
     // including the interval before its persistence effect has been scheduled.
     saving: ready && library !== savedLibrary && !storageError,
-    paragraphs,
     words,
     current,
     seek,

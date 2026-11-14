@@ -62,4 +62,43 @@ it("migrates once, saves books and positions atomically, and refuses stale-tab o
   await set("settings", { activeId: "missing", wpm: 300, revision: 50 }, db);
   await expect(loadLibrary()).rejects.toThrow();
   expect(await get("settings", db)).toEqual({ activeId: "missing", wpm: 300, revision: 50 });
+  const oldReading = {
+    id: "old-book",
+    title: "Old book",
+    author: "",
+    kind: "epub",
+    addedAt: 0,
+    chapters: [
+      {
+        id: "c",
+        title: "One",
+        text: "First paragraph.\n\nSecond paragraph here.",
+        images: [{ beforeParagraph: 1, src: "data:image/png;base64,YQ==", alt: "Picture" }],
+      },
+    ],
+  };
+  await set("reading:old-book", oldReading, db);
+  await set("position:old-book", { chapterId: "c", index: 3, finished: false, updatedAt: 7 }, db);
+  await set("settings", { activeId: "old-book", wpm: 300, revision: 60 }, db);
+  // A migration must roll back its rewritten content if a later record fails.
+  const migrationPut = vi.spyOn(IDBObjectStore.prototype, "put").mockImplementation(function (
+    this: IDBObjectStore,
+    value,
+    key,
+  ) {
+    if (key === "position:old-book") throw new DOMException("Storage full", "QuotaExceededError");
+    return originalPut.call(this, value, key);
+  });
+  try {
+    await expect(loadLibrary()).rejects.toThrow("Storage full");
+  } finally {
+    migrationPut.mockRestore();
+  }
+  expect(await get("reading:old-book", db)).toEqual(oldReading);
+  expect(await get("settings", db)).toEqual({ activeId: "old-book", wpm: 300, revision: 60 });
+  const migrated = await loadLibrary();
+  expect(migrated.library.positions["old-book"]).toMatchObject({ blockId: "p1", index: 1 });
+  expect(migrated.revision).toBe(61);
+  expect(await get("settings", db)).toMatchObject({ schemaVersion: 2, revision: 61 });
+  expect((await loadLibrary()).revision).toBe(61);
 });

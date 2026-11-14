@@ -96,6 +96,7 @@ try {
       }),
     ),
   });
+  await page.getByRole("button", { name: "Add to library", exact: true }).click();
   await page
     .getByText("Added A quiet afternoon. Your book is ready to read.", { exact: true })
     .waitFor();
@@ -146,8 +147,12 @@ try {
   const json = JSON.parse(backup.toString());
   assert.equal(json.library.readings.length, 3);
   const book = json.library.readings.find((r) => r.kind === "epub");
-  assert.equal(json.library.positions[book.id].index, 5);
-  assert.ok(book.chapters[0].images[0].src.startsWith("data:image/png;base64,"));
+  assert.equal(json.library.positions[book.id].index, 2);
+  assert.ok(
+    book.chapters[0].blocks
+      .find((block) => block.type === "image")
+      .src.startsWith("data:image/png;base64,"),
+  );
   await page.getByRole("button", { name: "Remove Tomorrow's passage", exact: true }).click();
   await page.getByRole("button", { name: "Remove reading", exact: true }).click();
   assert.equal(await page.getByRole("list", { name: "Saved readings" }).locator("li").count(), 2);
@@ -195,7 +200,7 @@ try {
   const unsavedDownload = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export library", exact: true }).click();
   const unsaved = JSON.parse((await readFile(await (await unsavedDownload).path())).toString());
-  assert.equal(unsaved.library.positions[book.id].index, 6);
+  assert.equal(unsaved.library.positions[book.id].index, 3);
   await page.reload();
   await ready();
   assert.equal(await position(), "5", "A failed write must leave the persisted position intact");

@@ -4,10 +4,13 @@ import { Button } from "../ui/button";
 import {
   initialPosition,
   MAX_FILE_BYTES,
+  MAX_BACKUP_BYTES,
   parseBackup,
   readingProgress,
   serializeBackup,
 } from "../../lib/library";
+import { downloadOriginal } from "../../lib/reading-download";
+import { ImportReport, ImportNotes } from "./ImportReport";
 import type { Library, Reading } from "../../lib/library";
 
 type Props = {
@@ -49,6 +52,7 @@ export function LibraryPanel({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [pendingReading, setPendingReading] = useState<Reading | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
   const active = library.readings.find((r) => r.id === library.activeId);
   const readings = [...library.readings].sort(
@@ -60,18 +64,25 @@ export function LibraryPanel({
     if (!file) return;
     setError("");
     setMessage("");
+    setPendingReading(null);
     setBusy(true);
     onBusyChange(true);
     try {
-      if (file.size > MAX_FILE_BYTES) throw new Error("Choose a file smaller than 25 MB.");
+      if (file.size > (kind === "epub" ? MAX_FILE_BYTES : MAX_BACKUP_BYTES))
+        throw new Error(
+          kind === "epub"
+            ? "Choose an EPUB smaller than 25 MB."
+            : "Choose a Still backup smaller than 100 MB.",
+        );
       if (kind === "epub") {
         const { importEpub } = await import("../../lib/epub");
         const reading = await importEpub(
           new Uint8Array(await file.arrayBuffer()),
           file.name.replace(/\.epub$/i, ""),
+          file.name,
         );
-        onAdd(reading);
-        setMessage(`Added ${reading.title}. Your book is ready to read.`);
+        setPendingReading(reading);
+        setMessage("Review your book below before adding it to the library.");
       } else {
         const count = onRestore(parseBackup(await file.text()));
         setMessage(
@@ -157,6 +168,25 @@ export function LibraryPanel({
           {storageError}
         </p>
       )}
+      {pendingReading && (
+        <ImportReport
+          reading={pendingReading}
+          onCancel={() => {
+            setPendingReading(null);
+            setMessage("Import canceled. Your library is unchanged.");
+          }}
+          onAccept={() => {
+            try {
+              onAdd(pendingReading);
+              setMessage(`Added ${pendingReading.title}. Your book is ready to read.`);
+              setPendingReading(null);
+              setError("");
+            } catch (cause) {
+              setError(cause instanceof Error ? cause.message : "The book couldn't be added.");
+            }
+          }}
+        />
+      )}
       {!ready ? (
         <p className="py-12 text-sm text-muted-foreground">Opening your library…</p>
       ) : (
@@ -213,6 +243,17 @@ export function LibraryPanel({
                           {reading.author && ` · ${reading.author}`} ·{" "}
                           {readingProgress(reading, position)}% through
                         </p>
+                        {reading.originalEpub && (
+                          <Button
+                            variant="text"
+                            disabled={busy}
+                            aria-label={`Download original EPUB: ${reading.title}`}
+                            onClick={() => downloadOriginal(reading)}
+                          >
+                            Download original EPUB
+                          </Button>
+                        )}
+                        <ImportNotes reading={reading} />
                         {removing === reading.id && (
                           <div className="mt-4 text-sm">
                             <p>

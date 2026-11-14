@@ -5,7 +5,7 @@ import type { Library, Position, Reading } from "./library";
 // Lazy: IndexedDB is never touched by server rendering.
 let store: ReturnType<typeof createStore> | undefined;
 const database = () => (store ??= createStore("still-library", "records"));
-type Settings = { activeId: string | null; wpm: number; revision: number };
+type Settings = { activeId: string | null; wpm: number; revision: number; schemaVersion?: number };
 export type StoredLibrary = { library: Library; revision: number };
 
 function transaction<T>(operation: (records: IDBObjectStore) => Promise<T>): Promise<T> {
@@ -40,7 +40,10 @@ export async function loadLibrary(): Promise<StoredLibrary> {
         records.put(reading, `reading:${reading.id}`);
         records.put(library.positions[reading.id], `position:${reading.id}`);
       }
-      records.put({ activeId: library.activeId, wpm: library.wpm, revision: 0 }, "settings");
+      records.put(
+        { activeId: library.activeId, wpm: library.wpm, revision: 0, schemaVersion: 2 },
+        "settings",
+      );
       return { library, revision: 0 };
     }
     const [keys, values] = await Promise.all([
@@ -60,7 +63,7 @@ export async function loadLibrary(): Promise<StoredLibrary> {
     const library = parseBackup(
       JSON.stringify({
         format: "still-library",
-        version: 1,
+        version: settings.schemaVersion ?? 1,
         library: { readings, positions, activeId: settings.activeId, wpm: settings.wpm },
       }),
     );
@@ -68,6 +71,14 @@ export async function loadLibrary(): Promise<StoredLibrary> {
       throw new Error(
         "The saved library couldn't be opened. Restore a backup in another browser to recover it.",
       );
+    if ((settings.schemaVersion ?? 1) === 1) {
+      for (const reading of library.readings) {
+        records.put(reading, `reading:${reading.id}`);
+        records.put(library.positions[reading.id], `position:${reading.id}`);
+      }
+      records.put({ ...settings, revision: settings.revision + 1, schemaVersion: 2 }, "settings");
+      return { library, revision: settings.revision + 1 };
+    }
     return { library, revision: settings.revision };
   });
 }
@@ -93,7 +104,7 @@ export async function saveLibrary(next: Library, previous: StoredLibrary): Promi
       records.delete(`position:${id}`);
     }
     records.put(
-      { activeId: next.activeId, wpm: next.wpm, revision: previous.revision + 1 },
+      { activeId: next.activeId, wpm: next.wpm, revision: previous.revision + 1, schemaVersion: 2 },
       "settings",
     );
   });

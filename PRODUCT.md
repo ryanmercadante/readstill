@@ -20,7 +20,7 @@ Test whether a reader can comfortably understand prose while switching between a
 
 ## Capabilities and Constraints
 
-The user approved the original reader and a follow-up local library with EPUB import, chapter navigation, per-reading resume, and backup/restore. The reader retains its ready-to-read sample, pasted text, article and focus modes, shared word position, word-to-focus transition, adjustable WPM, play/pause, and sentence replay. Pasted passages now join the library. Chapter changes and returning to article mode pause playback. EPUB import is limited to DRM-free, reflowable prose with supported raster illustrations; unsupported meaningful content causes an explicit error. See README for format and size limits. URL import, accounts, cloud sync, quizzes, adaptive pacing, and dashboards remain deferred.
+The user approved the original reader, a local library with EPUB import and backup/restore, and a rich-content extension for tables, SVG illustrations, import reports, and original-file preservation. The reader retains its sample, pasted text, article/focus modes, word transition, adjustable pace, sentence replay, and saved positions. Both views share chapter/block/word locations. Tables and illustrations remain visible in Article view; Focus mode pauses at them and resumes after an explicit continuation. Remaining unsupported sections have visible placeholders and import notes, with original EPUB downloads for newly imported books. Fixed-layout and encrypted books remain unsupported. Existing readings and older backups migrate without changing the selected word. See README for format and size limits. URL import, accounts, cloud sync, quizzes, adaptive pacing, and dashboards remain deferred.
 
 ## Product Principles
 

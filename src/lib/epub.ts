@@ -1,6 +1,9 @@
 import { unzip, strFromU8 } from "fflate";
-import { MAX_BOOK_TEXT, MAX_FILE_BYTES } from "./library";
-import type { Chapter, Illustration, Reading } from "./library";
+import { MAX_BOOK_TEXT, MAX_FILE_BYTES, MAX_CHAPTER_BLOCKS } from "./library";
+import { blockTextSize, validReading } from "./library";
+import type { Chapter, ContentBlock, ImportIssue, Reading, TableCell } from "./library";
+import { toBase64 } from "./reading-download";
+import { prepareSvg, rasterizeSvg } from "./epub-svg";
 import { MAX_TEXT_LENGTH } from "./reader";
 
 const MAX_EXPANDED_BYTES = 40_000_000;
@@ -54,7 +57,7 @@ async function unpack(bytes: Uint8Array): Promise<Record<string, Uint8Array>> {
             names.add(file.name);
             // Fonts and style sheets are not rendered. Keep only reading resources.
             if (
-              !/\.(?:xml|opf|ncx|xhtml|html|htm|png|jpe?g|gif|webp)$/i.test(file.name) &&
+              !/\.(?:xml|opf|ncx|xhtml|html|htm|svg|png|jpe?g|gif|webp)$/i.test(file.name) &&
               file.name !== "mimetype"
             )
               return false;
@@ -76,54 +79,11 @@ async function unpack(bytes: Uint8Array): Promise<Record<string, Uint8Array>> {
   });
 }
 
-function imageSource(bytes: Uint8Array, type: string): string {
-  // Encode in small chunks to avoid call-stack limits on illustrations.
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 8192)
-    binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
-  return `data:${type};base64,${btoa(binary)}`;
-}
-
-// Some prose books encode their contents list as two-column navigation tables.
-// Accept only chapter-link/label rows; data tables still require a richer reader.
-function isContentsTable(table: Element, path: string, chapters: Set<string>): boolean {
-  const rows = elements(table, "tr");
-  return (
-    rows.length > 0 &&
-    !elements(table, "th").length &&
-    rows.every((row) => {
-      const cells = Array.from(row.children);
-      if (
-        cells.length !== 2 ||
-        cells.some(
-          (cell) =>
-            cell.localName !== "td" || cell.hasAttribute("rowspan") || cell.hasAttribute("colspan"),
-        )
-      )
-        return false;
-      const links = elements(cells[0], "a");
-      return (
-        links.length === 1 &&
-        cells[0].textContent?.trim() === links[0].textContent?.trim() &&
-        !cells[1].children.length &&
-        chapters.has(epubPath(path, links[0].getAttribute("href") ?? ""))
-      );
-    })
-  );
-}
-
-function isRasterWrapper(svg: Element): boolean {
-  return (
-    elements(svg, "image").length === 1 &&
-    Array.from(svg.getElementsByTagName("*")).every(
-      (element) =>
-        ["image", "title", "desc"].includes(element.localName) &&
-        !["transform", "clip-path", "mask"].some((attribute) => element.hasAttribute(attribute)),
-    )
-  );
-}
-
-export async function importEpub(bytes: Uint8Array, fallbackTitle: string): Promise<Reading> {
+export async function importEpub(
+  bytes: Uint8Array,
+  fallbackTitle: string,
+  originalName = `${fallbackTitle}.epub`,
+): Promise<Reading> {
   const files = await unpack(bytes);
   const read = (path: string) => {
     if (!Object.hasOwn(files, path))
@@ -158,6 +118,7 @@ export async function importEpub(bytes: Uint8Array, fallbackTitle: string): Prom
         path: epubPath(packagePath, item.getAttribute("href") ?? ""),
         type: item.getAttribute("media-type"),
         properties: item.getAttribute("properties")?.split(/\s+/) ?? [],
+        fallback: item.getAttribute("fallback"),
       },
     ]),
   );
@@ -195,131 +156,282 @@ export async function importEpub(bytes: Uint8Array, fallbackTitle: string): Prom
       }
   }
   const chapters: Chapter[] = [];
-  const spinePaths = new Set(
-    elements(opf, "itemref").map((ref) => manifest.get(ref.getAttribute("idref"))?.path ?? ""),
-  );
+  const issues: ImportIssue[] = [];
   const seen = new Set<string>();
   let totalText = 0;
+  const rasterTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+  for (const asset of manifest.values()) {
+    if (
+      encrypted.includes(asset.path) &&
+      (asset.type === "application/xhtml+xml" || asset.type?.startsWith("image/"))
+    )
+      throw new Error("This book contains encrypted reading content. Choose a DRM-free EPUB.");
+  }
+  const rasterFile = (path: string): string => {
+    const asset = [...manifest.values()].find((m) => m.path === path);
+    if (!asset?.type || !rasterTypes.includes(asset.type) || !Object.hasOwn(files, path))
+      throw new Error("The illustration is missing or uses an unsupported image format.");
+    return `data:${asset.type};base64,${toBase64(files[path])}`;
+  };
+  const raster = (base: string, reference: string): string => {
+    if (
+      reference.length <= 7_000_000 &&
+      /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/]+=*$/.test(reference)
+    )
+      return reference;
+    return rasterFile(epubPath(base, reference));
+  };
+  type NewBlock = {
+    [K in ContentBlock["type"]]: Omit<Extract<ContentBlock, { type: K }>, "id">;
+  }[ContentBlock["type"]];
   for (const ref of elements(opf, "itemref")) {
     if (ref.getAttribute("properties")?.split(/\s+/).includes("rendition:layout-pre-paginated"))
-      throw new Error("This book contains fixed-layout sections. Choose a reflowable prose EPUB.");
-    const item = manifest.get(ref.getAttribute("idref"));
+      throw new Error("This book contains fixed-layout sections. Choose a reflowable EPUB.");
+    let item = manifest.get(ref.getAttribute("idref"));
     if (!item) throw new Error("This EPUB has a broken chapter list.");
     if (item.properties.includes("nav")) continue;
-    if (item.type !== "application/xhtml+xml")
-      throw new Error("This EPUB contains a chapter format Still can't read. Choose a prose EPUB.");
-    if (seen.has(item.path)) throw new Error("This EPUB repeats a chapter in its reading order.");
-    seen.add(item.path);
-    const document = xml(readable(item.path));
-    const body = elements(document, "body")[0];
-    if (!body) throw new Error("This EPUB contains a chapter without a reading body.");
-    if (
-      ["math", "audio", "video", "iframe", "object", "canvas"].some(
-        (name) => elements(body, name).length,
-      ) ||
-      elements(body, "table").some((table) => !isContentsTable(table, item.path, spinePaths)) ||
-      elements(body, "svg").some((svg) => !isRasterWrapper(svg))
-    )
-      throw new Error(
-        "This book includes tables, formulas, or media Still can't preserve yet. Try a prose EPUB, or paste a passage.",
-      );
-    for (const tag of ["script", "style", "noscript"])
-      for (const node of elements(body, tag)) node.remove();
-    const paragraphs: string[] = [];
-    const images: Illustration[] = [];
-    let buffer = "";
-    const flush = () => {
-      const text = buffer.replace(/\s+/gu, " ").trim();
-      if (text) paragraphs.push(text);
-      buffer = "";
+    const originalItem = item;
+    const fallbacks = new Set<string>();
+    while (
+      !["application/xhtml+xml", "image/svg+xml", ...rasterTypes].includes(item.type ?? "") &&
+      item.fallback
+    ) {
+      if (fallbacks.has(item.path)) throw new Error("This EPUB has a circular fallback chain.");
+      fallbacks.add(item.path);
+      const next = manifest.get(item.fallback);
+      if (!next) break;
+      item = next;
+    }
+    if (seen.has(originalItem.path))
+      throw new Error("This EPUB repeats a chapter in its reading order.");
+    seen.add(originalItem.path);
+    const path = item.path;
+    const chapterId = originalItem.path;
+    const blocks: ContentBlock[] = [];
+    const add = (block: NewBlock): ContentBlock => {
+      const value = { ...block, id: `b${blocks.length}` } as ContentBlock;
+      if (blocks.length >= MAX_CHAPTER_BLOCKS)
+        throw new Error("This chapter has too many separate sections for this version.");
+      blocks.push(value);
+      return value;
     };
-    const visit = (node: Node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        buffer += node.textContent ?? "";
-        return;
-      }
-      if (node.nodeType !== Node.ELEMENT_NODE) return;
-      const element = node as Element;
-      const tag = element.localName;
-      if (tag === "svg") {
-        visit(elements(element, "image")[0]);
-        return;
-      }
-      if (tag === "td") buffer += " ";
-      if (tag === "img" || tag === "image") {
-        flush();
-        const path = epubPath(
-          item.path,
-          element.getAttribute("src") ??
-            element.getAttribute("href") ??
-            element.getAttributeNS("http://www.w3.org/1999/xlink", "href") ??
-            "",
-        );
-        const asset = [...manifest.values()].find((m) => m.path === path);
-        if (
-          !asset?.type ||
-          !["image/png", "image/jpeg", "image/gif", "image/webp"].includes(asset.type)
-        )
-          throw new Error(
-            "This book contains an unsupported illustration format. Still supports PNG, JPEG, GIF, and WebP.",
+    const report = (block: ContentBlock, message: string) =>
+      issues.push({ chapterId, blockId: block.id, message: message.slice(0, 1000) });
+    const unavailable = (label: string, reason: string) => {
+      const block = add({
+        type: "unsupported",
+        label: label.slice(0, 300),
+        reason: reason.slice(0, 1000),
+      });
+      report(block, `${label}: ${reason}`);
+    };
+    const addSvg = async (source: string, alt: string, base: string) => {
+      try {
+        const prepared = prepareSvg(source, (reference) => raster(base, reference));
+        const src = await rasterizeSvg(prepared);
+        const block = add({ type: "image", src, alt: alt.slice(0, 1000) || "SVG illustration" });
+        if (prepared.simplified)
+          report(
+            block,
+            "This SVG illustration was simplified: scripts, external styling, or unsupported effects were removed. The original EPUB is available to download.",
           );
-        if (encrypted.includes(path))
-          throw new Error("This book contains encrypted illustrations. Choose a DRM-free EPUB.");
-        if (!Object.hasOwn(files, path))
-          throw new Error("This book is missing an illustration. Try another EPUB.");
-        images.push({
-          beforeParagraph: paragraphs.length,
-          src: imageSource(files[path], asset.type),
-          alt: (
-            element.getAttribute("alt") ||
-            (tag === "image" &&
-              (content(element.parentElement!, "title") || content(document, "title"))) ||
-            "Book illustration"
-          ).slice(0, 1000),
-        });
-        return;
-      }
-      const block =
-        /^(?:p|div|section|article|aside|blockquote|h[1-6]|li|ul|ol|dl|dt|dd|figure|figcaption|pre|br|hr|table|tr)$/.test(
-          tag,
+      } catch (error) {
+        unavailable(
+          "SVG illustration",
+          error instanceof Error ? error.message : "This illustration couldn't be displayed.",
         );
-      if (block) flush();
-      for (const child of element.childNodes) visit(child);
-      if (block) flush();
+      }
     };
-    visit(body);
-    flush();
-    if (!paragraphs.length && images.length) paragraphs.push(images.map((i) => i.alt).join(". "));
-    if (!paragraphs.length) continue;
-    const text = paragraphs.join("\n\n");
-    totalText += text.length;
-    if (text.length > MAX_TEXT_LENGTH || totalText > MAX_BOOK_TEXT)
-      throw new Error(
-        "This book is too long for this version: up to 100,000 characters per chapter and 2 million per book.",
+    let title =
+      labels.get(originalItem.path) || labels.get(path) || `Chapter ${chapters.length + 1}`;
+    if (item.type === "image/svg+xml") {
+      const source = readable(path);
+      const svg = xml(source);
+      title = content(svg, "title") || title;
+      await addSvg(source, content(svg, "desc") || title, path);
+    } else if (item.type && rasterTypes.includes(item.type)) {
+      add({
+        type: "image",
+        src: rasterFile(path),
+        alt: title,
+      });
+    } else if (item.type !== "application/xhtml+xml") {
+      unavailable(
+        "Unavailable section",
+        `Still can't display this section's format (${item.type ?? "unknown"}). Download the original EPUB to read it in another reader.`,
       );
-    if (chapters.length >= 500 || images.length > 100)
-      throw new Error("This book has too many chapters or illustrations for this version.");
-    chapters.push({
-      id: item.path,
-      title: (
-        labels.get(item.path) ||
+    } else {
+      const document = xml(readable(path));
+      const body = elements(document, "body")[0];
+      if (!body) throw new Error("This EPUB contains a chapter without a reading body.");
+      title =
+        labels.get(originalItem.path) ||
+        labels.get(path) ||
         content(body, "h1") ||
         content(body, "h2") ||
         content(document, "title") ||
-        `Chapter ${chapters.length + 1}`
-      ).slice(0, 300),
-      text,
-      images,
-    });
+        title;
+      let buffer = "";
+      const flush = () => {
+        const text = buffer.replace(/\s+/gu, " ").trim();
+        if (text) add({ type: "text", text });
+        buffer = "";
+      };
+      const visit = async (node: Node): Promise<void> => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          buffer += node.textContent ?? "";
+          return;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+        const element = node as Element;
+        const tag = element.localName;
+        if (tag === "style") return;
+        if (tag === "script") {
+          flush();
+          unavailable(
+            "Interactive content",
+            "Scripts are disabled. Any static text remains readable; use the original EPUB for interactive features.",
+          );
+          return;
+        }
+        if (["math", "audio", "video", "iframe", "object", "canvas", "embed"].includes(tag)) {
+          flush();
+          const label =
+            ({ math: "Formula", audio: "Audio", video: "Video" } as Record<string, string>)[tag] ??
+            "Embedded content";
+          unavailable(
+            label,
+            "This content is preserved in the original EPUB but can't be displayed in Still yet.",
+          );
+          return;
+        }
+        if (tag === "table") {
+          flush();
+          const rows = elements(element, "tr");
+          if (
+            !rows.length ||
+            rows.length > 200 ||
+            ["table", "img", "svg", "math", "audio", "video", "object", "iframe"].some(
+              (name) => elements(element, name).length,
+            )
+          ) {
+            unavailable(
+              "Table",
+              "This table contains nested tables or media, or exceeds the supported size. Download the original EPUB to view it.",
+            );
+            return;
+          }
+          let cells = 0;
+          const result: TableCell[][] = [];
+          for (const row of rows) {
+            const columns = Array.from(row.children).filter((c) =>
+              ["td", "th"].includes(c.localName),
+            );
+            if (!columns.length || columns.length > 50 || (cells += columns.length) > 5000) {
+              unavailable("Table", "This table's layout exceeds the supported size.");
+              return;
+            }
+            const values: TableCell[] = [];
+            for (const cell of columns) {
+              const rowSpan = Number(cell.getAttribute("rowspan") ?? "1");
+              const colSpan = Number(cell.getAttribute("colspan") ?? "1");
+              if (![rowSpan, colSpan].every((n) => Number.isInteger(n) && n >= 1 && n <= 100)) {
+                unavailable("Table", "This table uses an unsupported cell layout.");
+                return;
+              }
+              const scope = cell.getAttribute("scope");
+              const clone = cell.cloneNode(true) as Element;
+              for (const child of [...elements(clone, "script"), ...elements(clone, "style")])
+                child.remove();
+              for (const child of [...elements(clone, "br"), ...elements(clone, "p")])
+                child.appendChild(document.createTextNode(" "));
+              values.push({
+                text: (clone.textContent ?? "").replace(/\s+/gu, " ").trim(),
+                header: cell.localName === "th",
+                rowSpan,
+                colSpan,
+                ...(["row", "col", "rowgroup", "colgroup"].includes(scope ?? "")
+                  ? { scope: scope as TableCell["scope"] }
+                  : {}),
+              });
+            }
+            result.push(values);
+          }
+          add({ type: "table", caption: content(element, "caption").slice(0, 1000), rows: result });
+          return;
+        }
+        if (tag === "svg") {
+          flush();
+          await addSvg(
+            new XMLSerializer().serializeToString(element),
+            content(element, "title") || content(element, "desc") || "SVG illustration",
+            path,
+          );
+          return;
+        }
+        if (tag === "img") {
+          flush();
+          const reference = element.getAttribute("src") ?? "";
+          const alt = (element.getAttribute("alt") || "Book illustration").slice(0, 1000);
+          try {
+            const imagePath = epubPath(path, reference);
+            const asset = [...manifest.values()].find((m) => m.path === imagePath);
+            if (asset?.type === "image/svg+xml") await addSvg(readable(imagePath), alt, imagePath);
+            else add({ type: "image", src: raster(path, reference), alt });
+          } catch (error) {
+            unavailable(
+              alt,
+              error instanceof Error ? error.message : "This illustration couldn't be displayed.",
+            );
+          }
+          return;
+        }
+        const block =
+          /^(?:p|div|section|article|aside|blockquote|h[1-6]|li|ul|ol|dl|dt|dd|figure|figcaption|pre|br|hr)$/.test(
+            tag,
+          );
+        if (block) flush();
+        for (const child of element.childNodes) await visit(child);
+        if (block) flush();
+      };
+      await visit(body);
+      flush();
+    }
+    if (!blocks.length) continue;
+    if (item !== originalItem)
+      report(blocks[0], "Still is displaying the publisher-provided fallback for this section.");
+    const size = blocks.reduce((n, b) => n + blockTextSize(b), 0);
+    totalText += size;
+    if (size > MAX_TEXT_LENGTH || totalText > MAX_BOOK_TEXT)
+      throw new Error(
+        "This book is too long for this version: up to 100,000 characters per chapter and 2 million per book.",
+      );
+    if (
+      chapters.length >= 500 ||
+      blocks.length > MAX_CHAPTER_BLOCKS ||
+      blocks.filter((b) => b.type === "image").length > 100 ||
+      issues.length > 2000
+    )
+      throw new Error(
+        "This book has too many chapters, illustrations, or unsupported sections for this version.",
+      );
+    chapters.push({ id: chapterId, title: title.slice(0, 300), blocks });
   }
   if (!chapters.length)
     throw new Error("No readable chapters were found. Choose a prose EPUB or paste its text.");
-  return {
+  const reading: Reading = {
     id: crypto.randomUUID(),
     title: (content(metadata, "title") || fallbackTitle || "Untitled book").slice(0, 300),
     author: content(metadata, "creator").slice(0, 300),
     kind: "epub",
     chapters,
     addedAt: Date.now(),
+    originalEpub: { name: originalName.slice(0, 200), data: toBase64(bytes) },
+    importIssues: issues,
   };
+  if (!validReading(reading))
+    throw new Error(
+      "This EPUB exceeds Still's document limits. Try another edition or a shorter passage.",
+    );
+  return reading;
 }

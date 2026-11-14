@@ -14,6 +14,8 @@ import { ReaderControls } from "../components/reader/ReaderControls";
 import { ReaderHeader } from "../components/reader/ReaderHeader";
 import { ReadingHeading } from "../components/reader/ReadingHeading";
 import type { ReaderView } from "../components/reader/ReadingHeading";
+import { ContextView } from "../components/reader/ContextView";
+import { downloadOriginal } from "../lib/reading-download";
 import { LibraryPanel } from "../components/reader/LibraryPanel";
 import { Button } from "../components/ui/button";
 
@@ -78,6 +80,15 @@ function ReaderPage() {
   const changeView = (next: ReaderView, playAfter = false) => {
     if (transitioning || next === view) return;
     reader.setPlaying(false);
+    if (reader.context) {
+      playAfterTransition.current = false;
+      flushSync(() => setView(next));
+      if (next === "article") {
+        activeRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
+        activeRef.current?.focus({ preventScroll: true });
+      }
+      return;
+    }
     playAfterTransition.current = playAfter;
     const source = view === "article" ? activeRef.current : focusRef.current;
     const from = source?.getBoundingClientRect();
@@ -177,6 +188,12 @@ function ReaderPage() {
     window.scrollTo({ top: 0, behavior: "instant" });
     requestAnimationFrame(() => articleRef.current?.focus({ preventScroll: true }));
   };
+  const continueAfterBlock = (blockId: string) => {
+    playAfterTransition.current = false;
+    reader.continueAfterBlock(blockId);
+    setView("focus");
+    requestAnimationFrame(() => playRef.current?.focus({ preventScroll: true }));
+  };
   return (
     <>
       <SkipLink href="#reading">Skip to reading</SkipLink>
@@ -220,7 +237,7 @@ function ReaderPage() {
             <ReadingHeading
               title={reader.title}
               sourceIsSample={reader.text === SAMPLE_TEXT}
-              wordCount={reader.words.length}
+              wordCount={reader.wordCount}
               view={view}
               disabled={transitioning || !reader.ready}
               onViewChange={changeView}
@@ -264,14 +281,32 @@ function ReaderPage() {
             {view === "article" ? (
               <ArticleView
                 title={reader.title}
-                paragraphs={reader.paragraphs}
+                chapter={reader.chapter}
+                entries={reader.words}
                 index={reader.index}
                 ready={reader.ready}
                 transitioning={transitioning}
                 articleRef={articleRef}
                 activeRef={activeRef}
                 onSeek={reader.seek}
-                images={reader.chapter.images}
+                onContinue={continueAfterBlock}
+                onDownloadOriginal={
+                  reader.reading.originalEpub ? () => downloadOriginal(reader.reading) : undefined
+                }
+              />
+            ) : reader.context ? (
+              <ContextView
+                actionRef={playRef}
+                block={reader.context}
+                finished={reader.finished}
+                onView={() => changeView("article")}
+                onContinue={() => continueAfterBlock(reader.context!.id)}
+                onRestart={reader.togglePlay}
+                onNextChapter={
+                  reader.chapterIndex < reader.reading.chapters.length - 1
+                    ? () => showChapter(reader.reading.chapters[reader.chapterIndex + 1].id)
+                    : undefined
+                }
               />
             ) : (
               <FocusView
@@ -299,6 +334,7 @@ function ReaderPage() {
             saving={reader.saving}
             storageError={reader.storageError}
             transitioning={transitioning}
+            contextPaused={view === "focus" && !!reader.context}
             playRef={playRef}
             onPlay={handlePlay}
             onReplay={reader.replay}

@@ -1,12 +1,29 @@
-import { MAX_TEXT_LENGTH, MAX_WPM, MIN_WPM, tokenize, validSnapshot } from "./reader";
+import { MAX_TEXT_LENGTH, MAX_WPM, MIN_WPM, validSnapshot } from "./reader";
 import { SAMPLE_TEXT, SAMPLE_TITLE } from "./sample";
+import { chapterSequence, positionAt, sequenceIndex } from "./reader-document";
+import { validLegacyLibrary } from "./library-v1";
+import type { Library as LegacyLibrary } from "./library-v1";
 
 export const MAX_READINGS = 100;
 export const MAX_BOOK_TEXT = 2_000_000;
+// A legacy 100,000-character passage can contain over 30,000 short paragraphs.
+export const MAX_CHAPTER_BLOCKS = 40_000;
 export const MAX_FILE_BYTES = 25_000_000;
-
-export type Illustration = { beforeParagraph: number; src: string; alt: string };
-export type Chapter = { id: string; title: string; text: string; images: Illustration[] };
+export const MAX_BACKUP_BYTES = 100_000_000;
+export type TextBlock = { id: string; type: "text"; text: string };
+export type ImageBlock = { id: string; type: "image"; src: string; alt: string };
+export type TableCell = {
+  text: string;
+  header: boolean;
+  rowSpan: number;
+  colSpan: number;
+  scope?: "row" | "col" | "rowgroup" | "colgroup";
+};
+export type TableBlock = { id: string; type: "table"; caption: string; rows: TableCell[][] };
+export type UnsupportedBlock = { id: string; type: "unsupported"; label: string; reason: string };
+export type ContentBlock = TextBlock | ImageBlock | TableBlock | UnsupportedBlock;
+export type Chapter = { id: string; title: string; blocks: ContentBlock[] };
+export type ImportIssue = { chapterId: string; blockId: string; message: string };
 export type Reading = {
   id: string;
   title: string;
@@ -14,16 +31,31 @@ export type Reading = {
   kind: "text" | "epub";
   chapters: Chapter[];
   addedAt: number;
+  originalEpub?: { name: string; data: string };
+  importIssues?: ImportIssue[];
 };
-export type Position = { chapterId: string; index: number; finished: boolean; updatedAt: number };
+export type Position = {
+  chapterId: string;
+  blockId: string;
+  index: number;
+  finished: boolean;
+  updatedAt: number;
+};
 export type Library = {
   readings: Reading[];
   positions: Record<string, Position>;
   activeId: string | null;
   wpm: number;
 };
-export type Backup = { format: "still-library"; version: 1; library: Library };
+export type Backup = { format: "still-library"; version: 2; library: Library };
 
+export function proseBlocks(text: string): TextBlock[] {
+  return text
+    .trim()
+    .split(/\n\s*\n/)
+    .filter((p) => p.trim())
+    .map((text, i) => ({ id: `p${i}`, type: "text", text }));
+}
 export function textReading(
   text: string,
   title: string,
@@ -36,32 +68,29 @@ export function textReading(
     title: title.trim().slice(0, 100) || "Untitled reading",
     author: "",
     kind: "text",
-    chapters: [{ id: "text", title: "Passage", text: text.trim(), images: [] }],
+    chapters: [{ id: "text", title: "Passage", blocks: proseBlocks(text) }],
     addedAt: Date.now(),
   };
 }
-
-// Stable server-rendered sample; never create random identifiers during hydration.
 export const sampleReading: Reading = {
   id: "still-sample",
   title: SAMPLE_TITLE,
   author: "",
   kind: "text",
   addedAt: 0,
-  chapters: [{ id: "text", title: "Passage", text: SAMPLE_TEXT, images: [] }],
+  chapters: [{ id: "text", title: "Passage", blocks: proseBlocks(SAMPLE_TEXT) }],
 };
-
 export function initialPosition(reading: Reading): Position {
-  return { chapterId: reading.chapters[0].id, index: 0, finished: false, updatedAt: 0 };
+  return positionAt(reading.chapters[0], 0, false, 0);
 }
 
 export function migrateSnapshot(value: unknown): Library {
   const reading = validSnapshot(value)
     ? textReading(value.text, value.title, "previous-reading")
     : sampleReading;
-  const position = initialPosition(reading);
-  if (validSnapshot(value))
-    position.index = Math.min(value.index, tokenize(reading.chapters[0].text).flat().length - 1);
+  const position = validSnapshot(value)
+    ? positionAt(reading.chapters[0], value.index, false, 0)
+    : initialPosition(reading);
   return {
     readings: [reading],
     positions: { [reading.id]: position },
@@ -70,82 +99,214 @@ export function migrateSnapshot(value: unknown): Library {
   };
 }
 
-const object = (value: unknown): value is Record<string, unknown> =>
-  !!value && typeof value === "object" && !Array.isArray(value);
-const string = (value: unknown, max: number): value is string =>
-  typeof value === "string" && value.length <= max;
-const identifier = (value: unknown): value is string =>
-  string(value, 1000) &&
-  value.length > 0 &&
-  !["__proto__", "constructor", "prototype"].includes(value);
-const timestamp = (value: unknown): value is number =>
-  typeof value === "number" && Number.isFinite(value) && value >= 0;
-
-export function validReading(value: unknown): value is Reading {
-  if (
-    !object(value) ||
-    !identifier(value.id) ||
-    !string(value.title, 300) ||
-    !value.title.trim() ||
-    !string(value.author, 300) ||
-    !["text", "epub"].includes(value.kind as string) ||
-    !timestamp(value.addedAt) ||
-    !Array.isArray(value.chapters) ||
-    !value.chapters.length ||
-    value.chapters.length > 500
-  )
-    return false;
-  let size = 0;
-  const ids = new Set<string>();
-  return value.chapters.every((chapter) => {
-    if (
-      !object(chapter) ||
-      !identifier(chapter.id) ||
-      ids.has(chapter.id) ||
-      !string(chapter.title, 300) ||
-      !string(chapter.text, MAX_TEXT_LENGTH) ||
-      !chapter.text.trim() ||
-      !Array.isArray(chapter.images) ||
-      chapter.images.length > 100
-    )
-      return false;
-    ids.add(chapter.id);
-    size += chapter.text.length;
-    const paragraphCount = chapter.text.split(/\n\s*\n/).length;
-    return (
-      size <= MAX_BOOK_TEXT &&
-      chapter.images.every(
-        (image) =>
-          object(image) &&
-          Number.isInteger(image.beforeParagraph) &&
-          (image.beforeParagraph as number) >= 0 &&
-          (image.beforeParagraph as number) <= paragraphCount &&
-          string(image.alt, 1000) &&
-          string(image.src, 7_000_000) &&
-          /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/]+=*$/.test(image.src),
-      )
-    );
-  });
+export function migrateV1Library(legacy: LegacyLibrary): Library {
+  const readings: Reading[] = legacy.readings.map((reading) => ({
+    id: reading.id,
+    title: reading.title,
+    author: reading.author,
+    kind: reading.kind,
+    addedAt: reading.addedAt,
+    chapters: reading.chapters.map((chapter) => {
+      const prose = proseBlocks(chapter.text);
+      const blocks: ContentBlock[] = [];
+      for (let i = 0; i <= prose.length; i++) {
+        chapter.images.forEach((image, j) => {
+          if (Math.min(image.beforeParagraph, prose.length) === i)
+            blocks.push({ id: `image${j}`, type: "image", src: image.src, alt: image.alt });
+        });
+        if (prose[i]) blocks.push(prose[i]);
+      }
+      return { id: chapter.id, title: chapter.title, blocks };
+    }),
+  }));
+  const positions = Object.fromEntries(
+    readings.map((reading) => {
+      const old = legacy.positions[reading.id];
+      const chapter = reading.chapters.find((c) => c.id === old.chapterId)!;
+      const sequence = chapterSequence(chapter);
+      const word = sequence.filter((entry) => !entry.context)[old.index];
+      return [
+        reading.id,
+        positionAt(
+          chapter,
+          word.index,
+          old.finished && word.index === sequence.length - 1,
+          old.updatedAt,
+        ),
+      ];
+    }),
+  );
+  return {
+    readings,
+    positions,
+    activeId: legacy.activeId ?? readings[0]?.id ?? null,
+    wpm: legacy.wpm,
+  };
 }
 
+const object = (v: unknown): v is Record<string, unknown> =>
+  !!v && typeof v === "object" && !Array.isArray(v);
+const string = (v: unknown, max: number): v is string => typeof v === "string" && v.length <= max;
+const identifier = (v: unknown): v is string =>
+  string(v, 1000) && !!v && !["__proto__", "constructor", "prototype"].includes(v);
+const timestamp = (v: unknown): v is number =>
+  typeof v === "number" && Number.isFinite(v) && v >= 0;
+const base64 = (v: unknown, max: number): v is string =>
+  string(v, max) && v.length > 0 && v.length % 4 === 0 && /^[A-Za-z0-9+/]*={0,2}$/.test(v);
+const span = (v: unknown) => Number.isInteger(v) && (v as number) >= 1 && (v as number) <= 100;
+
+function validBlock(v: unknown): v is ContentBlock {
+  if (!object(v) || !identifier(v.id)) return false;
+  if (v.type === "text") return string(v.text, MAX_TEXT_LENGTH) && !!v.text.trim();
+  if (v.type === "image")
+    return (
+      string(v.alt, 1000) &&
+      string(v.src, 7_000_000) &&
+      /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/]+=*$/.test(v.src)
+    );
+  if (v.type === "unsupported")
+    return string(v.label, 300) && !!v.label.trim() && string(v.reason, 1000) && !!v.reason.trim();
+  if (
+    v.type !== "table" ||
+    !string(v.caption, 1000) ||
+    !Array.isArray(v.rows) ||
+    !v.rows.length ||
+    v.rows.length > 200
+  )
+    return false;
+  let cells = 0;
+  return v.rows.every(
+    (row) =>
+      Array.isArray(row) &&
+      row.length > 0 &&
+      row.length <= 50 &&
+      (cells += row.length) <= 5000 &&
+      row.every(
+        (cell) =>
+          object(cell) &&
+          string(cell.text, MAX_TEXT_LENGTH) &&
+          typeof cell.header === "boolean" &&
+          span(cell.rowSpan) &&
+          span(cell.colSpan) &&
+          (cell.scope === undefined ||
+            ["row", "col", "rowgroup", "colgroup"].includes(cell.scope as string)),
+      ),
+  );
+}
+export function blockTextSize(block: ContentBlock): number {
+  return block.type === "text"
+    ? block.text.length
+    : block.type === "table"
+      ? block.caption.length + block.rows.flat().reduce((size, c) => size + c.text.length, 0)
+      : 0;
+}
+export function validReading(v: unknown): v is Reading {
+  if (
+    !object(v) ||
+    !identifier(v.id) ||
+    !string(v.title, 300) ||
+    !v.title.trim() ||
+    !string(v.author, 300) ||
+    !["text", "epub"].includes(v.kind as string) ||
+    !timestamp(v.addedAt) ||
+    !Array.isArray(v.chapters) ||
+    !v.chapters.length ||
+    v.chapters.length > 500
+  )
+    return false;
+  let total = 0;
+  const chapterIds = new Set<string>();
+  if (
+    !v.chapters.every((c) => {
+      if (
+        !object(c) ||
+        !identifier(c.id) ||
+        chapterIds.has(c.id) ||
+        !string(c.title, 300) ||
+        !Array.isArray(c.blocks) ||
+        !c.blocks.length ||
+        c.blocks.length > MAX_CHAPTER_BLOCKS ||
+        !c.blocks.every(validBlock)
+      )
+        return false;
+      chapterIds.add(c.id);
+      const ids = new Set(c.blocks.map((b: ContentBlock) => b.id));
+      const size = c.blocks.reduce((n: number, b: ContentBlock) => n + blockTextSize(b), 0);
+      total += size;
+      return (
+        ids.size === c.blocks.length &&
+        size <= MAX_TEXT_LENGTH &&
+        total <= MAX_BOOK_TEXT &&
+        c.blocks.filter((b: ContentBlock) => b.type === "image").length <= 100
+      );
+    })
+  )
+    return false;
+  if (
+    v.originalEpub !== undefined &&
+    (!object(v.originalEpub) ||
+      !string(v.originalEpub.name, 200) ||
+      !base64(v.originalEpub.data, Math.ceil(MAX_FILE_BYTES / 3) * 4))
+  )
+    return false;
+  const chapters = v.chapters as Chapter[];
+  if (
+    v.importIssues !== undefined &&
+    (!Array.isArray(v.importIssues) ||
+      v.importIssues.length > 2000 ||
+      !v.importIssues.every(
+        (issue) =>
+          object(issue) &&
+          string(issue.message, 1000) &&
+          chapters.some(
+            (c: Chapter) =>
+              c.id === issue.chapterId && c.blocks.some((b) => b.id === issue.blockId),
+          ),
+      ))
+  )
+    return false;
+  return true;
+}
 export function validPosition(value: unknown, reading: Reading): value is Position {
   if (
     !object(value) ||
+    !identifier(value.blockId) ||
     !Number.isInteger(value.index) ||
     (value.index as number) < 0 ||
     typeof value.finished !== "boolean" ||
     !timestamp(value.updatedAt)
   )
     return false;
-  const chapterIndex = reading.chapters.findIndex((c) => c.id === value.chapterId);
-  if (chapterIndex < 0) return false;
-  const count = chapterWordCounts(reading)[chapterIndex];
-  return (value.index as number) < count && (!value.finished || value.index === count - 1);
+  const chapter = reading.chapters.find((c) => c.id === value.chapterId);
+  if (!chapter) return false;
+  const index = sequenceIndex(chapter, value as Position);
+  return index >= 0 && (!value.finished || index === chapterSequence(chapter).length - 1);
 }
 
+function copyBlock(block: ContentBlock): ContentBlock {
+  if (block.type === "text") return { id: block.id, type: "text", text: block.text };
+  if (block.type === "image")
+    return { id: block.id, type: "image", src: block.src, alt: block.alt };
+  if (block.type === "unsupported")
+    return { id: block.id, type: "unsupported", label: block.label, reason: block.reason };
+  return {
+    id: block.id,
+    type: "table",
+    caption: block.caption,
+    rows: block.rows.map((row) =>
+      row.map((c) => ({
+        text: c.text,
+        header: c.header,
+        rowSpan: c.rowSpan,
+        colSpan: c.colSpan,
+        ...(c.scope ? { scope: c.scope } : {}),
+      })),
+    ),
+  };
+}
 export function parseBackup(raw: string): Library {
-  if (new TextEncoder().encode(raw).length > MAX_FILE_BYTES)
-    throw new Error("This backup is too large. Choose a backup smaller than 25 MB.");
+  if (new TextEncoder().encode(raw).length > MAX_BACKUP_BYTES)
+    throw new Error("Choose a Still backup smaller than 100 MB.");
   let data: unknown;
   try {
     data = JSON.parse(raw);
@@ -155,31 +316,38 @@ export function parseBackup(raw: string): Library {
   if (
     !object(data) ||
     data.format !== "still-library" ||
-    data.version !== 1 ||
+    ![1, 2].includes(data.version as number) ||
     !object(data.library)
   )
-    throw new Error("Choose a Still library backup (version 1).");
+    throw new Error("Choose a Still library backup (version 1 or 2).");
   const library = data.library;
   if (
-    !Array.isArray(library.readings) ||
-    library.readings.length > MAX_READINGS ||
-    !library.readings.every(validReading) ||
-    !object(library.positions) ||
     !Number.isInteger(library.wpm) ||
     (library.wpm as number) < MIN_WPM ||
     (library.wpm as number) > MAX_WPM
   )
-    throw new Error("This backup contains invalid readings or settings.");
+    throw new Error("This backup contains invalid settings.");
+  if (data.version === 1) {
+    if (!validLegacyLibrary(library))
+      throw new Error("This backup contains invalid readings or positions.");
+    return migrateV1Library(library);
+  }
+  if (
+    !Array.isArray(library.readings) ||
+    library.readings.length > MAX_READINGS ||
+    !library.readings.every(validReading) ||
+    !object(library.positions)
+  )
+    throw new Error("This backup contains invalid readings.");
   const ids = new Set(library.readings.map((r: Reading) => r.id));
   if (
     ids.size !== library.readings.length ||
-    (library.activeId !== null && !ids.has(library.activeId as string)) ||
+    (library.activeId === null ? ids.size > 0 : !ids.has(library.activeId as string)) ||
     !library.readings.every((r: Reading) =>
       validPosition((library.positions as Record<string, unknown>)[r.id], r),
     )
   )
     throw new Error("This backup contains invalid reading positions.");
-  // Only copy schema fields. Extra user-controlled keys never enter application state.
   const readings = library.readings.map((r: Reading): Reading => ({
     id: r.id,
     title: r.title,
@@ -189,16 +357,33 @@ export function parseBackup(raw: string): Library {
     chapters: r.chapters.map((c) => ({
       id: c.id,
       title: c.title,
-      text: c.text,
-      images: c.images.map((i) => ({ src: i.src, alt: i.alt, beforeParagraph: i.beforeParagraph })),
+      blocks: c.blocks.map(copyBlock),
     })),
+    ...(r.originalEpub
+      ? { originalEpub: { name: r.originalEpub.name, data: r.originalEpub.data } }
+      : {}),
+    ...(r.importIssues
+      ? {
+          importIssues: r.importIssues.map((i) => ({
+            chapterId: i.chapterId,
+            blockId: i.blockId,
+            message: i.message,
+          })),
+        }
+      : {}),
   }));
   const positions = Object.fromEntries(
     readings.map((r) => {
       const p = (library.positions as Record<string, Position>)[r.id];
       return [
         r.id,
-        { chapterId: p.chapterId, index: p.index, finished: p.finished, updatedAt: p.updatedAt },
+        {
+          chapterId: p.chapterId,
+          blockId: p.blockId,
+          index: p.index,
+          finished: p.finished,
+          updatedAt: p.updatedAt,
+        },
       ];
     }),
   );
@@ -209,27 +394,21 @@ export function parseBackup(raw: string): Library {
     wpm: library.wpm as number,
   };
 }
-
 export function serializeBackup(library: Library): string {
-  const data: Backup = { format: "still-library", version: 1, library };
+  const data: Backup = { format: "still-library", version: 2, library };
   const raw = JSON.stringify(data);
-  if (new TextEncoder().encode(raw).length > MAX_FILE_BYTES)
+  if (new TextEncoder().encode(raw).length > MAX_BACKUP_BYTES)
     throw new Error(
-      "The library exceeds the 25 MB backup limit. Export individual readings instead.",
+      "The library exceeds the 100 MB backup limit. Export individual readings instead.",
     );
   return raw;
 }
-
 export function assertLibraryCapacity(library: Library): void {
-  // Reserve space for longer positions/timestamps so a near-limit import can
-  // always be exported and reopened after its reading progress advances.
-  if (new TextEncoder().encode(serializeBackup(library)).length > MAX_FILE_BYTES - 10_000)
+  if (new TextEncoder().encode(serializeBackup(library)).length > MAX_BACKUP_BYTES - 10_000)
     throw new Error(
-      "This would fill your library's 25 MB backup allowance. Export and remove a reading before importing more.",
+      "This would fill your library's 100 MB backup allowance. Export and remove a reading before importing more.",
     );
 }
-
-/** Restore adds readings; an existing reading and its newer progress always win. */
 export function mergeLibrary(current: Library, incoming: Library): Library {
   const readings = [...current.readings];
   const positions = { ...current.positions };
@@ -257,25 +436,13 @@ export function mergeLibrary(current: Library, incoming: Library): Library {
     wpm: current.readings.length ? current.wpm : incoming.wpm,
   };
 }
-
-const countsByReading = new WeakMap<Reading, number[]>();
-function chapterWordCounts(reading: Reading): number[] {
-  let counts = countsByReading.get(reading);
-  if (!counts) {
-    counts = reading.chapters.map((c) =>
-      tokenize(c.text).reduce((sum, paragraph) => sum + paragraph.length, 0),
-    );
-    countsByReading.set(reading, counts);
-  }
-  return counts;
-}
-
 export function readingProgress(reading: Reading, position: Position): number {
   const chapter = reading.chapters.findIndex((c) => c.id === position.chapterId);
-  const counts = chapterWordCounts(reading);
+  const counts = reading.chapters.map((c) => chapterSequence(c).length);
   const before = counts.slice(0, chapter).reduce((a, b) => a + b, 0);
   return Math.floor(
-    (100 * (before + position.index + (position.finished ? 1 : 0))) /
+    (100 *
+      (before + sequenceIndex(reading.chapters[chapter], position) + (position.finished ? 1 : 0))) /
       counts.reduce((a, b) => a + b, 0),
   );
 }
