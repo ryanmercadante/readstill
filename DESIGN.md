@@ -85,7 +85,7 @@ components:
 
 Still is a quiet, warm paper reading surface. Serif prose carries the attention; compact sans-serif controls support choosing a pace and returning to context. The article remains open and flat, with no stock imagery.
 
-This is an implementation record, not user-confirmed branding. The working name, metaphor, descriptive color names and visual direction are provisional. `src/styles.css` is the visual source of truth; `src/App.tsx` supplies interaction and transition behavior. Frontmatter records observed values, not a new token API or a promised global spacing scale.
+This is an implementation record, not user-confirmed branding. The working name, metaphor, descriptive color names and visual direction are provisional. `src/styles.css` is the visual source of truth; `src/routes/reader.tsx` coordinates interaction and transitions, with reading surfaces and controls in `src/components/reader/`. Frontmatter records observed values, not a new token API or a promised global spacing scale.
 
 **Key Characteristics:**
 - Warm paper and restrained terracotta emphasis.

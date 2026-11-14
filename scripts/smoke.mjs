@@ -130,6 +130,16 @@ try {
   await page.getByRole('button', { name: 'Paste text', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Start reading', exact: true }).click();
   assert.match(await page.getByRole('alert').textContent(), /Add a few words/);
+  await page.getByLabel('Title (optional)').fill('Discarded draft');
+  await page.getByRole('button', { name: 'Close paste dialog' }).click();
+  await page.waitForFunction(() => document.activeElement?.matches('.play-button'));
+  await page.getByRole('button', { name: 'Paste text', exact: true }).click();
+  assert.equal(await page.getByLabel('Title (optional)').inputValue(), '');
+  assert.equal(await page.getByRole('alert').count(), 0);
+  await page.getByLabel('Your text', { exact: true }).fill('Discarded text');
+  await page.getByRole('button', { name: 'Close paste dialog' }).click();
+  await page.getByRole('button', { name: 'Paste text', exact: true }).click();
+  assert.equal(await page.getByLabel('Your text', { exact: true }).inputValue(), '');
   await page.getByRole('button', { name: 'Close paste dialog' }).click();
 
   const text = 'First sentence ends here. A second sentence is here.\n\nThe final paragraph has a few words.';
