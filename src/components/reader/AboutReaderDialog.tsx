@@ -27,12 +27,12 @@ export function AboutReaderDialog({ open, onOpenChange, returnFocusRef }: AboutR
           </DialogClose>
         </DialogHeader>
         <DialogDescription className="text-[14px] leading-[1.8]">
-          Still lets you move between a whole passage and one word at a time. You choose the pace.
+          Read freely in Article, follow a moving word highlight in Guided, or see one word at a
+          time in Focus. You choose the pace.
         </DialogDescription>
         <p className="text-[14px] leading-[1.8] text-muted-foreground">
-          This technique is called rapid serial visual presentation, or RSVP. The colored letter
-          provides a steady visual anchor. It isn't a promise of faster reading or better
-          comprehension.
+          Focus uses rapid serial visual presentation, or RSVP. The colored letter provides a steady
+          visual anchor. It isn't a promise of faster reading or better comprehension.
         </p>
         <p className="text-[14px] leading-[1.8] text-muted-foreground">
           Pause, reread, and slow down whenever you need to. The WPM setting controls presentation

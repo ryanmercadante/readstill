@@ -6,6 +6,8 @@ import { blockLabel } from "../../lib/reader-document";
 import { Button } from "../ui/button";
 
 type Props = {
+  guided: boolean;
+  playing: boolean;
   title: string;
   chapter: Chapter;
   entries: ReadingEntry[];
@@ -19,6 +21,8 @@ type Props = {
   onDownloadOriginal?: () => void;
 };
 export function ArticleView({
+  guided,
+  playing,
   title,
   chapter,
   entries,
@@ -42,16 +46,29 @@ export function ArticleView({
   }, [entries]);
   useEffect(() => {
     if (!ready || transitioning) return;
-    const word = activeRef.current;
-    const rect = word?.getBoundingClientRect();
-    if (rect && (rect.top < 20 || rect.bottom > window.innerHeight - 190))
-      word?.scrollIntoView({ block: "center", behavior: "instant" });
-  }, [index, chapter.id, ready, transitioning, activeRef]);
+    const keepVisible = () => {
+      const word = activeRef.current;
+      const rect = word?.getBoundingClientRect();
+      if (!rect) return;
+      const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
+      const dockTop =
+        document.querySelector(".reader-dock")?.getBoundingClientRect().top ?? window.innerHeight;
+      const top = Math.max(0, headerBottom) + 16;
+      const bottom = Math.min(window.innerHeight, dockTop) - 16;
+      if (rect.top < top || rect.bottom > bottom)
+        window.scrollBy({ top: rect.top - (top + bottom - rect.height) / 2, behavior: "instant" });
+    };
+    keepVisible();
+    window.addEventListener("resize", keepVisible);
+    return () => window.removeEventListener("resize", keepVisible);
+  }, [index, chapter.id, ready, transitioning, activeRef, playing]);
   return (
     <div className="mx-auto max-w-[680px]">
       <p className="mt-[30px] mb-[25px] flex items-center gap-[9px] text-[11px] text-muted-foreground max-[520px]:mt-6 max-[520px]:text-[10px] max-[520px]:leading-[1.5]">
         <span className="size-[5px] shrink-0 rounded-full bg-brand" />
-        Tap a word to find your place. Press play to focus.
+        {guided
+          ? "Press play to follow the highlight. Tap a word to pause and choose your place."
+          : "Tap a word to find your place. Press play to focus."}
       </p>
       <article
         ref={articleRef}

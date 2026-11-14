@@ -91,30 +91,36 @@ function ReaderPage() {
   const changeView = (next: ReaderView, playAfter = false) => {
     if (transitioning || next === view) return;
     reader.setPlaying(false);
+    // Article and Guided share the same surface; only Focus needs a word flight.
+    if (view !== "focus" && next !== "focus") {
+      playAfterTransition.current = false;
+      setView(next);
+      return;
+    }
     if (reader.context) {
       playAfterTransition.current = false;
       flushSync(() => setView(next));
-      if (next === "article") {
+      if (next !== "focus") {
         activeRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
         activeRef.current?.focus({ preventScroll: true });
       }
       return;
     }
     playAfterTransition.current = playAfter;
-    const source = view === "article" ? activeRef.current : focusRef.current;
+    const source = view === "focus" ? focusRef.current : activeRef.current;
     const from = source?.getBoundingClientRect();
     const size = source ? parseFloat(getComputedStyle(source).fontSize) : 24;
     flushSync(() => {
       setTransitioning(true);
       setView(next);
     });
-    if (next === "article")
+    if (next !== "focus")
       activeRef.current?.scrollIntoView({
         block: "center",
         behavior: "instant",
       });
     transitionFrame.current = requestAnimationFrame(() => {
-      const target = next === "article" ? activeRef.current : focusRef.current;
+      const target = next === "focus" ? focusRef.current : activeRef.current;
       const to = target?.getBoundingClientRect();
       if (reducedMotion || !from || !to || from.bottom < 0 || from.top > window.innerHeight) {
         finishTransition();
@@ -187,14 +193,14 @@ function ReaderPage() {
   const showChapter = (id: string) => {
     playAfterTransition.current = false;
     reader.openChapter(id);
-    setView("article");
+    setView(view === "guided" ? "guided" : "article");
     window.scrollTo({ top: 0, behavior: "instant" });
     requestAnimationFrame(() => articleRef.current?.focus({ preventScroll: true }));
   };
   const continueAfterBlock = (blockId: string) => {
     playAfterTransition.current = false;
     reader.continueAfterBlock(blockId);
-    setView("focus");
+    setView(view === "guided" ? "guided" : "focus");
     requestAnimationFrame(() => playRef.current?.focus({ preventScroll: true }));
   };
   if (!reader.isSample && (!reader.ready || !reader.library.readings.length))
@@ -226,7 +232,7 @@ function ReaderPage() {
           disabled={transitioning || !reader.ready}
           onViewChange={changeView}
         />
-        {reader.reading.kind === "epub" && view === "article" && (
+        {reader.reading.kind === "epub" && view !== "focus" && (
           <nav aria-label="Chapters" className="mt-6 flex flex-wrap items-center gap-3">
             <label htmlFor="chapter" className="text-xs text-muted-foreground">
               Chapter {reader.chapterIndex + 1} of {reader.reading.chapters.length}
@@ -260,8 +266,10 @@ function ReaderPage() {
             </Button>
           </nav>
         )}
-        {view === "article" ? (
+        {view !== "focus" ? (
           <ArticleView
+            guided={view === "guided"}
+            playing={reader.playing}
             title={reader.title}
             chapter={reader.chapter}
             entries={reader.words}
@@ -318,6 +326,7 @@ function ReaderPage() {
         storageError={reader.storageError}
         transitioning={transitioning}
         contextPaused={view === "focus" && !!reader.context}
+        atContext={view === "guided" && !!reader.context}
         playRef={playRef}
         onPlay={handlePlay}
         onReplay={reader.replay}

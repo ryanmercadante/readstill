@@ -152,9 +152,11 @@ Pale cream fields have a 1px border, rounded field corners and 12px padding. The
 
 ### Navigation
 
-Article and Focus are a two-button group with `aria-pressed` state. The selected view has a cream fill, charcoal text and a small shadow; the inactive view uses `#68655d` for sufficient contrast against the switch track. A shadcn Base UI ToggleGroup supplies roving keyboard focus and single selection; pressing the selected item keeps that view active. The group becomes full width on phones. The header provides the wordmark, theme toggle, About action and Paste text action. On phones at 360px and below, Paste text keeps its label and hides the plus icon to fit the additional theme control.
+Article, Guided, and Focus are a three-button group with `aria-pressed` state. The selected view has a cream fill, charcoal text and a small shadow; the inactive view uses `#68655d` for sufficient contrast against the switch track. A shadcn Base UI ToggleGroup supplies roving keyboard focus and single selection; pressing the selected item keeps that view active. The group becomes full width on phones. The header provides the wordmark, theme toggle, About action and Paste text action. On phones at 360px and below, Paste text keeps its label and hides the plus icon to fit the additional theme control.
 
 ### Article and Focus Reader
+
+Guided reuses the article surface and advances the current-word highlight at the selected pace. It scrolls only when the active word leaves the space between the sticky header and playback dock. Article/Guided changes have no word-flight animation; transitions into or out of Focus retain it. Changing modes pauses playback and preserves position. Guided keeps chapter controls and rich content visible, pauses at context blocks, and resumes in Guided after Continue.
 
 Article words are selectable reading positions, with a clay current-word highlight; selecting text does not move the reading position. Play from article moves into focus and then starts playback. Switching back to the passage returns paused and brings the active word into view. One floating word moves and changes size between the two positions over 0.42 seconds with `cubic-bezier(0.16, 1, 0.3, 1)`. The source/target word is hidden during that flight. Reduced motion, missing measurements or an offscreen source skip the flight. Playback word changes have no added animation.
 

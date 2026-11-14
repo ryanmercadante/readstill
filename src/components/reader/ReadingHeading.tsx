@@ -1,7 +1,7 @@
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { AlignLeft, Focus } from "lucide-react";
+import { AlignLeft, Focus, Highlighter } from "lucide-react";
 
-export type ReaderView = "article" | "focus";
+export type ReaderView = "article" | "guided" | "focus";
 
 type ReadingHeadingProps = {
   title: string;
@@ -44,11 +44,11 @@ export function ReadingHeading({
         disabled={disabled}
         onValueChange={(values) => {
           const next = values[0];
-          if (next === "article" || next === "focus") onViewChange(next);
+          if (next === "article" || next === "guided" || next === "focus") onViewChange(next);
         }}
       >
         <ToggleGroupItem
-          className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center"
+          className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center max-[520px]:px-2"
           value="article"
           disabled={disabled}
         >
@@ -56,7 +56,15 @@ export function ReadingHeading({
           Article
         </ToggleGroupItem>
         <ToggleGroupItem
-          className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center"
+          className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center max-[520px]:px-2"
+          value="guided"
+          disabled={disabled}
+        >
+          <Highlighter size={16} />
+          Guided
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center max-[520px]:px-2"
           value="focus"
           disabled={disabled}
         >

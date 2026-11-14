@@ -20,7 +20,7 @@ The first visit migrates the previous single reading or version-1 library into t
 ## Included
 
 - A temporary sample demo from the landing page’s **Try it** button, plus paste-your-own text (up to 100,000 characters). The sample and its position are not saved to the library.
-- Article and focus views with one shared word position.
+- Article, Guided, and Focus modes with one shared word position. Guided keeps the article visible while playback highlights each word and scrolls it into view.
 - A word-to-focus transition, with an immediate transition for reduced-motion preferences.
 - A stationary highlighted anchor, 100–700 WPM controls, sentence/paragraph pauses, play/pause, word stepping, and sentence replay.
 - Automatic pause when the page is hidden. Resuming gives the current word a full presentation interval; missed frames never skip words.
@@ -30,7 +30,7 @@ The first visit migrates the previous single reading or version-1 library into t
 - Export the entire library or an individual reading as a Still JSON backup; restore adds readings and preserves existing progress. Removal asks for confirmation.
 - Keyboard shortcuts outside inputs and buttons: Space plays/pauses, arrow keys step words, R replays the sentence, Escape returns to article view. Buttons retain normal keyboard behavior.
 
-Click **Read** in article view to transition into focus and start playback. The Article/Focus toggle changes views without starting playback. Returning to article view pauses reading.
+Click **Read** in article view to transition into focus and start playback. Choose **Guided** to play through the article with a moving highlight, or **Focus** for one word at a time. Changing modes pauses playback and keeps your position. Guided pauses at rich-content blocks; Continue resumes in Guided.
 
 Open **Library** (the book icon in the header on small screens) to import a book or continue a saved reading. Pasting text adds a reading without replacing previous passages. Selecting a chapter starts it from the beginning; reopening a book resumes its last chapter and word.
 
@@ -59,6 +59,7 @@ pnpm test
 pnpm build
 pnpm exec playwright install chromium
 pnpm test:e2e http://127.0.0.1:5173
+pnpm test:guided http://127.0.0.1:5173
 pnpm test:library http://127.0.0.1:5173
 pnpm test:rich-epub http://127.0.0.1:5173
 pnpm test:a11y http://127.0.0.1:5173

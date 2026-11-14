@@ -59,8 +59,15 @@ try {
     name: "Article",
     exact: true,
   });
+  const guidedToggle = page.getByRole("button", { name: "Guided", exact: true });
   const focusToggle = page.getByRole("button", { name: "Focus", exact: true });
   await articleToggle.focus();
+  await page.keyboard.press("ArrowRight");
+  assert.equal(await guidedToggle.evaluate((node) => node === document.activeElement), true);
+  await page.keyboard.press("Space");
+  assert.equal(await guidedToggle.getAttribute("aria-pressed"), "true");
+  await audit("guided desktop");
+  await guidedToggle.focus();
   await page.keyboard.press("ArrowRight");
   assert.equal(await focusToggle.evaluate((node) => node === document.activeElement), true);
   await page.keyboard.press("Space");
@@ -129,6 +136,8 @@ try {
   await articleToggle.click();
   await settled();
   await audit("article mobile");
+  await guidedToggle.click();
+  await audit("guided mobile");
   for (const name of ["Paste text", "About this reader"]) {
     await page.getByRole("button", { name, exact: true }).click();
     await page.getByRole("dialog").waitFor();

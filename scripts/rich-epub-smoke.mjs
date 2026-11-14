@@ -100,6 +100,24 @@ try {
   }
   await page.screenshot({ path: ".impeccable/review/rich-article-mobile.png", fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByRole("button", { name: "Guided", exact: true }).click();
+  await page.locator('[data-word="0"]').click();
+  await page.getByRole("slider").fill("700");
+  await page.getByRole("button", { name: "Read passage", exact: true }).click();
+  await page.waitForFunction(
+    () => document.querySelector('[aria-current="location"]')?.textContent === "Reading results",
+  );
+  assert.equal(await page.locator("#reading").getAttribute("data-view"), "guided");
+  assert.ok(await page.getByRole("button", { name: "Read passage", exact: true }).isDisabled());
+  await page.getByRole("slider").fill("100");
+  await page.getByRole("button", { name: "Continue after table", exact: true }).click();
+  await page.getByRole("button", { name: "Pause reading", exact: true }).click();
+  assert.equal(await page.locator('[aria-current="location"]').textContent(), "After");
+  assert.equal(await page.locator("#reading").getAttribute("data-view"), "guided");
+  await page.getByRole("button", { name: "Next chapter", exact: true }).click();
+  assert.equal(await page.locator("#reading").getAttribute("data-view"), "guided");
+  await page.getByRole("button", { name: "Previous chapter", exact: true }).click();
+  await page.getByRole("button", { name: "Article", exact: true }).click();
   await page.locator('[data-word="0"]').click();
   await page.getByRole("slider").fill("700");
   await page.getByRole("button", { name: "Read passage", exact: true }).click();

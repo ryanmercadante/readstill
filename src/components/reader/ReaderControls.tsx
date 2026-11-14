@@ -18,6 +18,7 @@ type ReaderControlsProps = {
   storageError: string;
   transitioning: boolean;
   contextPaused?: boolean;
+  atContext?: boolean;
   playRef: RefObject<HTMLButtonElement | null>;
   onPlay: () => void;
   onReplay: () => void;
@@ -37,6 +38,7 @@ export function ReaderControls({
   storageError,
   transitioning,
   contextPaused = false,
+  atContext = false,
   playRef,
   onPlay,
   onReplay,
@@ -107,7 +109,7 @@ export function ReaderControls({
             className="max-[520px]:min-w-[34px]"
             title="Replay sentence (R)"
             aria-label="Replay sentence"
-            disabled={transitioning || !ready || contextPaused}
+            disabled={transitioning || !ready || contextPaused || atContext}
             onClick={onReplay}
           >
             <RotateCcw size={19} />
@@ -117,7 +119,7 @@ export function ReaderControls({
             ref={playRef}
             className="play-button min-w-[114px] max-[520px]:min-w-[68px] max-[520px]:px-[15px] max-[520px]:py-0"
             onClick={onPlay}
-            disabled={!ready || transitioning || contextPaused}
+            disabled={!ready || transitioning || contextPaused || (atContext && !finished)}
             aria-label={playing ? "Pause reading" : finished ? "Read again" : "Read passage"}
           >
             {playing ? (
