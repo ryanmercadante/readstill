@@ -8,11 +8,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "min-h-[47px] gap-[11px] bg-primary px-6 py-0 text-[12px] font-semibold text-primary-foreground hover:bg-[#514d40]",
+          "min-h-[47px] gap-[11px] bg-primary px-6 py-0 text-[12px] font-semibold text-primary-foreground hover:bg-primary-hover",
         outline:
-          "min-h-[42px] gap-[9px] border border-solid border-[#cec9be] bg-transparent px-4 py-[10px] text-[12px] font-[650] hover:border-foreground hover:bg-[#f0ede5]",
-        ghost: "min-h-[42px] min-w-10 bg-transparent px-[6px] py-[2px] hover:enabled:bg-[#eae6dd]",
-        link: "gap-[7px] bg-transparent p-[10px] text-[12px] underline decoration-[#b4ab9d] underline-offset-4 hover:text-ring",
+          "min-h-[42px] gap-[9px] border border-solid border-outline bg-transparent px-4 py-[10px] text-[12px] font-[650] hover:border-foreground hover:bg-accent",
+        ghost:
+          "min-h-[42px] min-w-10 bg-transparent px-[6px] py-[2px] hover:enabled:bg-ghost-hover",
+        link: "gap-[7px] bg-transparent p-[10px] text-[12px] underline decoration-link-underline underline-offset-4 hover:text-ring",
         text: "bg-transparent px-0 py-[10px] text-[11px] underline",
         plain: "",
       },

@@ -11,7 +11,7 @@ type ReaderHeaderProps = {
 export function ReaderHeader({ disabled, onAbout, onPaste }: ReaderHeaderProps) {
   return (
     <SiteHeader>
-      <div className="ml-auto flex items-center gap-[22px] max-[520px]:gap-[9px]">
+      <div className="flex items-center gap-[22px] max-[520px]:gap-1">
         <Button
           variant="ghost"
           className="about-button"
@@ -26,7 +26,7 @@ export function ReaderHeader({ disabled, onAbout, onPaste }: ReaderHeaderProps) 
           onClick={onPaste}
           disabled={disabled}
         >
-          <Plus size={17} />
+          <Plus size={17} className="max-[360px]:hidden" />
           Paste text
         </Button>
       </div>

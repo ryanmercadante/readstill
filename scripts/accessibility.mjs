@@ -10,6 +10,7 @@ try {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
     reducedMotion: "reduce",
+    colorScheme: process.argv[3] || "light",
   });
   const page = await context.newPage();
   page.on("pageerror", (error) => errors.push(error.message));
@@ -44,6 +45,9 @@ try {
 
   await page.goto(baseUrl);
   await page.waitForLoadState("networkidle");
+  if (process.argv[3] === "dark") {
+    await page.getByRole("button", { name: "Dark mode", exact: true }).click();
+  }
   await audit("landing desktop");
   const cta = page.getByRole("link", { name: "Try it", exact: true });
   await cta.focus();

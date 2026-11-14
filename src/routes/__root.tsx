@@ -1,15 +1,17 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { createRootRoute, HeadContent, Link, Scripts } from "@tanstack/react-router";
 import stylesUrl from "../styles.css?url";
 import manropeUrl from "@fontsource-variable/manrope/index.css?url";
 import sourceSerifUrl from "@fontsource-variable/source-serif-4/index.css?url";
+import { readTheme, saveTheme, themeColors } from "../lib/theme";
+import { ThemeContext } from "../hooks/useTheme";
 
 export const Route = createRootRoute({
+  beforeLoad: () => ({ theme: readTheme() }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#f7f5ef" },
       { title: "Still — Make room for reading" },
       {
         name: "description",
@@ -36,13 +38,22 @@ export const Route = createRootRoute({
 });
 
 function RootDocument({ children }: { children: ReactNode }) {
+  const initial = Route.useRouteContext();
+  const [theme, setTheme] = useState(initial.theme);
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    saveTheme(next);
+    setTheme(next);
+  };
+
   return (
-    <html lang="en">
+    <html lang="en" data-theme={theme}>
       <head>
+        <meta name="theme-color" content={themeColors[theme]} />
         <HeadContent />
       </head>
       <body>
-        {children}
+        <ThemeContext value={{ theme, toggleTheme }}>{children}</ThemeContext>
         <Scripts />
       </body>
     </html>

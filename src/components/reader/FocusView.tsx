@@ -72,7 +72,7 @@ export function FocusView({
         ref={focusStageRef}
       >
         <div
-          className="absolute top-[23px] left-1/2 h-[19px] w-px bg-[#baa08d] compact-reader:top-[5px] compact-reader:h-3"
+          className="absolute top-[23px] left-1/2 h-[19px] w-px bg-guide compact-reader:top-[5px] compact-reader:h-3"
           aria-hidden="true"
         />
         <div
@@ -92,7 +92,7 @@ export function FocusView({
           </span>
         </div>
         <div
-          className="absolute bottom-[23px] left-1/2 h-[19px] w-px bg-[#baa08d] compact-reader:bottom-[5px] compact-reader:h-3"
+          className="absolute bottom-[23px] left-1/2 h-[19px] w-px bg-guide compact-reader:bottom-[5px] compact-reader:h-3"
           aria-hidden="true"
         />
       </div>

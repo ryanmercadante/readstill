@@ -40,7 +40,7 @@ export function ArticleView({
       </p>
       <article
         ref={articleRef}
-        className="font-serif text-[22px] leading-[1.85] font-normal max-[800px]:text-[21px] max-[520px]:text-[20px] [&_[data-word]]:cursor-pointer [&_[data-word]]:rounded-[3px] [&_[data-word]:hover]:bg-[#ebe6dc] [&_[aria-current=location]]:bg-highlight [&_[aria-current=location]]:text-highlight-foreground [&_[aria-current=location]]:shadow-[3px_0_0_var(--tint),-3px_0_0_var(--tint)]"
+        className="font-serif text-[22px] leading-[1.85] font-normal max-[800px]:text-[21px] max-[520px]:text-[20px] [&_[data-word]]:cursor-pointer [&_[data-word]]:rounded-[3px] [&_[data-word]:hover]:bg-word-hover [&_[aria-current=location]]:bg-highlight [&_[aria-current=location]]:text-highlight-foreground [&_[aria-current=location]]:shadow-[3px_0_0_var(--tint),-3px_0_0_var(--tint)]"
         tabIndex={0}
         aria-label={title}
         aria-describedby="reading-shortcuts"
@@ -71,8 +71,8 @@ export function ArticleView({
         ))}
       </article>
       <div className="mt-[54px] flex items-center justify-center gap-[18px] font-serif text-[15px] text-muted-foreground italic">
-        <span className="h-px w-7.5 bg-[#c8c2b6]" />A little space to take it in.
-        <span className="h-px w-7.5 bg-[#c8c2b6]" />
+        <span className="h-px w-7.5 bg-divider" />A little space to take it in.
+        <span className="h-px w-7.5 bg-divider" />
       </div>
     </div>
   );

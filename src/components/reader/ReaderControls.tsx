@@ -130,7 +130,7 @@ export function ReaderControls({
         </div>
         <div className="text-right text-[12px] tabular-nums max-[800px]:hidden">
           <span>
-            {index + 1} <span className="mx-[5px] text-[#a9a292]">/</span> {wordCount}
+            {index + 1} <span className="mx-[5px] text-muted-foreground">/</span> {wordCount}
           </span>
           <small
             className="mt-2 flex items-center justify-end gap-1 text-[9px] text-muted-foreground"

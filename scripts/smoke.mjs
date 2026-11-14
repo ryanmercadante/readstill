@@ -4,7 +4,10 @@ import { chromium } from "@playwright/test";
 
 // Run against an already running dev or preview server: pnpm test:e2e <url>
 const browser = await chromium.launch();
-const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+const context = await browser.newContext({
+  viewport: { width: 1440, height: 1000 },
+  colorScheme: process.argv[3] || "light",
+});
 const page = await context.newPage();
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
@@ -53,6 +56,9 @@ try {
   // The server-rendered link works before hydration; wait for the client entry
   // before asserting that this particular click uses client-side routing.
   await page.waitForLoadState("networkidle");
+  if (process.argv[3] === "dark") {
+    await page.getByRole("button", { name: "Dark mode", exact: true }).click();
+  }
   await page.getByRole("heading", { name: "A little space. One word at a time." }).waitFor();
   assert.equal(
     await page.getByRole("link", { name: "Try it", exact: true }).getAttribute("href"),

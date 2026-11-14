@@ -33,7 +33,7 @@ function Slider({
       <SliderPrimitive.Control className="relative flex h-full touch-none items-center select-none">
         <SliderPrimitive.Track
           data-slot="slider-track"
-          className="relative h-2 w-full overflow-hidden rounded-[4px] border border-solid border-[#b6b6b6] bg-[#efefef]"
+          className="relative h-2 w-full overflow-hidden rounded-[4px] border border-solid border-slider-border bg-slider-track"
         >
           <SliderPrimitive.Indicator data-slot="slider-range" className="h-full bg-ring" />
         </SliderPrimitive.Track>

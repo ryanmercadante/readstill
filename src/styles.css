@@ -3,29 +3,46 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "tw-animate-css";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @custom-variant compact-reader (@media (max-height: 740px) and (max-width: 800px));
 
 /* Preserve the existing document defaults instead of resetting the page with Preflight. */
 @theme inline {
   --color-brand: var(--accent);
   --color-highlight: var(--tint);
-  --color-highlight-foreground: #7b3525;
+  --color-highlight-foreground: var(--highlight-ink);
   --color-background: var(--paper);
   --color-foreground: var(--ink);
   --color-primary: var(--ink);
   --color-primary-foreground: var(--paper);
-  --color-secondary: #edeae2;
+  --color-secondary: var(--switch-track);
   --color-secondary-foreground: var(--ink);
-  --color-muted: #edeae2;
+  --color-muted: var(--switch-track);
   --color-muted-foreground: var(--muted);
-  --color-accent: #f0ede5;
+  --color-accent: var(--accent-surface);
   --color-accent-foreground: var(--ink);
   --color-popover: var(--paper);
   --color-popover-foreground: var(--ink);
   --color-border: var(--line);
-  --color-input: #cec8bc;
+  --color-input: var(--input-border);
   --color-ring: var(--accent);
-  --color-destructive: #9a2b21;
+  --color-destructive: var(--error);
+  --color-control: var(--control-surface);
+  --color-primary-hover: var(--primary-hover);
+  --color-ghost-hover: var(--ghost-hover);
+  --color-word-hover: var(--word-hover);
+  --color-toggle-foreground: var(--toggle-ink);
+  --color-placeholder: var(--placeholder);
+  --color-outline: var(--outline-border);
+  --color-link-underline: var(--link-underline);
+  --color-slider-track: var(--slider-track);
+  --color-slider-border: var(--slider-border);
+  --color-guide: var(--guide);
+  --color-divider: var(--divider);
+  --color-backdrop: var(--backdrop);
+  --shadow-dialog: var(--dialog-shadow);
+  --shadow-toggle: var(--toggle-shadow);
   --radius-lg: 7px;
   --radius-xl: 12px;
   --font-sans: "Manrope Variable", sans-serif;
@@ -34,9 +51,10 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     font-family: "Manrope Variable", sans-serif;
-    color: #302f2a;
-    background: #f7f5ef;
+    color: var(--ink);
+    background: var(--paper);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -46,7 +64,62 @@
     --line: #dedbd2;
     --accent: #a7462f;
     --tint: #f0ded3;
+    --highlight-ink: #7b3525;
+    --control-surface: #fffefa;
+    --switch-track: #edeae2;
+    --accent-surface: #f0ede5;
+    --primary-hover: #514d40;
+    --ghost-hover: #eae6dd;
+    --word-hover: #ebe6dc;
+    --toggle-ink: #68655d;
+    --input-border: #cec8bc;
+    --outline-border: #cec9be;
+    --placeholder: #767165;
+    --error: #9a2b21;
+    --selection: #ebcfbd;
+    --scrollbar: #b8b1a4;
+    --kbd-border: #d5d0c5;
+    --link-underline: #b4ab9d;
+    --slider-track: #efefef;
+    --slider-border: #b6b6b6;
+    --guide: #baa08d;
+    --divider: #c8c2b6;
+    --backdrop: #302a2259;
+    --dialog-shadow: 0 18px 65px #28221830;
+    --toggle-shadow: 0 2px 5px #332d2010;
     --serif: "Source Serif 4 Variable", Georgia, serif;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #211f1b;
+    --ink: #e7e2d8;
+    --muted: #b3ac9f;
+    --line: #454037;
+    --accent: #df9478;
+    --tint: #51372c;
+    --highlight-ink: #f4c0a7;
+    --control-surface: #35312a;
+    --switch-track: #292620;
+    --accent-surface: #363128;
+    --primary-hover: #d0c7b5;
+    --ghost-hover: #373229;
+    --word-hover: #3b342a;
+    --toggle-ink: #bdb5a7;
+    --input-border: #817767;
+    --outline-border: #817767;
+    --placeholder: #b3ac9f;
+    --error: #f0a08f;
+    --selection: #654633;
+    --scrollbar: #807565;
+    --kbd-border: #62594b;
+    --link-underline: #958673;
+    --slider-track: #454037;
+    --slider-border: #817767;
+    --guide: #b99980;
+    --divider: #716657;
+    --backdrop: #100e0bcc;
+    --dialog-shadow: 0 18px 65px #100e0b80;
+    --toggle-shadow: 0 2px 5px #100e0b40;
   }
   * {
     box-sizing: border-box;
@@ -88,8 +161,8 @@
     text-underline-offset: 4px;
   }
   ::selection {
-    background: #ebcfbd;
-    color: #302f2a;
+    background: var(--selection);
+    color: var(--ink);
   }
   input,
   textarea {
@@ -97,7 +170,7 @@
     caret-color: var(--accent);
   }
   html {
-    scrollbar-color: #b8b1a4 var(--paper);
+    scrollbar-color: var(--scrollbar) var(--paper);
     scrollbar-gutter: stable;
   }
   h1 {
@@ -114,7 +187,7 @@
     font: inherit;
     display: inline-block;
     min-width: 16px;
-    border: 1px solid #d5d0c5;
+    border: 1px solid var(--kbd-border);
     border-radius: 3px;
     padding: 1px 5px;
     margin-right: 5px;

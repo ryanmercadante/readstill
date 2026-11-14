@@ -109,7 +109,13 @@ The palette pairs warm neutrals with a restrained terracotta accent; exact value
 - **Stone gray** (`muted`): supporting labels; **paper seam** (`line`): dividers and progress track.
 - **Pale cream** (`control-surface`): fields and selected view; **warm inset** (`switch-track`): view switch track; **warm gray wash** (`ghost-hover`): icon hover.
 
-Error text uses the dedicated red (`error`). Other one-off border and selection colors remain local utility values or document defaults rather than forming a new palette scale.
+Error text uses the dedicated red (`error`). Shared semantic tokens in `src/styles.css` cover fields, hover states, selection, scrollbars, focus guides, borders, and elevation in both themes.
+
+### Dark mode
+
+Light mode is the default. A sun/moon button in the shared header toggles dark mode on the landing page and reader, with a stable “Dark mode” accessible label and `aria-pressed` state. The choice is stored in the `still-theme` cookie for one year, scoped to `/` with `SameSite=Lax` and `Secure` on HTTPS. The root route reads the cookie during server rendering, so the page, browser theme color, and toggle render in the chosen theme before JavaScript loads. Missing or invalid preferences use light mode; system preferences do not change the theme. If cookies are blocked, the toggle still works for the current client session.
+
+Dark mode uses a warm charcoal canvas (`#211f1b`), cream ink (`#e7e2d8`), stone labels (`#b3ac9f`), and a lighter terracotta accent (`#df9478`). Control surfaces rise to `#35312a`, while the active word pairs a deep clay fill (`#51372c`) with pale clay text (`#f4c0a7`). The same tokens cover article and focus views, the dock, dialogs, validation, and native controls. Theme changes are immediate and do not move the reading position or add animation.
 
 ## Typography
 
@@ -146,7 +152,7 @@ Pale cream fields have a 1px border, rounded field corners and 12px padding. The
 
 ### Navigation
 
-Article and Focus are a two-button group with `aria-pressed` state. The selected view has a cream fill, charcoal text and a small shadow; the inactive view uses `#68655d` for sufficient contrast against the switch track. A shadcn Base UI ToggleGroup supplies roving keyboard focus and single selection; pressing the selected item keeps that view active. The group becomes full width on phones. The header provides the wordmark, About action and Paste text action.
+Article and Focus are a two-button group with `aria-pressed` state. The selected view has a cream fill, charcoal text and a small shadow; the inactive view uses `#68655d` for sufficient contrast against the switch track. A shadcn Base UI ToggleGroup supplies roving keyboard focus and single selection; pressing the selected item keeps that view active. The group becomes full width on phones. The header provides the wordmark, theme toggle, About action and Paste text action. On phones at 360px and below, Paste text keeps its label and hides the plus icon to fit the additional theme control.
 
 ### Article and Focus Reader
 

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Wordmark } from "./Wordmark";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function SiteHeader({ children }: { children?: ReactNode }) {
   return (
@@ -8,7 +9,10 @@ export function SiteHeader({ children }: { children?: ReactNode }) {
       <span className="text-[12px] text-muted-foreground max-[520px]:hidden">
         Make room for reading.
       </span>
-      {children}
+      <div className="ml-auto flex items-center gap-[22px] max-[520px]:gap-1">
+        <ThemeToggle />
+        {children}
+      </div>
     </header>
   );
 }
