@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { RefObject } from "react";
-import type { Token } from "../../reader";
+import type { Token } from "../../lib/reader";
 
 type ArticleViewProps = {
   title: string;

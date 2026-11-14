@@ -51,8 +51,9 @@ The accessibility check runs axe WCAG A/AA scans across the landing page, both r
 
 ## Implementation
 
-- `src/reader.ts`: token positions, sentence boundaries, anchor selection, pacing, and saved-data validation.
-- `src/useReader.ts`: playback and IndexedDB persistence.
+- `src/lib/reader.ts`: token positions, sentence boundaries, anchor selection, pacing, and saved-data validation.
+- `src/lib/sample.ts` and `reader.test.ts`: sample prose and reader logic tests.
+- `src/hooks/useReader.ts`: playback and IndexedDB persistence.
 - `src/routes/reader.tsx`: reader page composition, shared view state, word transitions, and keyboard shortcuts.
 - `src/components/reader/`: article and focus views, reading controls, header, heading, anchored word, and paste/about dialogs. Focus layout measurements and paste-form state live with their components.
 - `src/components/ui/`: official shadcn Base UI components with Tailwind styles customized to Still's design; see the [component notes](src/components/ui/README.md).

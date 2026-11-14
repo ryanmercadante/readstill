@@ -14,8 +14,8 @@ import {
   DialogFooter,
 } from "../ui/dialog";
 import { ArrowRight, X } from "lucide-react";
-import { MAX_TEXT_LENGTH } from "../../reader";
-import { SAMPLE_TEXT, SAMPLE_TITLE } from "../../sample";
+import { MAX_TEXT_LENGTH } from "../../lib/reader";
+import { SAMPLE_TEXT, SAMPLE_TITLE } from "../../lib/sample";
 
 type PasteTextDialogProps = {
   open: boolean;

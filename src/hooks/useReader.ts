@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { get, set } from "idb-keyval";
-import { SAMPLE_TEXT, SAMPLE_TITLE } from "./sample";
-import { tokenize, validSnapshot, wordDuration } from "./reader";
-import type { Snapshot } from "./reader";
+import { SAMPLE_TEXT, SAMPLE_TITLE } from "../lib/sample";
+import { tokenize, validSnapshot, wordDuration } from "../lib/reader";
+import type { Snapshot } from "../lib/reader";
 
 const STORAGE_KEY = "still.current-reading.v1";
 

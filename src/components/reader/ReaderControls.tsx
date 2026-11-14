@@ -4,7 +4,7 @@ import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import type { RefObject } from "react";
 import { ArrowLeft, ArrowRight, Check, Pause, Play, RotateCcw } from "lucide-react";
-import { MAX_WPM, MIN_WPM } from "../../reader";
+import { MAX_WPM, MIN_WPM } from "../../lib/reader";
 
 type ReaderControlsProps = {
   index: number;
