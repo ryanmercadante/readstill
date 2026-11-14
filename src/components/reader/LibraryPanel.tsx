@@ -1,0 +1,318 @@
+import { useRef, useState } from "react";
+import { ArrowRight, BookOpen, Download, Upload, X } from "lucide-react";
+import { Button } from "../ui/button";
+import {
+  initialPosition,
+  MAX_FILE_BYTES,
+  parseBackup,
+  readingProgress,
+  serializeBackup,
+} from "../../lib/library";
+import type { Library, Reading } from "../../lib/library";
+
+type Props = {
+  library: Library;
+  ready: boolean;
+  saving: boolean;
+  storageError: string;
+  onOpen: (id: string) => void;
+  onAdd: (reading: Reading) => void;
+  onRemove: (id: string) => void;
+  onRestore: (library: Library) => number;
+  onBusyChange: (busy: boolean) => void;
+};
+
+function download(library: Library) {
+  const blob = new Blob([serializeBackup(library)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `still-library-${new Date().toISOString().slice(0, 10)}.json`;
+  link.click();
+  // Allow the browser to begin the download before releasing its URL.
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
+export function LibraryPanel({
+  library,
+  ready,
+  saving,
+  storageError,
+  onOpen,
+  onAdd,
+  onRemove,
+  onRestore,
+  onBusyChange,
+}: Props) {
+  const epubInput = useRef<HTMLInputElement>(null);
+  const backupInput = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [removing, setRemoving] = useState<string | null>(null);
+  const active = library.readings.find((r) => r.id === library.activeId);
+  const readings = [...library.readings].sort(
+    (a, b) =>
+      (library.positions[b.id]?.updatedAt || b.addedAt) -
+      (library.positions[a.id]?.updatedAt || a.addedAt),
+  );
+  const runImport = async (file: File | undefined, kind: "epub" | "backup") => {
+    if (!file) return;
+    setError("");
+    setMessage("");
+    setBusy(true);
+    onBusyChange(true);
+    try {
+      if (file.size > MAX_FILE_BYTES) throw new Error("Choose a file smaller than 25 MB.");
+      if (kind === "epub") {
+        const { importEpub } = await import("../../lib/epub");
+        const reading = await importEpub(
+          new Uint8Array(await file.arrayBuffer()),
+          file.name.replace(/\.epub$/i, ""),
+        );
+        onAdd(reading);
+        setMessage(`Added ${reading.title}. Your book is ready to read.`);
+      } else {
+        const count = onRestore(parseBackup(await file.text()));
+        setMessage(
+          count
+            ? `Restored ${count} ${count === 1 ? "reading" : "readings"}. Existing readings and progress were kept.`
+            : "These readings are already in your library. Your progress was kept.",
+        );
+      }
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "The file couldn't be imported. Try another file.",
+      );
+    } finally {
+      setBusy(false);
+      onBusyChange(false);
+    }
+  };
+  const exportLibrary = (value: Library) => {
+    try {
+      download(value);
+      setError("");
+      setMessage("Backup prepared. Keep the downloaded file somewhere safe.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "The backup couldn't be created.");
+    }
+  };
+  return (
+    <main
+      id="reading"
+      className="mx-auto max-w-[1000px] px-10 pt-12 pb-20 max-[800px]:px-7 max-[520px]:px-[23px] max-[520px]:pt-8"
+      aria-busy={busy}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-6 border-b border-border pb-7">
+        <div>
+          <h1>Your library</h1>
+          <p className="m-0 text-sm leading-relaxed text-muted-foreground">
+            A place for the reading you want to return to.
+          </p>
+        </div>
+        <Button onClick={() => epubInput.current?.click()} disabled={busy || !ready}>
+          <Upload size={17} /> Import EPUB
+        </Button>
+      </div>
+      <input
+        className="sr-only"
+        tabIndex={-1}
+        ref={epubInput}
+        type="file"
+        accept=".epub,application/epub+zip"
+        aria-label="Choose EPUB"
+        disabled={busy || !ready}
+        onChange={(event) => {
+          void runImport(event.target.files?.[0], "epub");
+          event.target.value = "";
+        }}
+      />
+      <input
+        className="sr-only"
+        tabIndex={-1}
+        ref={backupInput}
+        type="file"
+        accept=".json,application/json"
+        aria-label="Choose Still backup"
+        disabled={busy || !ready}
+        onChange={(event) => {
+          void runImport(event.target.files?.[0], "backup");
+          event.target.value = "";
+        }}
+      />
+      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+        DRM-free, reflowable prose EPUBs, up to 25 MB. Books stay on this device.
+      </p>
+      <div role="status" className="text-sm leading-relaxed text-muted-foreground">
+        {busy ? "Opening your file…" : message}
+      </div>
+      {error && (
+        <p role="alert" className="text-sm leading-relaxed text-destructive">
+          {error}
+        </p>
+      )}
+      {storageError && (
+        <p role="alert" className="text-sm leading-relaxed text-destructive">
+          {storageError}
+        </p>
+      )}
+      {!ready ? (
+        <p className="py-12 text-sm text-muted-foreground">Opening your library…</p>
+      ) : (
+        <>
+          {active && (
+            <section className="my-10 border-b border-border pb-9" aria-label="Continue reading">
+              <div className="flex flex-wrap items-center justify-between gap-5 max-[520px]:flex-col max-[520px]:items-start">
+                <div className="min-w-0 flex-1 max-[520px]:w-full">
+                  <h2 className="m-0 font-serif text-[28px] leading-tight font-[450] wrap-anywhere">
+                    {active.title}
+                  </h2>
+                  <p className="mt-3 mb-0 text-xs leading-relaxed text-muted-foreground">
+                    {active.author && `${active.author} · `}
+                    {readingProgress(
+                      active,
+                      library.positions[active.id] ?? initialPosition(active),
+                    )}
+                    % through
+                    {active.kind === "epub" &&
+                      ` · ${active.chapters.find((c) => c.id === library.positions[active.id]?.chapterId)?.title ?? active.chapters[0].title}`}
+                  </p>
+                </div>
+                <Button disabled={busy} onClick={() => onOpen(active.id)}>
+                  Continue reading <ArrowRight size={17} />
+                </Button>
+              </div>
+            </section>
+          )}
+          {readings.length ? (
+            <ul className="m-0 list-none p-0" aria-label="Saved readings">
+              {readings.map((reading) => {
+                const position = library.positions[reading.id] ?? initialPosition(reading);
+                return (
+                  <li key={reading.id} className="border-b border-border py-5">
+                    <div className="flex items-start gap-4">
+                      <BookOpen
+                        size={19}
+                        className="mt-1 shrink-0 text-muted-foreground max-[520px]:hidden"
+                        aria-hidden="true"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <Button
+                          variant="plain"
+                          className="justify-start bg-transparent p-0 text-left font-serif text-xl leading-snug text-foreground wrap-anywhere hover:text-brand"
+                          disabled={busy}
+                          onClick={() => onOpen(reading.id)}
+                        >
+                          {reading.title}
+                        </Button>
+                        <p className="mt-2 mb-0 text-xs leading-relaxed text-muted-foreground">
+                          {reading.kind === "epub"
+                            ? `${reading.chapters.length} chapters`
+                            : "Pasted reading"}
+                          {reading.author && ` · ${reading.author}`} ·{" "}
+                          {readingProgress(reading, position)}% through
+                        </p>
+                        {removing === reading.id && (
+                          <div className="mt-4 text-sm">
+                            <p>
+                              Remove this reading and its saved place? Export it first to keep a
+                              copy.
+                            </p>
+                            <div className="flex flex-wrap gap-4">
+                              <Button
+                                variant="outline"
+                                disabled={busy}
+                                onClick={() => {
+                                  onRemove(reading.id);
+                                  setRemoving(null);
+                                  setMessage(`Removed ${reading.title}.`);
+                                }}
+                              >
+                                Remove reading
+                              </Button>
+                              <Button variant="text" onClick={() => setRemoving(null)}>
+                                Keep reading
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 max-[520px]:flex-col">
+                        <Button
+                          variant="ghost"
+                          disabled={busy}
+                          aria-label={`Export ${reading.title}`}
+                          title="Export reading"
+                          onClick={() =>
+                            exportLibrary({
+                              ...library,
+                              readings: [reading],
+                              positions: { [reading.id]: position },
+                              activeId: reading.id,
+                            })
+                          }
+                        >
+                          <Download size={16} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          disabled={busy}
+                          aria-label={`Remove ${reading.title}`}
+                          title="Remove reading"
+                          onClick={() => setRemoving(removing === reading.id ? null : reading.id)}
+                        >
+                          <X size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="py-14">
+              <h2 className="font-serif text-2xl">Make room for your first reading.</h2>
+              <p className="max-w-lg text-sm leading-relaxed text-muted-foreground">
+                Import a book, paste a passage, or restore a Still backup. Your place will be here
+                when you come back.
+              </p>
+            </div>
+          )}
+        </>
+      )}
+      <footer className="mt-10">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <Button
+            variant="text"
+            disabled={busy || !ready || !readings.length}
+            onClick={() => exportLibrary(library)}
+          >
+            Export library
+          </Button>
+          <Button
+            variant="text"
+            disabled={busy || !ready}
+            onClick={() => backupInput.current?.click()}
+          >
+            Restore backup
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            {storageError
+              ? "Changes are not saved"
+              : saving
+                ? "Saving on this device…"
+                : ready
+                  ? "Saved on this device"
+                  : ""}
+          </span>
+        </div>
+        <p className="max-w-lg text-xs leading-relaxed text-muted-foreground">
+          Clearing browser data removes your library. Export a backup to keep your readings and
+          progress, or move them to another device. Restoring adds readings and keeps existing
+          progress.
+        </p>
+      </footer>
+    </main>
+  );
+}

@@ -2,6 +2,8 @@
 
 Prepared after the first MVP and its move into this repository, November 2026.
 
+**Historical handoff:** TanStack Start and the local library/EPUB milestone have since been implemented. The current README, PRODUCT.md, and code supersede the implementation status and proposed sequence below.
+
 ## Start here
 
 The MVP works, and the user described the first pass as “amazing” and said it “works really well.” The next conversation should explore productizing it, including a possible move to TanStack Start. This is an accepted interaction prototype, not evidence yet of improved reading speed, comprehension, or product-market fit.

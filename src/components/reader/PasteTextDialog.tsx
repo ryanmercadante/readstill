@@ -69,7 +69,11 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
           );
           return;
         }
-        onImport(draft, draftTitle);
+        try {
+          onImport(draft, draftTitle);
+        } catch (error) {
+          setFormError(error instanceof Error ? error.message : "This reading couldn't be added.");
+        }
       }}
     >
       <Label className="mt-[17px] mb-2" htmlFor="draft-title">
@@ -97,7 +101,7 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
         aria-describedby={formError ? "paste-limit paste-error" : "paste-limit"}
       />
       <p id="paste-limit" className="text-[10px] leading-[1.8] text-muted-foreground">
-        Replaces your current reading. Up to 100,000 characters.
+        Adds to your library. Up to 100,000 characters.
       </p>
       {formError && (
         <p id="paste-error" className="text-[12px] leading-[1.8] text-destructive" role="alert">
@@ -105,7 +109,19 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
         </p>
       )}
       <DialogFooter>
-        <Button variant="text" type="button" onClick={() => onImport(SAMPLE_TEXT, SAMPLE_TITLE)}>
+        <Button
+          variant="text"
+          type="button"
+          onClick={() => {
+            try {
+              onImport(SAMPLE_TEXT, SAMPLE_TITLE);
+            } catch (error) {
+              setFormError(
+                error instanceof Error ? error.message : "This reading couldn't be added.",
+              );
+            }
+          }}
+        >
           Use sample instead
         </Button>
         <Button variant="default" className="max-[520px]:w-full" type="submit">

@@ -14,6 +14,8 @@ import { ReaderControls } from "../components/reader/ReaderControls";
 import { ReaderHeader } from "../components/reader/ReaderHeader";
 import { ReadingHeading } from "../components/reader/ReadingHeading";
 import type { ReaderView } from "../components/reader/ReadingHeading";
+import { LibraryPanel } from "../components/reader/LibraryPanel";
+import { Button } from "../components/ui/button";
 
 export const Route = createFileRoute("/reader")({
   head: () => ({ meta: [{ title: "Reader — Still" }] }),
@@ -37,6 +39,9 @@ function ReaderPage() {
   const [transitioning, setTransitioning] = useState(false);
   const [pasteOpen, setPasteOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const showingLibrary = libraryOpen || (reader.ready && !reader.library.readings.length);
   const reducedMotion = useReducedMotion();
   const activeRef = useRef<HTMLSpanElement>(null);
   const focusRef = useRef<HTMLSpanElement>(null);
@@ -44,6 +49,7 @@ function ReaderPage() {
   const playAfterTransition = useRef(false);
   const transitionFrame = useRef(0);
   const playRef = useRef<HTMLButtonElement>(null);
+  const pasteRef = useRef<HTMLButtonElement>(null);
 
   const finishTransition = () => {
     setFlight(null);
@@ -116,6 +122,7 @@ function ReaderPage() {
       if (
         pasteOpen ||
         aboutOpen ||
+        showingLibrary ||
         transitioning ||
         !reader.ready ||
         target.closest('input, textarea, button, select, a, [contenteditable="true"]')
@@ -150,8 +157,23 @@ function ReaderPage() {
   };
   const importText = (text: string, title: string) => {
     reader.replace(text, title);
+    setLibraryOpen(false);
     setView("article");
     setPasteOpen(false);
+    window.scrollTo({ top: 0, behavior: "instant" });
+    requestAnimationFrame(() => articleRef.current?.focus({ preventScroll: true }));
+  };
+  const showReading = (id: string) => {
+    reader.openReading(id);
+    setLibraryOpen(false);
+    setView("article");
+    window.scrollTo({ top: 0, behavior: "instant" });
+    requestAnimationFrame(() => articleRef.current?.focus({ preventScroll: true }));
+  };
+  const showChapter = (id: string) => {
+    playAfterTransition.current = false;
+    reader.openChapter(id);
+    setView("article");
     window.scrollTo({ top: 0, behavior: "instant" });
     requestAnimationFrame(() => articleRef.current?.focus({ preventScroll: true }));
   };
@@ -159,65 +181,132 @@ function ReaderPage() {
     <>
       <SkipLink href="#reading">Skip to reading</SkipLink>
       <ReaderHeader
-        disabled={!reader.ready || transitioning}
+        disabled={!reader.ready || transitioning || importing}
         onPaste={openPaste}
+        libraryOpen={showingLibrary}
+        canReturn={!!reader.library.activeId}
+        pasteRef={pasteRef}
+        onLibrary={() => {
+          playAfterTransition.current = false;
+          reader.setPlaying(false);
+          setLibraryOpen(!showingLibrary);
+          window.scrollTo({ top: 0, behavior: "instant" });
+        }}
         onAbout={() => {
           playAfterTransition.current = false;
           reader.setPlaying(false);
           setAboutOpen(true);
         }}
       />
-      <main
-        id="reading"
-        data-view={view}
-        className="group/reader mx-auto max-w-[1000px] px-10 pt-[51px] pb-[210px] min-[1500px]:pt-[65px] max-[800px]:px-7 max-[800px]:pt-[37px] max-[520px]:px-[23px] max-[520px]:pt-[30px] max-[520px]:pb-[235px] compact-reader:data-[view=focus]:pt-[22px]"
-      >
-        <ReadingHeading
-          title={reader.title}
-          sourceIsSample={reader.text === SAMPLE_TEXT}
-          wordCount={reader.words.length}
-          view={view}
-          disabled={transitioning || !reader.ready}
-          onViewChange={changeView}
+      {showingLibrary ? (
+        <LibraryPanel
+          library={reader.library}
+          ready={reader.ready}
+          saving={reader.saving}
+          storageError={reader.storageError}
+          onOpen={showReading}
+          onAdd={reader.addReading}
+          onRemove={reader.removeReading}
+          onRestore={reader.restore}
+          onBusyChange={setImporting}
         />
-        {view === "article" ? (
-          <ArticleView
-            title={reader.title}
-            paragraphs={reader.paragraphs}
+      ) : (
+        <>
+          <main
+            id="reading"
+            data-view={view}
+            className="group/reader mx-auto max-w-[1000px] px-10 pt-[51px] pb-[210px] min-[1500px]:pt-[65px] max-[800px]:px-7 max-[800px]:pt-[37px] max-[520px]:px-[23px] max-[520px]:pt-[30px] max-[520px]:pb-[235px] compact-reader:data-[view=focus]:pt-[22px]"
+          >
+            <ReadingHeading
+              title={reader.title}
+              sourceIsSample={reader.text === SAMPLE_TEXT}
+              wordCount={reader.words.length}
+              view={view}
+              disabled={transitioning || !reader.ready}
+              onViewChange={changeView}
+            />
+            {reader.reading.kind === "epub" && view === "article" && (
+              <nav aria-label="Chapters" className="mt-6 flex flex-wrap items-center gap-3">
+                <label htmlFor="chapter" className="text-xs text-muted-foreground">
+                  Chapter {reader.chapterIndex + 1} of {reader.reading.chapters.length}
+                </label>
+                <select
+                  id="chapter"
+                  value={reader.chapter.id}
+                  disabled={transitioning || !reader.ready}
+                  onChange={(event) => showChapter(event.target.value)}
+                  className="min-h-11 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm max-[520px]:basis-full"
+                >
+                  {reader.reading.chapters.map((chapter) => (
+                    <option key={chapter.id} value={chapter.id}>
+                      {chapter.title}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  variant="text"
+                  disabled={transitioning || reader.chapterIndex === 0}
+                  onClick={() => showChapter(reader.reading.chapters[reader.chapterIndex - 1].id)}
+                >
+                  Previous chapter
+                </Button>
+                <Button
+                  variant="text"
+                  disabled={
+                    transitioning || reader.chapterIndex === reader.reading.chapters.length - 1
+                  }
+                  onClick={() => showChapter(reader.reading.chapters[reader.chapterIndex + 1].id)}
+                >
+                  Next chapter
+                </Button>
+              </nav>
+            )}
+            {view === "article" ? (
+              <ArticleView
+                title={reader.title}
+                paragraphs={reader.paragraphs}
+                index={reader.index}
+                ready={reader.ready}
+                transitioning={transitioning}
+                articleRef={articleRef}
+                activeRef={activeRef}
+                onSeek={reader.seek}
+                images={reader.chapter.images}
+              />
+            ) : (
+              <FocusView
+                word={reader.current.text}
+                playing={reader.playing}
+                finished={reader.finished}
+                transitioning={transitioning}
+                wordRef={focusRef}
+                onReturnToArticle={() => changeView("article")}
+                onNextChapter={
+                  reader.chapterIndex < reader.reading.chapters.length - 1
+                    ? () => showChapter(reader.reading.chapters[reader.chapterIndex + 1].id)
+                    : undefined
+                }
+              />
+            )}
+          </main>
+          <ReaderControls
             index={reader.index}
+            wordCount={reader.words.length}
+            wpm={reader.wpm}
             ready={reader.ready}
-            transitioning={transitioning}
-            articleRef={articleRef}
-            activeRef={activeRef}
-            onSeek={reader.seek}
-          />
-        ) : (
-          <FocusView
-            word={reader.current.text}
             playing={reader.playing}
             finished={reader.finished}
+            saving={reader.saving}
+            storageError={reader.storageError}
             transitioning={transitioning}
-            wordRef={focusRef}
-            onReturnToArticle={() => changeView("article")}
+            playRef={playRef}
+            onPlay={handlePlay}
+            onReplay={reader.replay}
+            onSeek={reader.seek}
+            onWpmChange={reader.setWpm}
           />
-        )}
-      </main>
-      <ReaderControls
-        index={reader.index}
-        wordCount={reader.words.length}
-        wpm={reader.wpm}
-        ready={reader.ready}
-        playing={reader.playing}
-        finished={reader.finished}
-        saving={reader.saving}
-        storageError={reader.storageError}
-        transitioning={transitioning}
-        playRef={playRef}
-        onPlay={handlePlay}
-        onReplay={reader.replay}
-        onSeek={reader.seek}
-        onWpmChange={reader.setWpm}
-      />
+        </>
+      )}
       {flight && (
         <motion.div
           className="pointer-events-none fixed top-0 left-0 z-20 font-serif leading-[1.4] whitespace-nowrap"
@@ -238,10 +327,14 @@ function ReaderPage() {
       <PasteTextDialog
         open={pasteOpen}
         onOpenChange={setPasteOpen}
-        returnFocusRef={playRef}
+        returnFocusRef={showingLibrary ? pasteRef : playRef}
         onImport={importText}
       />
-      <AboutReaderDialog open={aboutOpen} onOpenChange={setAboutOpen} returnFocusRef={playRef} />
+      <AboutReaderDialog
+        open={aboutOpen}
+        onOpenChange={setAboutOpen}
+        returnFocusRef={showingLibrary ? pasteRef : playRef}
+      />
     </>
   );
 }

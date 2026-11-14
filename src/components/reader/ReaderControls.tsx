@@ -14,7 +14,7 @@ type ReaderControlsProps = {
   playing: boolean;
   finished: boolean;
   saving: boolean;
-  storageError: boolean;
+  storageError: string;
   transitioning: boolean;
   playRef: RefObject<HTMLButtonElement | null>;
   onPlay: () => void;
@@ -163,7 +163,7 @@ export function ReaderControls({
       </div>
       {storageError && (
         <p className="m-0 pb-2.5 text-[12px] leading-[1.5] text-destructive" role="status">
-          This browser couldn’t save your reading. Keep a copy of your text before closing.
+          {storageError}
         </p>
       )}
     </footer>

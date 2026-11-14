@@ -11,6 +11,7 @@ type FocusViewProps = {
   transitioning: boolean;
   wordRef: RefObject<HTMLSpanElement | null>;
   onReturnToArticle: () => void;
+  onNextChapter?: () => void;
 };
 
 export function FocusView({
@@ -20,6 +21,7 @@ export function FocusView({
   transitioning,
   wordRef,
   onReturnToArticle,
+  onNextChapter,
 }: FocusViewProps) {
   const [focusSize, setFocusSize] = useState(76);
   const [focusOffset, setFocusOffset] = useState(0);
@@ -110,6 +112,11 @@ export function FocusView({
         <ArrowDownLeft size={17} />
         Back to the passage
       </Button>
+      {finished && onNextChapter && (
+        <Button variant="outline" className="ml-3" onClick={onNextChapter}>
+          Next chapter
+        </Button>
+      )}
     </section>
   );
 }

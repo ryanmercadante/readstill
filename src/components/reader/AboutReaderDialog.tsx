@@ -48,8 +48,9 @@ export function AboutReaderDialog({ open, onOpenChange, returnFocusRef }: AboutR
           <ArrowRight size={15} />
         </a>
         <p className="mt-6 border-0 border-t border-solid border-border pt-[18px] text-[11px] leading-[1.8] text-muted-foreground">
-          Your text and position are saved in this browser. Clearing browser data removes them.
-          There are no accounts, uploads, or cross-device sync.
+          Your library and reading positions are saved in this browser. Clearing browser data
+          removes them. Export a backup from Library to keep a copy or move to another device. There
+          are no accounts, uploads, or automatic cross-device sync.
         </p>
       </DialogContent>
     </Dialog>

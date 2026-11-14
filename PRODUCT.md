@@ -20,7 +20,7 @@ Test whether a reader can comfortably understand prose while switching between a
 
 ## Capabilities and Constraints
 
-The user approved an MVP with a ready-to-read sample, pasted text, article and focus modes, a shared reading position, a brief word-to-focus transition, adjustable WPM, play/pause, sentence replay, and local saved progress. Article mode supports choosing a word. Return to article mode paused. EPUB, URL import, accounts, libraries, quizzes, adaptive pacing, and dashboards are deferred.
+The user approved the original reader and a follow-up local library with EPUB import, chapter navigation, per-reading resume, and backup/restore. The reader retains its ready-to-read sample, pasted text, article and focus modes, shared word position, word-to-focus transition, adjustable WPM, play/pause, and sentence replay. Pasted passages now join the library. Chapter changes and returning to article mode pause playback. EPUB import is limited to DRM-free, reflowable prose with supported raster illustrations; unsupported meaningful content causes an explicit error. See README for format and size limits. URL import, accounts, cloud sync, quizzes, adaptive pacing, and dashboards remain deferred.
 
 ## Product Principles
 

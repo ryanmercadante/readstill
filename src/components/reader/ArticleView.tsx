@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import type { RefObject } from "react";
 import type { Token } from "../../lib/reader";
+import type { Illustration } from "../../lib/library";
+import { Fragment } from "react";
 
 type ArticleViewProps = {
   title: string;
@@ -11,6 +13,7 @@ type ArticleViewProps = {
   articleRef: RefObject<HTMLElement | null>;
   activeRef: RefObject<HTMLSpanElement | null>;
   onSeek: (index: number) => void;
+  images?: Illustration[];
 };
 
 export function ArticleView({
@@ -22,6 +25,7 @@ export function ArticleView({
   articleRef,
   activeRef,
   onSeek,
+  images = [],
 }: ArticleViewProps) {
   useEffect(() => {
     if (!ready || transitioning) return;
@@ -51,24 +55,50 @@ export function ArticleView({
         }}
       >
         {paragraphs.map((paragraph, i) => (
-          <p key={i} className="m-0 mb-[25px] whitespace-pre-wrap wrap-anywhere">
-            {paragraph.map((token) => (
-              <span key={token.index}>
-                <span
-                  data-word={token.index}
-                  ref={token.index === index ? activeRef : null}
-                  aria-current={token.index === index ? "location" : undefined}
-                  style={
-                    transitioning && token.index === index ? { visibility: "hidden" } : undefined
-                  }
-                >
-                  {token.text}
+          <Fragment key={i}>
+            {images
+              .filter((image) => image.beforeParagraph === i)
+              .map((image, j) => (
+                <figure key={j} className="mx-0 my-8">
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    className="mx-auto max-h-[70vh] max-w-full object-contain"
+                    loading="lazy"
+                  />
+                </figure>
+              ))}
+            <p className="m-0 mb-[25px] whitespace-pre-wrap wrap-anywhere">
+              {paragraph.map((token) => (
+                <span key={token.index}>
+                  <span
+                    data-word={token.index}
+                    ref={token.index === index ? activeRef : null}
+                    aria-current={token.index === index ? "location" : undefined}
+                    style={
+                      transitioning && token.index === index ? { visibility: "hidden" } : undefined
+                    }
+                  >
+                    {token.text}
+                  </span>
+                  {token.following}
                 </span>
-                {token.following}
-              </span>
-            ))}
-          </p>
+              ))}
+            </p>
+          </Fragment>
         ))}
+        {images
+          .filter((image) => image.beforeParagraph >= paragraphs.length)
+          .map((image, i) => (
+            <figure key={i} className="mx-0 my-8">
+              <img
+                src={image.src}
+                alt={image.alt}
+                className="mx-auto max-h-[70vh] max-w-full object-contain"
+                loading="lazy"
+              />
+            </figure>
+          ))}
       </article>
       <div className="mt-[54px] flex items-center justify-center gap-[18px] font-serif text-[15px] text-muted-foreground italic">
         <span className="h-px w-7.5 bg-divider" />A little space to take it in.
