@@ -7,7 +7,7 @@ import { buttonVariants } from "./ui/button";
 
 export function SiteHeader({ children }: { children?: ReactNode }) {
   return (
-    <header className="mx-auto flex max-w-[1320px] items-center gap-8 border-0 border-b border-solid border-border px-13 py-7.5 max-[800px]:px-[27px] max-[800px]:py-[23px] max-[520px]:gap-2.5 max-[520px]:p-5">
+    <header className="sticky top-0 z-20 mx-auto flex max-w-[1320px] items-center gap-8 border-0 border-b border-solid border-border bg-background px-13 py-3 max-[800px]:px-[27px] max-[520px]:gap-2.5 max-[520px]:px-5 max-[520px]:py-2">
       <Wordmark />
       <span className="text-[12px] text-muted-foreground max-[520px]:hidden">
         Make room for reading.
