@@ -152,7 +152,7 @@ Pale cream fields have a 1px border, rounded field corners and 12px padding. The
 
 ### Navigation
 
-Article, Guided, and Focus are a three-button group with `aria-pressed` state. The selected view has a cream fill, charcoal text and a small shadow; the inactive view uses `#68655d` for sufficient contrast against the switch track. A shadcn Base UI ToggleGroup supplies roving keyboard focus and single selection; pressing the selected item keeps that view active. The group becomes full width on phones. The header provides the wordmark, theme toggle, About action and Paste text action. On phones at 360px and below, Paste text keeps its label and hides the plus icon to fit the additional theme control.
+Article, Guided, and Focus are a three-button group with `aria-pressed` state. The selected view has a cream fill, charcoal text and a small shadow; the inactive view uses `#68655d` for sufficient contrast against the switch track. A shadcn Base UI ToggleGroup supplies roving keyboard focus and single selection; pressing the selected item keeps that view active. The group becomes full width on phones. The header provides the wordmark, Library, reader actions, keyboard legend trigger, and theme toggle. The keyboard icon sits immediately before the theme toggle on every page. The legend groups reading, navigation, mode, pace, and chapter keys, with scope notes and a scrollable dialog on small screens. Pressing ? outside text fields and dialogs opens it; opening pauses playback and cancels pending autoplay. Closing restores focus to the trigger. On phones at 520px and below, Paste text uses its plus icon with an accessible label; tighter horizontal padding keeps every header action visible.
 
 ### Article and Focus Reader
 

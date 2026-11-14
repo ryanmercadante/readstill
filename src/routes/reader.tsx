@@ -148,6 +148,13 @@ function ReaderPage() {
     const handleKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
       if (
+        event.defaultPrevented ||
+        event.isComposing ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey ||
+        document.querySelector('[role="dialog"]') ||
+        target.isContentEditable ||
         pasteOpen ||
         aboutOpen ||
         transitioning ||
@@ -212,6 +219,9 @@ function ReaderPage() {
       <ReaderHeader
         disabled={!reader.ready || transitioning}
         onPaste={openPaste}
+        onShortcutsOpen={() => {
+          playAfterTransition.current = false;
+        }}
         pasteRef={pasteRef}
         onAbout={() => {
           playAfterTransition.current = false;
@@ -224,6 +234,9 @@ function ReaderPage() {
         data-view={view}
         className="group/reader mx-auto max-w-[1000px] px-10 pt-[51px] pb-[210px] min-[1500px]:pt-[65px] max-[800px]:px-7 max-[800px]:pt-[37px] max-[520px]:px-[23px] max-[520px]:pt-[30px] max-[520px]:pb-[235px] compact-reader:data-[view=focus]:pt-[22px]"
       >
+        <p id="reading-shortcuts" className="sr-only">
+          Press ? or use Keyboard shortcuts in the header for the keyboard legend.
+        </p>
         <ReadingHeading
           title={reader.title}
           sourceIsSample={reader.isSample}

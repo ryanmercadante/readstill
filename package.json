@@ -15,6 +15,7 @@
     "test:theme": "node scripts/theme.mjs",
     "test:e2e": "node scripts/smoke.mjs",
     "test:guided": "node scripts/guided-smoke.mjs",
+    "test:shortcuts": "node scripts/shortcuts-smoke.mjs",
     "test:library": "node scripts/library-smoke.mjs",
     "test:rich-epub": "node scripts/rich-epub-smoke.mjs",
     "test:a11y": "node scripts/accessibility.mjs",

@@ -28,7 +28,8 @@ The first visit migrates the previous single reading or version-1 library into t
 - Browser-local EPUB import with a review before adding the book, chapter navigation, semantic tables, and raster/SVG illustrations in article view. Playback pauses at tables, illustrations, unavailable sections, and chapter endings.
 - Original EPUB downloads for newly imported books. Remaining unsupported content is marked in place and disclosed in the import report.
 - Export the entire library or an individual reading as a Still JSON backup; restore adds readings and preserves existing progress. Removal asks for confirmation.
-- Keyboard shortcuts outside inputs and buttons: Space plays/pauses, arrow keys step words, R replays the sentence, Escape returns to article view. Buttons retain normal keyboard behavior.
+- Open the keyboard legend from the keyboard icon beside the theme toggle, or press **?** outside text fields. It lists reading shortcuts and keyboard controls for navigation, modes, pace, and chapters. Opening it pauses reading.
+- Keyboard shortcuts outside inputs, buttons, and dialogs: Space plays/pauses, arrow keys step words, R replays the sentence, Escape returns to article view. Buttons retain normal keyboard behavior.
 
 Click **Read** in article view to transition into focus and start playback. Choose **Guided** to play through the article with a moving highlight, or **Focus** for one word at a time. Changing modes pauses playback and keeps your position. Guided pauses at rich-content blocks; Continue resumes in Guided.
 
@@ -60,6 +61,7 @@ pnpm build
 pnpm exec playwright install chromium
 pnpm test:e2e http://127.0.0.1:5173
 pnpm test:guided http://127.0.0.1:5173
+pnpm test:shortcuts http://127.0.0.1:5173
 pnpm test:library http://127.0.0.1:5173
 pnpm test:rich-epub http://127.0.0.1:5173
 pnpm test:a11y http://127.0.0.1:5173

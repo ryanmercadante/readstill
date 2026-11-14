@@ -181,14 +181,7 @@ export function ReaderControls({
           </small>
         </div>
       </div>
-      <div className="flex items-center justify-between gap-3 border-0 border-t border-solid border-border pt-[13px] pb-[max(16px,env(safe-area-inset-bottom))] text-[9px] text-muted-foreground max-[520px]:pt-3 max-[520px]:text-[8px]">
-        <span id="reading-shortcuts">
-          <kbd>space</kbd> play / pause{" "}
-          <span className="ml-3.5 max-[520px]:hidden">
-            <kbd>←</kbd>
-            <kbd>→</kbd> move a word
-          </span>
-        </span>
+      <div className="flex items-center justify-end border-0 border-t border-solid border-border pt-[13px] pb-[max(16px,env(safe-area-inset-bottom))] text-[9px] text-muted-foreground max-[520px]:pt-3 max-[520px]:text-[8px]">
         <span>Understanding comes before speed.</span>
       </div>
       {storageError && (
