@@ -1,6 +1,16 @@
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
 import { useState } from "react";
 import type { RefObject } from "react";
-import { Dialog } from "@base-ui/react/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "../ui/dialog";
 import { ArrowRight, X } from "lucide-react";
 import { MAX_TEXT_LENGTH } from "../../reader";
 import { SAMPLE_TEXT, SAMPLE_TITLE } from "../../sample";
@@ -19,23 +29,24 @@ export function PasteTextDialog({
   onImport,
 }: PasteTextDialogProps) {
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="dialog-backdrop" />
-        <Dialog.Popup className="paste-dialog" finalFocus={returnFocusRef}>
-          <div className="dialog-top">
-            <Dialog.Title>Something worth reading.</Dialog.Title>
-            <Dialog.Close className="icon-button" aria-label="Close paste dialog">
-              <X size={20} />
-            </Dialog.Close>
-          </div>
-          <Dialog.Description>
-            Paste a passage and make it your own pace. It stays in this browser.
-          </Dialog.Description>
-          <PasteTextForm onImport={onImport} />
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="paste-dialog"
+        finalFocus={returnFocusRef}
+      >
+        <div className="dialog-top">
+          <DialogTitle>Something worth reading.</DialogTitle>
+          <DialogClose render={<Button variant="ghost" />} className="icon-button" aria-label="Close paste dialog">
+            <X size={20} />
+          </DialogClose>
+        </div>
+        <DialogDescription>
+          Paste a passage and make it your own pace. It stays in this browser.
+        </DialogDescription>
+        <PasteTextForm onImport={onImport} />
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -62,18 +73,18 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
         onImport(draft, draftTitle);
       }}
     >
-      <label htmlFor="draft-title">
+      <Label htmlFor="draft-title">
         Title <span>(optional)</span>
-      </label>
-      <input
+      </Label>
+      <Input
         id="draft-title"
         value={draftTitle}
         maxLength={100}
         onChange={(e) => setDraftTitle(e.target.value)}
         placeholder="What are you reading?"
       />
-      <label htmlFor="draft-text">Your text</label>
-      <textarea
+      <Label htmlFor="draft-text">Your text</Label>
+      <Textarea
         id="draft-text"
         value={draft}
         onChange={(e) => {
@@ -81,7 +92,8 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
           setFormError("");
         }}
         placeholder="A story, an essay, a paragraph you've been meaning to read…"
-        aria-describedby={formError ? "paste-error" : "paste-limit"}
+        aria-invalid={!!formError}
+        aria-describedby={formError ? "paste-limit paste-error" : "paste-limit"}
       />
       <p id="paste-limit" className="form-note">
         Replaces your current reading. Up to 100,000 characters.
@@ -92,17 +104,18 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
         </p>
       )}
       <div className="dialog-actions">
-        <button
+        <Button
+          variant="text"
           className="sample-button"
           type="button"
           onClick={() => onImport(SAMPLE_TEXT, SAMPLE_TITLE)}
         >
           Use sample instead
-        </button>
-        <button className="primary-button" type="submit">
+        </Button>
+        <Button variant="default" className="primary-button" type="submit">
           Start reading
           <ArrowRight size={17} />
-        </button>
+        </Button>
       </div>
     </form>
   );

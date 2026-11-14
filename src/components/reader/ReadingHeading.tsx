@@ -1,3 +1,4 @@
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { AlignLeft, Focus } from "lucide-react";
 
 export type ReaderView = "article" | "focus";
@@ -29,24 +30,27 @@ export function ReadingHeading({
           {wordCount.toLocaleString()} words
         </p>
       </div>
-      <div className="view-switch" role="group" aria-label="Reading view">
-        <button
-          aria-pressed={view === "article"}
-          disabled={disabled}
-          onClick={() => onViewChange("article")}
-        >
+      <ToggleGroup
+        className="view-switch"
+        aria-label="Reading view"
+        spacing={0}
+        multiple={false}
+        value={[view]}
+        disabled={disabled}
+        onValueChange={(values) => {
+          const next = values[0];
+          if (next === "article" || next === "focus") onViewChange(next);
+        }}
+      >
+        <ToggleGroupItem value="article" disabled={disabled}>
           <AlignLeft size={16} />
           Article
-        </button>
-        <button
-          aria-pressed={view === "focus"}
-          disabled={disabled}
-          onClick={() => onViewChange("focus")}
-        >
+        </ToggleGroupItem>
+        <ToggleGroupItem value="focus" disabled={disabled}>
           <Focus size={16} />
           Focus
-        </button>
-      </div>
+        </ToggleGroupItem>
+      </ToggleGroup>
     </section>
   );
 }

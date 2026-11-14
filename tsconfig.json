@@ -4,6 +4,7 @@
     "lib": ["ES2022", "ES2022.Intl", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "paths": { "@/*": ["./src/*"] },
     "jsx": "react-jsx",
     "strict": true,
     "skipLibCheck": true,

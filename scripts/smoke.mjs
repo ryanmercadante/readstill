@@ -74,7 +74,7 @@ try {
   await settled();
   await page.waitForTimeout(500);
   assert.equal(await page.getByRole('dialog').count(), 1);
-  assert.equal(await page.locator('.play-button').getAttribute('aria-label'), 'Start reading');
+  assert.equal(await page.locator('.play-button').getAttribute('aria-label'), 'Read passage');
   assert.equal(await page.getByTestId('focus-word').textContent(), 'There');
   await page.getByRole('button', { name: 'Close about dialog' }).click();
   await page.getByRole('button', { name: 'Article', exact: true }).click();
@@ -86,7 +86,7 @@ try {
   });
   await settled();
   await page.waitForTimeout(500);
-  assert.equal(await page.locator('.play-button').getAttribute('aria-label'), 'Start reading');
+  assert.equal(await page.locator('.play-button').getAttribute('aria-label'), 'Read passage');
   assert.equal(await page.getByTestId('focus-word').textContent(), 'There');
   await page.evaluate(() => { delete document.hidden; document.dispatchEvent(new Event('visibilitychange')); });
   await page.getByRole('button', { name: 'Article', exact: true }).click();
@@ -97,7 +97,7 @@ try {
   await page.getByRole('button', { name: 'Focus', exact: true }).click();
   await settled();
   assert.equal(await page.getByTestId('focus-word').textContent(), 'bookshop');
-  assert.equal(await page.getByRole('button', { name: 'Start reading', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Read passage', exact: true }).count(), 1);
   await page.screenshot({ path: '.impeccable/review/desktop-focus.png' });
 
   // The highlighted character, not the whole word, must stay on the central guide.
@@ -110,7 +110,7 @@ try {
     assert.ok(delta < 1, `Anchor moved ${delta}px`);
     await page.getByRole('button', { name: 'Next word', exact: true }).click();
   }
-  await page.getByRole('button', { name: 'Start reading', exact: true }).click();
+  await page.getByRole('button', { name: 'Read passage', exact: true }).click();
   await page.waitForTimeout(750);
   await page.getByRole('button', { name: 'Pause reading', exact: true }).click();
   const pausedWord = await page.getByTestId('focus-word').textContent();
@@ -183,14 +183,14 @@ try {
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
     document.dispatchEvent(new Event('visibilitychange'));
   });
-  await page.getByRole('button', { name: 'Start reading', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Read passage', exact: true }).waitFor();
   await page.evaluate(() => { delete document.hidden; });
   await page.getByRole('button', { name: 'Article', exact: true }).click();
   await settled();
 
   await importText('One last word.', 'A short reading');
   await page.getByRole('slider').fill('700');
-  await page.getByRole('button', { name: 'Start reading', exact: true }).click();
+  await page.getByRole('button', { name: 'Read passage', exact: true }).click();
   await page.getByRole('button', { name: 'Read again', exact: true }).waitFor();
   assert.equal(await page.getByTestId('focus-word').textContent(), 'word.');
   assert.equal(await page.getByRole('progressbar').getAttribute('aria-valuenow'), '100');

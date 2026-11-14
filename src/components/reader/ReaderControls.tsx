@@ -1,3 +1,7 @@
+import { Slider } from "../ui/slider";
+import { Progress } from "../ui/progress";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
 import type { RefObject } from "react";
 import {
   ArrowLeft,
@@ -46,41 +50,44 @@ export function ReaderControls({
 
   return (
     <footer className="reader-dock">
-      <div
+      <Progress
         className="dock-progress"
-        role="progressbar"
         aria-label="Reading progress"
-        aria-valuenow={progress}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <div style={{ width: `${progress}%` }} />
-      </div>
+        value={progress}
+      />
       <div className="dock-controls">
         <div className="pace-control">
-          <label htmlFor="pace">
+          <Label id="pace-label" htmlFor="pace">
             Your pace{" "}
             <span>
               <strong>{wpm}</strong> WPM
             </span>
-          </label>
-          <input
-            id="pace"
-            type="range"
+          </Label>
+          <Slider
             min={MIN_WPM}
             max={MAX_WPM}
             step={25}
-            value={wpm}
+            largeStep={100}
+            value={[wpm]}
             disabled={!ready || transitioning}
-            onChange={(e) => onWpmChange(Number(e.target.value))}
-            aria-valuetext={`${wpm} words per minute`}
+            onValueChange={(value) =>
+              onWpmChange(Array.isArray(value) ? value[0] : value)
+            }
+            thumbProps={{
+              id: "pace",
+              "aria-labelledby": "pace-label",
+              "aria-describedby": "pace-note",
+              getAriaValueText: (_formatted, value) =>
+                `${value} words per minute`,
+            }}
           />
-          <span className="pace-note">
+          <span className="pace-note" id="pace-note">
             A little breathing room at punctuation
           </span>
         </div>
         <div className="playback-control">
-          <button
+          <Button
+            variant="ghost"
             className="icon-button replay-button"
             title="Replay sentence (R)"
             aria-label="Replay sentence"
@@ -88,8 +95,9 @@ export function ReaderControls({
             onClick={onReplay}
           >
             <RotateCcw size={19} />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="default"
             ref={playRef}
             className="play-button"
             onClick={onPlay}
@@ -99,7 +107,7 @@ export function ReaderControls({
                 ? "Pause reading"
                 : finished
                   ? "Read again"
-                  : "Start reading"
+                  : "Read passage"
             }
           >
             {playing ? (
@@ -110,9 +118,10 @@ export function ReaderControls({
               <Play size={19} fill="currentColor" />
             )}
             <span>{playing ? "Pause" : finished ? "Read again" : "Read"}</span>
-          </button>
+          </Button>
           <div className="step-buttons">
-            <button
+            <Button
+              variant="ghost"
               className="icon-button"
               aria-label="Previous word"
               title="Previous word (←)"
@@ -120,8 +129,9 @@ export function ReaderControls({
               onClick={() => onSeek(index - 1)}
             >
               <ArrowLeft size={16} />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
               className="icon-button"
               aria-label="Next word"
               title="Next word (→)"
@@ -129,7 +139,7 @@ export function ReaderControls({
               onClick={() => onSeek(index + 1)}
             >
               <ArrowRight size={16} />
-            </button>
+            </Button>
           </div>
         </div>
         <div className="position-info">

@@ -1,3 +1,4 @@
+import { Button } from "../ui/button";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { ArrowDownLeft } from "lucide-react";
@@ -82,10 +83,15 @@ export function FocusView({
           ? "You reached the end. Reread a sentence, or start again."
           : "Need the bigger picture? Your passage is one click away."}
       </p>
-      <button className="context-button" onClick={onReturnToArticle} disabled={transitioning}>
+      <Button
+        variant="link"
+        className="context-button"
+        onClick={onReturnToArticle}
+        disabled={transitioning}
+      >
         <ArrowDownLeft size={17} />
         Back to the passage
-      </button>
+      </Button>
     </section>
   );
 }

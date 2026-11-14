@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-TanStack Start, React, TypeScript, Vite, Motion, browser-local storage. A landing page at `/` leads to the reader at `/reader`. Local implementation first; deployment is outside this build.
+TanStack Start, React, TypeScript, Vite, shadcn Base UI components, Tailwind CSS, Motion, browser-local storage. A landing page at `/` leads to the reader at `/reader`. Local implementation first; deployment is outside this build.
 
 ## Users
 

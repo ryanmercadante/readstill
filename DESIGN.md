@@ -85,7 +85,7 @@ components:
 
 Still is a quiet, warm paper reading surface. Serif prose carries the attention; compact sans-serif controls support choosing a pace and returning to context. The article remains open and flat, with no stock imagery.
 
-This is an implementation record, not user-confirmed branding. The working name, metaphor, descriptive color names and visual direction are provisional. `src/styles.css` is the visual source of truth; `src/routes/reader.tsx` coordinates interaction and transitions, with reading surfaces and controls in `src/components/reader/`. Frontmatter records observed values, not a new token API or a promised global spacing scale.
+This is an implementation record, not user-confirmed branding. The working name, metaphor, descriptive color names and visual direction are provisional. `src/styles.css` and the Tailwind classes in `src/components/ui/` are the visual source of truth; `src/routes/reader.tsx` coordinates interaction and transitions, with reading surfaces and controls in `src/components/reader/`. Frontmatter records observed values, not a new token API or a promised global spacing scale.
 
 **Key Characteristics:**
 - Warm paper and restrained terracotta emphasis.
@@ -139,11 +139,11 @@ Quiet and compact. Primary actions use charcoal on paper, a 47px minimum height 
 
 ### Inputs / Fields
 
-Pale cream fields have a 1px border, rounded field corners and 12px padding. The passage textarea uses 17px serif text, 1.8 line height, a 220px minimum height and vertical resizing. Labels remain sans-serif. Error messages are red with textual explanation. The pace control is a native range input with terracotta accent and 25-WPM steps.
+Pale cream fields have a 1px border, rounded field corners and 12px padding. The passage textarea uses 17px serif text, 1.8 line height, a 220px minimum height and vertical resizing. Labels remain sans-serif. Error messages are red with textual explanation. The pace control is a shadcn Base UI slider with a terracotta thumb and 25-WPM steps; its nested native input carries the accessible name and WPM value.
 
 ### Navigation
 
-Article and Focus are a two-button group with `aria-pressed` state. The selected view has a cream fill, charcoal text and a small shadow; the inactive view uses muted text. The group becomes full width on phones. The header provides the wordmark, About action and Paste text action.
+Article and Focus are a two-button group with `aria-pressed` state. The selected view has a cream fill, charcoal text and a small shadow; the inactive view uses `#68655d` for sufficient contrast against the switch track. A shadcn Base UI ToggleGroup supplies roving keyboard focus and single selection; pressing the selected item keeps that view active. The group becomes full width on phones. The header provides the wordmark, About action and Paste text action.
 
 ### Article and Focus Reader
 
@@ -151,7 +151,11 @@ Article words are selectable reading positions, with a clay current-word highlig
 
 ### Dock and Dialogs
 
-The persistent dock holds the thin progress line, native pace slider, replay/play/step actions and local-save status. Keyboard shortcuts support space, arrow keys, R and Escape outside interactive controls and dialogs. Paste and About are modal dialogs on a dark translucent backdrop; both pause reading when opened and return focus to the play button. Dialogs have a 600px maximum width and viewport-bounded scrolling. There is no card or chip system in this implementation.
+The persistent dock holds the thin progress line, Base UI pace slider, replay/play/step actions and local-save status. Keyboard shortcuts support space, arrow keys, R and Escape outside interactive controls and dialogs. Paste and About are modal dialogs on a dark translucent backdrop; both pause reading when opened and return focus to the play button. Dialogs have a 600px maximum width and viewport-bounded scrolling. There is no card or chip system in this implementation.
+
+### Component implementation
+
+Shared controls live in `src/components/ui/`, installed from shadcn’s Base UI registry and styled with Tailwind utilities mapped to Still’s existing tokens. Dialogs retain their focus traps and explicit return-to-play focus; form errors are linked to invalid inputs. The play action’s accessible name is “Read passage” so it contains the visible “Read” label. The landing CTA remains a native link styled with the shared button variants. Geometry, typography, and the reader transition are preserved. See `src/components/ui/README.md` for the local adaptations.
 
 ## Do's and Don'ts
 
