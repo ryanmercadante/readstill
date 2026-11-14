@@ -21,8 +21,9 @@ const saved = () =>
   );
 const position = () => page.locator('[aria-current="location"]').getAttribute("data-word");
 const library = async () => {
-  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await page.getByRole("link", { name: "Library", exact: true }).click();
   await page.getByRole("heading", { name: "Your library", exact: true }).waitFor();
+  assert.equal(new URL(page.url()).pathname, "/library");
 };
 const audit = async (label) => {
   const results = await new AxeBuilder({ page })
@@ -43,7 +44,14 @@ const paste = async (text, title) => {
 };
 try {
   await mkdir(".impeccable/review", { recursive: true });
+  const response = await context.request.get(new URL("/library", baseUrl).href);
+  assert.equal(response.status(), 200);
+  assert.ok((await response.text()).includes("Your library"));
   await page.goto(baseUrl);
+  assert.equal(
+    await page.getByRole("link", { name: "Library", exact: true }).getAttribute("href"),
+    "/library",
+  );
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
       const request = indexedDB.open("keyval-store", 1);
@@ -78,6 +86,15 @@ try {
   await page.locator('[data-word="3"]').click();
   await saved();
   await library();
+  await page.reload();
+  await ready();
+  assert.equal(new URL(page.url()).pathname, "/library");
+  assert.equal(await page.title(), "Library — Still");
+  await page.goBack();
+  await page.getByRole("heading", { name: "Tomorrow's passage", exact: true }).waitFor();
+  assert.equal(await position(), "3");
+  await page.goForward();
+  await page.getByRole("heading", { name: "Your library", exact: true }).waitFor();
   assert.equal(await page.getByRole("list", { name: "Saved readings" }).locator("li").count(), 2);
   await page.getByRole("button", { name: "An earlier reading", exact: true }).click();
   assert.equal(await position(), "4");
@@ -203,6 +220,7 @@ try {
   assert.equal(unsaved.library.positions[book.id].index, 3);
   await page.reload();
   await ready();
+  await page.getByRole("button", { name: "Continue reading", exact: true }).click();
   assert.equal(await position(), "5", "A failed write must leave the persisted position intact");
   await library();
   await page.getByRole("button", { name: "Paste text", exact: true }).click();
@@ -210,6 +228,18 @@ try {
   await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   await page.waitForFunction(() => document.activeElement?.matches(".paste-button"));
+  await paste("A new passage from the library. Its place should stay here.", "From the library");
+  assert.equal(new URL(page.url()).pathname, "/reader");
+  await page.getByRole("button", { name: "Read passage", exact: true }).click();
+  await page.getByRole("button", { name: "Pause reading", exact: true }).waitFor();
+  await library();
+  await page.getByRole("button", { name: "Continue reading", exact: true }).click();
+  const pausedPosition = await position();
+  await page.waitForTimeout(500);
+  assert.equal(await position(), pausedPosition, "Leaving the reader must pause playback");
+  await page.goto(baseUrl);
+  await library();
+  await page.getByRole("button", { name: "From the library", exact: true }).waitFor();
   assert.deepEqual(errors, []);
   console.log(
     "PASS: legacy migration, multiple readings, EPUB import/images/TOC, per-book and per-chapter resume, chapter completion, backup export/merge, invalid import recovery, persistence failure/export, and desktop/mobile library accessibility.",

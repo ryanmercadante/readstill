@@ -40,7 +40,7 @@ try {
   await mkdir(".impeccable/review", { recursive: true });
   await page.goto(new URL("/reader", baseUrl).href);
   await ready();
-  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await page.getByRole("link", { name: "Library", exact: true }).click();
   await page
     .getByLabel("Choose EPUB", { exact: true })
     .setInputFiles({ name: "rich.epub", mimeType: "application/epub+zip", buffer: original });
@@ -152,7 +152,7 @@ try {
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.screenshot({ path: ".impeccable/review/rich-focus-mobile.png", fullPage: true });
   await saved();
-  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await page.getByRole("link", { name: "Library", exact: true }).click();
   const originalDownload = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Download original EPUB: A quiet afternoon", exact: true })
@@ -175,7 +175,11 @@ try {
   const restoredContext = await browser.newContext({ reducedMotion: "reduce" });
   const restored = await restoredContext.newPage();
   await restored.goto(new URL("/reader", baseUrl).href);
-  await restored.getByRole("button", { name: "Library", exact: true }).click();
+  await restored.getByRole("link", { name: "Library", exact: true }).click();
+  await restored.waitForFunction(() => {
+    const input = document.querySelector('[aria-label="Choose Still backup"]');
+    return input && !input.disabled;
+  });
   await restored
     .getByLabel("Choose Still backup", { exact: true })
     .setInputFiles({ name: "backup.json", mimeType: "application/json", buffer: backup });

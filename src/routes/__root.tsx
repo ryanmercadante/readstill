@@ -4,6 +4,7 @@ import stylesUrl from "../styles.css?url";
 import manropeUrl from "@fontsource-variable/manrope/index.css?url";
 import sourceSerifUrl from "@fontsource-variable/source-serif-4/index.css?url";
 import { readTheme, saveTheme, themeColors } from "../lib/theme";
+import { ReaderProvider } from "../hooks/useReader";
 import { ThemeContext } from "../hooks/useTheme";
 
 export const Route = createRootRoute({
@@ -53,7 +54,9 @@ function RootDocument({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <ThemeContext value={{ theme, toggleTheme }}>{children}</ThemeContext>
+        <ThemeContext value={{ theme, toggleTheme }}>
+          <ReaderProvider>{children}</ReaderProvider>
+        </ThemeContext>
         <Scripts />
       </body>
     </html>

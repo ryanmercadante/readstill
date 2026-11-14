@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
+import { BookOpen } from "lucide-react";
 import { Wordmark } from "./Wordmark";
 import { ThemeToggle } from "./ThemeToggle";
+import { buttonVariants } from "./ui/button";
 
 export function SiteHeader({ children }: { children?: ReactNode }) {
   return (
@@ -10,8 +13,20 @@ export function SiteHeader({ children }: { children?: ReactNode }) {
         Make room for reading.
       </span>
       <div className="ml-auto flex items-center gap-[22px] max-[520px]:gap-1">
-        <ThemeToggle />
+        <Link
+          to="/library"
+          activeProps={{ "aria-current": "page" }}
+          className={buttonVariants({
+            variant: "ghost",
+            className: "gap-2 text-xs no-underline hover:bg-ghost-hover",
+          })}
+          aria-label="Library"
+        >
+          <BookOpen size={19} />
+          <span className="max-[800px]:hidden">Library</span>
+        </Link>
         {children}
+        <ThemeToggle />
       </div>
     </header>
   );

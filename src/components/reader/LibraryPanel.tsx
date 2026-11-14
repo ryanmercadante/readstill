@@ -111,7 +111,7 @@ export function LibraryPanel({
   };
   return (
     <main
-      id="reading"
+      id="library"
       className="mx-auto max-w-[1000px] px-10 pt-12 pb-20 max-[800px]:px-7 max-[520px]:px-[23px] max-[520px]:pt-8"
       aria-busy={busy}
     >

@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { ReactNode } from "react";
 import { wordDuration } from "../lib/reader";
 import {
   initialPosition,
@@ -20,7 +29,7 @@ const initialLibrary: Library = {
   wpm: 250,
 };
 
-export function useReader() {
+function useReaderState() {
   const [library, setLibrary] = useState<Library>(initialLibrary);
   const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
@@ -247,4 +256,17 @@ export function useReader() {
     togglePlay,
     replace,
   };
+}
+
+const ReaderContext = createContext<ReturnType<typeof useReaderState> | null>(null);
+
+export function ReaderProvider({ children }: { children: ReactNode }) {
+  const reader = useReaderState();
+  return <ReaderContext value={reader}>{children}</ReaderContext>;
+}
+
+export function useReader() {
+  const reader = useContext(ReaderContext);
+  if (!reader) throw new Error("useReader must be used within ReaderProvider");
+  return reader;
 }
