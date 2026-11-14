@@ -57,27 +57,19 @@ Book contents and progress use separate IndexedDB records. Saves are atomic and 
 pnpm lint
 pnpm format:check
 pnpm test
-pnpm build
-pnpm exec playwright install chromium
-pnpm test:e2e http://127.0.0.1:5173
-pnpm test:guided http://127.0.0.1:5173
-pnpm test:shortcuts http://127.0.0.1:5173
-pnpm test:library http://127.0.0.1:5173
-pnpm test:rich-epub http://127.0.0.1:5173
-pnpm test:a11y http://127.0.0.1:5173
+pnpm exec playwright install chromium # once, and after Playwright upgrades
+pnpm test:e2e
 ```
 
+`pnpm test` runs the Vitest unit tests. `pnpm test:e2e` runs the Playwright Test suite in `e2e/`: it builds and typechecks the current checkout, starts an isolated production preview on port 4173, runs desktop and mobile Chromium projects, and stops the server. No manually started server is needed. Each test has fresh browser storage, separate from your own browser.
+
+For a focused run, use `pnpm test:e2e reader.spec.ts --project=chromium` or `pnpm test:e2e --grep "pending autoplay"`. Use `pnpm test:e2e:ui` to explore tests, `pnpm exec playwright test --debug` to debug, and `pnpm exec playwright show-report` to inspect the HTML report and failure traces/screenshots. To explicitly use an existing server, set `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5173 pnpm test:e2e`; positional URLs are no longer supported.
+
+The suite covers routing and SSR, all three reading modes, playback and interruptions, keyboard shortcuts and modal focus, local persistence and storage failures, EPUB import and context stops, backups, themes, responsive layout, and automated accessibility checks. Vitest retains detailed parser, migration, validation, and storage transaction coverage. See [the browser testing guide](e2e/README.md) for the coverage map and conventions. Chromium emulation and axe checks do not replace physical-device, Safari, or screen-reader testing.
+
+GitHub Actions runs lint, formatting, unit tests, and the browser suite on pull requests and pushes to `main`, and uploads the Playwright report and test artifacts. Browser retries are disabled so intermittent failures remain visible.
+
 Run `pnpm lint:fix` to apply safe lint fixes and `pnpm format` to format files. `pnpm install` installs the Husky pre-commit hook, which runs lint-staged on every commit: staged JavaScript and TypeScript files are lint-fixed, then formatted; other supported files are formatted. Unresolved lint warnings or errors block the commit. The generated route tree is excluded from both tools, and the pnpm lockfile is excluded from formatting.
-
-The browser smoke check requires a running dev or preview server. Pass its actual base URL if Vite selected another port. It covers server rendering, landing-to-reader navigation, browser history, direct reader reloads, selection, fixed anchor alignment, playback, sentence replay, save/restore, keyboard controls, hidden-page pause, completion/restart, narrow layout, and reduced motion. Screenshots go to the ignored `.impeccable/review/` directory. Browser data created by this check is isolated from your own browser.
-
-To check the production build locally, run `pnpm build`, then `pnpm preview`, and pass the printed preview URL to the smoke check.
-
-The accessibility check runs axe WCAG A/AA scans across the landing page, both reader views, and dialogs at desktop and mobile widths. It also checks keyboard view switching, slider limits and announcements, dialog focus containment/return, and validation associations. Automated checks do not replace screen-reader or physical-device testing.
-
-The library browser check covers legacy migration, multiple readings, EPUB order/labels/images, worker-based extraction, chapter resume and completion, backup round trips, merge behavior, invalid-file recovery, storage-write failure with export, and library accessibility at desktop, 390px, and 320px. Unit tests exercise the parser and archive limits, backup validation, transaction rollback, and stale-tab conflicts using generated EPUB fixtures. The production build was also checked with [Project Gutenberg's Alice's Adventures in Wonderland EPUB3](https://www.gutenberg.org/ebooks/11), including its cover, contents list, and chapter navigation. This coverage is not a claim of compatibility with every publisher's EPUB.
-
-The rich EPUB browser check verifies review/cancel before import, table semantics, actual SVG rasterization, blocked scripts and external requests, context stops and exact continuation, adjacent stops, saved context locations, byte-for-byte original downloads, rich backup restore, and desktop/mobile accessibility. Unit tests also cover version-1 library/backup migration, migration rollback under storage failure, publisher fallbacks, and invalid rich data.
 
 ## Implementation
 
@@ -97,7 +89,7 @@ The rich EPUB browser check verifies review/cancel before import, table semantic
 - `src/router.tsx` and `src/routes/`: TanStack Start router, shared HTML document, landing page, and reader route. `src/routeTree.gen.ts` is generated by the router plugin and committed for standalone typechecking.
 - `src/components/SiteHeader.tsx`, `SkipLink.tsx`, and `Wordmark.tsx`: shared navigation and branding.
 - `src/styles.css`: Tailwind theme tokens, document defaults, and the compact reader media variant. Responsive layouts and component styling live in Tailwind utilities alongside their markup.
-- `scripts/smoke.mjs`: repeatable browser checks.
+- `e2e/` and `playwright.config.ts`: isolated browser tests, shared fixtures, projects, and managed test server.
 
 React and TypeScript run in TanStack Start with Vite, following the [official setup](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch). Both routes render on the server and hydrate in the browser. IndexedDB access, playback, and layout measurements stay in browser effects; saved text is never sent to the server. Motion animates the view transition; shadcn's Base UI components provide the interactive controls and dialogs. Fonts are self-hosted. There is no telemetry, upload endpoint, or server-side reading storage.
 

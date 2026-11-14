@@ -14,4 +14,4 @@ Local adaptations:
 - Toggle groups use Base UI's single-selection and roving keyboard focus. The reader keeps the active view selected when the current item is pressed again.
 - Input, textarea, and label retain their native form semantics. Validation associations are supplied at the form.
 
-Adding a registry component is supported. Its generated Tailwind styles can use the existing shadcn theme tokens; adapt its dimensions to the design before using it. Do not overwrite these customized components without reviewing the diff. Run `pnpm test:e2e <base-url>` and `pnpm test:a11y <base-url>` against a running server after changing interactive components.
+Adding a registry component is supported. Its generated Tailwind styles can use the existing shadcn theme tokens; adapt its dimensions to the design before using it. Do not overwrite these customized components without reviewing the diff. Run `pnpm test:e2e` after changing interactive components, or `pnpm test:e2e accessibility.spec.ts` for focused accessibility checks. Playwright builds and starts its own preview server; see the [testing guide](../../../../e2e/README.md).

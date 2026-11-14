@@ -17,7 +17,7 @@ Read these existing artifacts instead of treating this handoff as a replacement 
 - [DESIGN](../DESIGN.md): current visual system and interaction design.
 - [package.json](../package.json): actual dependencies and commands; pnpm and `pnpm-lock.yaml` are the current package tooling.
 
-The previous dev server used `http://127.0.0.1:5174`. Check whether it is still running before starting another. The smoke script accepts the server URL as an argument; see the README. IndexedDB is origin-specific, so changing hostname or port will appear to lose saved reading data even when the old origin still retains it.
+The previous dev server used `http://127.0.0.1:5174`. Check whether it is still running before starting another. The browser checks now use Playwright Test and manage their own preview server; see the current README for commands. IndexedDB is origin-specific, so changing hostname or port will appear to lose saved reading data even when the old origin still retains it.
 
 ## What the user is trying to build
 
@@ -59,7 +59,7 @@ The app currently has no backend, upload endpoint, or telemetry. Preserve accura
 
 During the implementation and repository move, a fresh dependency install, production build, five reader unit tests, and the Chromium browser smoke check passed. These are prior results; the handoff itself changes documentation only and does not rerun application tests.
 
-The README describes browser coverage. The smoke script also exercises cancellation of pending autoplay during transitions and narrow layouts, including 320 × 568. Screenshots are ignored local artifacts rather than committed product assets.
+The README describes browser coverage. The Playwright specs now exercise cancellation of pending autoplay during transitions and narrow layouts, including 320 × 568. Failure traces, screenshots, and the HTML report are ignored local artifacts rather than committed product assets.
 
 Still unverified: physical phones, Safari behavior, a full assistive-technology review, longer real-world reading sessions, and comprehension or retention benefits. Automated narrow-viewport checks are not physical-device testing. The demonstration prose is not a validated comprehension assessment.
 
