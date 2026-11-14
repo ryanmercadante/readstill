@@ -8,6 +8,9 @@ const context = await browser.newContext({ viewport: { width: 1440, height: 1000
 const page = await context.newPage();
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));
+page.on('console', message => {
+  if (message.type() === 'error') errors.push(message.text());
+});
 await mkdir('.impeccable/review', { recursive: true });
 const ready = async () => {
   await page.getByRole('button', { name: 'Paste text', exact: true }).waitFor();
@@ -27,8 +30,38 @@ const importText = async (text, title) => {
 };
 
 try {
-  await page.goto(process.argv[2] || 'http://127.0.0.1:5173');
+  const baseUrl = process.argv[2] || 'http://127.0.0.1:5173';
+  const homeUrl = new URL('/', baseUrl).href;
+  const readerUrl = new URL('/reader', baseUrl).href;
+  // Both pages must render on the server, including a direct reader request.
+  for (const [url, content] of [[homeUrl, 'A little space.'], [readerUrl, 'The pleasure of paying attention']]) {
+    const response = await context.request.get(url);
+    assert.equal(response.status(), 200);
+    assert.ok((await response.text()).includes(content));
+  }
+  const missing = await context.request.get(new URL('/missing-page', baseUrl).href);
+  assert.equal(missing.status(), 404);
+
+  await page.goto(homeUrl);
+  // The server-rendered link works before hydration; wait for the client entry
+  // before asserting that this particular click uses client-side routing.
+  await page.waitForLoadState('networkidle');
+  await page.getByRole('heading', { name: 'A little space. One word at a time.' }).waitFor();
+  assert.equal(await page.getByRole('link', { name: 'Try it', exact: true }).getAttribute('href'), '/reader');
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: '.impeccable/review/landing-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: '.impeccable/review/landing-mobile.png', fullPage: true });
+  await page.setViewportSize({ width: 320, height: 568 });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(() => { window.stillNavigationMarker = true; });
+  await page.getByRole('link', { name: 'Try it', exact: true }).click();
   await ready();
+  assert.equal(page.url(), readerUrl);
+  await page.waitForFunction(() => document.title === 'Reader — Still');
+  assert.equal(await page.title(), 'Reader — Still');
+  assert.equal(await page.evaluate(() => window.stillNavigationMarker), true, 'Navigation should stay client-side');
   await page.evaluate(() => document.fonts.ready);
   assert.equal(await page.locator('article p').count(), 9);
   await page.screenshot({ path: '.impeccable/review/desktop.png', fullPage: true });
@@ -113,6 +146,23 @@ try {
   assert.equal(await page.getByRole('slider').inputValue(), '400');
   assert.equal(await position(), '4');
 
+  // Leaving the reader and using browser history must retain the saved reading.
+  await saved();
+  await page.getByRole('link', { name: 'Still home', exact: true }).click();
+  await page.getByRole('link', { name: 'Try it', exact: true }).waitFor();
+  assert.equal(page.url(), homeUrl);
+  await page.waitForFunction(() => document.title === 'Still — Make room for reading');
+  assert.equal(await page.title(), 'Still — Make room for reading');
+  await page.goBack();
+  await ready();
+  assert.equal(await page.locator('h1').textContent(), 'My reading');
+  assert.equal(await page.getByRole('slider').inputValue(), '400');
+  assert.equal(await position(), '4');
+  await page.goForward();
+  await page.getByRole('link', { name: 'Try it', exact: true }).click();
+  await ready();
+  assert.equal(await position(), '4');
+
   await page.locator('article').focus();
   await page.keyboard.press('ArrowRight');
   assert.equal(await position(), '5');
@@ -171,7 +221,7 @@ try {
   await page.keyboard.press('Escape');
   await page.getByRole('dialog').waitFor({ state: 'hidden' });
   assert.deepEqual(errors, []);
-  console.log('PASS: selection, shared position, fixed anchor, playback/pause, replay, persistence, input validation, keyboard controls, background pause, completion, mobile layout, reduced motion, and dialog accessibility.');
+  console.log('PASS: server rendering, landing/reader navigation, browser history, direct reader reloads, selection, shared position, fixed anchor, playback/pause, replay, persistence, input validation, keyboard controls, background pause, completion, mobile layout, reduced motion, and dialog accessibility.');
 } finally {
   await browser.close();
 }

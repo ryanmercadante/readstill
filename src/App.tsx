@@ -19,6 +19,7 @@ import {
 import { useReader } from "./useReader";
 import { anchorParts, MAX_TEXT_LENGTH, MAX_WPM, MIN_WPM } from "./reader";
 import { SAMPLE_TEXT, SAMPLE_TITLE } from "./sample";
+import { Wordmark } from "./components/Wordmark";
 
 type View = "article" | "focus";
 type Flight = {
@@ -219,13 +220,7 @@ export default function App() {
         Skip to reading
       </a>
       <header className="site-header">
-        <a className="wordmark" href="#reading" aria-label="Still reader">
-          <span className="brand-mark" aria-hidden="true">
-            <i />
-            <i />
-          </span>
-          still<span className="brand-period">.</span>
-        </a>
+        <Wordmark />
         <span className="tagline">Make room for reading.</span>
         <div className="header-actions">
           <button
