@@ -1,9 +1,8 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { motion, useReducedMotion } from "motion/react";
 import { useReader } from "../hooks/useReader";
-import { SAMPLE_TEXT } from "../lib/sample";
 import { AboutReaderDialog } from "../components/reader/AboutReaderDialog";
 import { SkipLink } from "../components/SkipLink";
 import { AnchoredWord } from "../components/reader/AnchoredWord";
@@ -20,6 +19,8 @@ import { Button } from "../components/ui/button";
 
 export const Route = createFileRoute("/reader")({
   head: () => ({ meta: [{ title: "Reader — Still" }] }),
+  validateSearch: (search: Record<string, unknown>): { sample?: boolean } =>
+    search.sample === true ? { sample: true } : {},
   component: ReaderPage,
 });
 
@@ -35,6 +36,8 @@ type Flight = {
 
 function ReaderPage() {
   const reader = useReader();
+  const navigate = Route.useNavigate();
+  const router = useRouter();
   const [view, setView] = useState<ReaderView>("article");
   const [flight, setFlight] = useState<Flight | null>(null);
   const [transitioning, setTransitioning] = useState(false);
@@ -56,6 +59,17 @@ function ReaderPage() {
     playAfterTransition.current = false;
     if (shouldPlay) reader.togglePlay();
   };
+
+  useEffect(() => {
+    // The outgoing reader can render once more while another route is loading.
+    if (
+      router.state.location.pathname === "/reader" &&
+      reader.ready &&
+      !reader.isSample &&
+      !reader.library.readings.length
+    )
+      void navigate({ to: "/library", replace: true });
+  }, [reader.ready, reader.isSample, reader.library.readings.length, navigate, router]);
 
   useEffect(() => () => cancelAnimationFrame(transitionFrame.current), []);
   useEffect(() => () => reader.setPlaying(false), [reader.setPlaying]);
@@ -164,6 +178,7 @@ function ReaderPage() {
   };
   const importText = (text: string, title: string) => {
     reader.replace(text, title);
+    void navigate({ search: {}, replace: true });
     setView("article");
     setPasteOpen(false);
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -182,7 +197,8 @@ function ReaderPage() {
     setView("focus");
     requestAnimationFrame(() => playRef.current?.focus({ preventScroll: true }));
   };
-  if (reader.ready && !reader.library.readings.length) return <Navigate to="/library" replace />;
+  if (!reader.isSample && (!reader.ready || !reader.library.readings.length))
+    return <p className="p-8 text-sm text-muted-foreground">Opening your reading…</p>;
 
   return (
     <>
@@ -204,7 +220,7 @@ function ReaderPage() {
       >
         <ReadingHeading
           title={reader.title}
-          sourceIsSample={reader.text === SAMPLE_TEXT}
+          sourceIsSample={reader.isSample}
           wordCount={reader.wordCount}
           view={view}
           disabled={transitioning || !reader.ready}
@@ -291,6 +307,7 @@ function ReaderPage() {
         )}
       </main>
       <ReaderControls
+        isSample={reader.isSample}
         index={reader.index}
         wordCount={reader.words.length}
         wpm={reader.wpm}

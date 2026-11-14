@@ -47,7 +47,7 @@ try {
   await page.getByRole("region", { name: "EPUB import review" }).waitFor();
   assert.equal(
     await page.getByRole("list", { name: "Saved readings" }).locator("li").count(),
-    1,
+    0,
     "Import review must not mutate the library",
   );
   await audit("Import review desktop");
@@ -56,7 +56,7 @@ try {
   await page.screenshot({ path: ".impeccable/review/rich-import-mobile.png", fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole("button", { name: "Cancel import", exact: true }).click();
-  assert.equal(await page.getByRole("list", { name: "Saved readings" }).locator("li").count(), 1);
+  assert.equal(await page.getByRole("list", { name: "Saved readings" }).locator("li").count(), 0);
   await page
     .getByLabel("Choose EPUB", { exact: true })
     .setInputFiles({ name: "rich.epub", mimeType: "application/epub+zip", buffer: original });

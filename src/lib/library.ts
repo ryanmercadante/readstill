@@ -1,6 +1,6 @@
 import { MAX_TEXT_LENGTH, MAX_WPM, MIN_WPM, validSnapshot } from "./reader";
 import { SAMPLE_TEXT, SAMPLE_TITLE } from "./sample";
-import { chapterSequence, positionAt, sequenceIndex } from "./reader-document";
+import { chapterSequence, chapterText, positionAt, sequenceIndex } from "./reader-document";
 import { validLegacyLibrary } from "./library-v1";
 import type { Library as LegacyLibrary } from "./library-v1";
 
@@ -84,19 +84,40 @@ export function initialPosition(reading: Reading): Position {
   return positionAt(reading.chapters[0], 0, false, 0);
 }
 
-export function migrateSnapshot(value: unknown): Library {
-  const reading = validSnapshot(value)
-    ? textReading(value.text, value.title, "previous-reading")
-    : sampleReading;
-  const position = validSnapshot(value)
-    ? positionAt(reading.chapters[0], value.index, false, 0)
-    : initialPosition(reading);
+/** Remove only the built-in passage, including copies added by the old sample shortcut. */
+export function withoutSample(library: Library): Library {
+  const readings = library.readings.filter(
+    (reading) =>
+      !(
+        reading.kind === "text" &&
+        reading.title === SAMPLE_TITLE &&
+        reading.chapters.length === 1 &&
+        reading.chapters[0].blocks.every((block) => block.type === "text") &&
+        chapterText(reading.chapters[0]) === chapterText(sampleReading.chapters[0])
+      ),
+  );
+  if (readings.length === library.readings.length) return library;
   return {
-    readings: [reading],
-    positions: { [reading.id]: position },
-    activeId: reading.id,
-    wpm: validSnapshot(value) ? value.wpm : 250,
+    ...library,
+    readings,
+    positions: Object.fromEntries(
+      readings.map((reading) => [reading.id, library.positions[reading.id]]),
+    ),
+    activeId: readings.some((reading) => reading.id === library.activeId)
+      ? library.activeId
+      : (readings[0]?.id ?? null),
   };
+}
+
+export function migrateSnapshot(value: unknown): Library {
+  if (!validSnapshot(value)) return { readings: [], positions: {}, activeId: null, wpm: 250 };
+  const reading = textReading(value.text, value.title, "previous-reading");
+  return withoutSample({
+    readings: [reading],
+    positions: { [reading.id]: positionAt(reading.chapters[0], value.index, false, 0) },
+    activeId: reading.id,
+    wpm: value.wpm,
+  });
 }
 
 export function migrateV1Library(legacy: LegacyLibrary): Library {
@@ -136,12 +157,12 @@ export function migrateV1Library(legacy: LegacyLibrary): Library {
       ];
     }),
   );
-  return {
+  return withoutSample({
     readings,
     positions,
     activeId: legacy.activeId ?? readings[0]?.id ?? null,
     wpm: legacy.wpm,
-  };
+  });
 }
 
 const object = (v: unknown): v is Record<string, unknown> =>
@@ -387,12 +408,12 @@ export function parseBackup(raw: string): Library {
       ];
     }),
   );
-  return {
+  return withoutSample({
     readings,
     positions,
     activeId: library.activeId as string | null,
     wpm: library.wpm as number,
-  };
+  });
 }
 export function serializeBackup(library: Library): string {
   const data: Backup = { format: "still-library", version: 2, library };

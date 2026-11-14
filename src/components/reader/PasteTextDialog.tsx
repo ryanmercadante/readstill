@@ -15,7 +15,6 @@ import {
 } from "../ui/dialog";
 import { ArrowRight, X } from "lucide-react";
 import { MAX_TEXT_LENGTH } from "../../lib/reader";
-import { SAMPLE_TEXT, SAMPLE_TITLE } from "../../lib/sample";
 
 type PasteTextDialogProps = {
   open: boolean;
@@ -109,21 +108,6 @@ function PasteTextForm({ onImport }: Pick<PasteTextDialogProps, "onImport">) {
         </p>
       )}
       <DialogFooter>
-        <Button
-          variant="text"
-          type="button"
-          onClick={() => {
-            try {
-              onImport(SAMPLE_TEXT, SAMPLE_TITLE);
-            } catch (error) {
-              setFormError(
-                error instanceof Error ? error.message : "This reading couldn't be added.",
-              );
-            }
-          }}
-        >
-          Use sample instead
-        </Button>
         <Button variant="default" className="max-[520px]:w-full" type="submit">
           Start reading
           <ArrowRight size={17} />

@@ -9,6 +9,7 @@ import {
   serializeBackup,
   textReading,
   validReading,
+  sampleReading,
 } from "./library";
 import type { Library } from "./library";
 import { chapterSequence, chapterText, positionAt, sequenceIndex } from "./reader-document";
@@ -22,6 +23,71 @@ const library = (): Library => {
   };
 };
 describe("library and backups", () => {
+  it("starts empty and leaves the legacy sample out of migration", () => {
+    expect(migrateSnapshot(undefined)).toEqual({
+      readings: [],
+      positions: {},
+      activeId: null,
+      wpm: 250,
+    });
+    expect(
+      migrateSnapshot({
+        version: 1,
+        text: chapterText(sampleReading.chapters[0]),
+        title: sampleReading.title,
+        index: 4,
+        wpm: 375,
+      }),
+    ).toEqual({ readings: [], positions: {}, activeId: null, wpm: 375 });
+  });
+  it("removes built-in and copied samples from backups while retaining real readings and progress", () => {
+    const real = library();
+    const copy = { ...sampleReading, id: "old-shortcut-copy" };
+    const backup = {
+      ...real,
+      readings: [sampleReading, copy, ...real.readings],
+      positions: {
+        ...real.positions,
+        [sampleReading.id]: initialPosition(sampleReading),
+        [copy.id]: initialPosition(copy),
+      },
+      activeId: sampleReading.id,
+    };
+    expect(parseBackup(serializeBackup(backup))).toEqual(real);
+    const sameTitle = textReading("My own writing.", sampleReading.title, "own-writing");
+    const own = {
+      ...real,
+      readings: [sameTitle],
+      positions: { [sameTitle.id]: initialPosition(sameTitle) },
+      activeId: sameTitle.id,
+    };
+    expect(parseBackup(serializeBackup(own))).toEqual(own);
+  });
+  it("removes the sample from version 1 backups", () => {
+    const legacy = {
+      readings: [
+        {
+          ...sampleReading,
+          chapters: [
+            {
+              id: "text",
+              title: "Passage",
+              text: chapterText(sampleReading.chapters[0]),
+              images: [],
+            },
+          ],
+        },
+      ],
+      positions: {
+        [sampleReading.id]: { chapterId: "text", index: 4, finished: false, updatedAt: 1 },
+      },
+      activeId: sampleReading.id,
+      wpm: 300,
+    };
+    expect(
+      parseBackup(JSON.stringify({ format: "still-library", version: 1, library: legacy })),
+    ).toEqual({ readings: [], positions: {}, activeId: null, wpm: 300 });
+  });
   it("keeps the previous text limit valid even for many short paragraphs", () => {
     expect(validReading(textReading("x\n\n".repeat(30_000), "Many paragraphs"))).toBe(true);
   });

@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Check, Pause, Play, RotateCcw } from "lucide-rea
 import { MAX_WPM, MIN_WPM } from "../../lib/reader";
 
 type ReaderControlsProps = {
+  isSample?: boolean;
   index: number;
   wordCount: number;
   wpm: number;
@@ -25,6 +26,7 @@ type ReaderControlsProps = {
 };
 
 export function ReaderControls({
+  isSample = false,
   index,
   wordCount,
   wpm,
@@ -160,7 +162,9 @@ export function ReaderControls({
             className="mt-2 flex items-center justify-end gap-1 text-[9px] text-muted-foreground"
             data-testid="save-status"
           >
-            {storageError ? (
+            {isSample ? (
+              "Sample · not saved to your library"
+            ) : storageError ? (
               "Progress could not be saved"
             ) : !ready ? (
               "Opening your reading…"

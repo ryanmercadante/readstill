@@ -70,7 +70,7 @@ try {
     ["invalid", "light"],
     ["", "light"],
   ]) {
-    for (const route of ["/", "/reader"]) {
+    for (const route of ["/", "/reader?sample=true"]) {
       const response = await browser.newContext();
       const html = await (
         await response.request.get(new URL(route, baseUrl).href, {
@@ -91,7 +91,7 @@ try {
     if ((await page.locator("html").getAttribute("data-theme")) !== theme) await toggle.click();
     for (const width of [1440, 320]) {
       await page.setViewportSize({ width, height: width === 320 ? 568 : 1000 });
-      for (const route of ["/", "/reader"]) {
+      for (const route of ["/", "/reader?sample=true"]) {
         await page.goto(new URL(route, baseUrl).href);
         await ready(page);
         await themeIs(page, theme);
@@ -113,7 +113,7 @@ try {
           path: `.impeccable/review/theme-${theme}-${route === "/" ? "landing" : "article"}-${width}.png`,
           fullPage: true,
         });
-        if (route === "/reader") {
+        if (route === "/reader?sample=true") {
           await page.getByRole("button", { name: "Focus", exact: true }).click();
           await page.waitForFunction(
             () => !document.querySelector(".view-switch button")?.disabled,

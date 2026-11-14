@@ -71,12 +71,27 @@ export async function loadLibrary(): Promise<StoredLibrary> {
       throw new Error(
         "The saved library couldn't be opened. Restore a backup in another browser to recover it.",
       );
-    if ((settings.schemaVersion ?? 1) === 1) {
+    const removed = readings.filter(
+      (reading) => !library.readings.some((r) => r.id === reading.id),
+    );
+    if ((settings.schemaVersion ?? 1) === 1 || removed.length) {
+      for (const reading of removed) {
+        records.delete(`reading:${reading.id}`);
+        records.delete(`position:${reading.id}`);
+      }
       for (const reading of library.readings) {
         records.put(reading, `reading:${reading.id}`);
         records.put(library.positions[reading.id], `position:${reading.id}`);
       }
-      records.put({ ...settings, revision: settings.revision + 1, schemaVersion: 2 }, "settings");
+      records.put(
+        {
+          ...settings,
+          activeId: library.activeId,
+          revision: settings.revision + 1,
+          schemaVersion: 2,
+        },
+        "settings",
+      );
       return { library, revision: settings.revision + 1 };
     }
     return { library, revision: settings.revision };

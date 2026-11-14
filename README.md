@@ -19,7 +19,7 @@ The first visit migrates the previous single reading or version-1 library into t
 
 ## Included
 
-- Original sample prose and paste-your-own text (up to 100,000 characters).
+- A temporary sample demo from the landing page’s **Try it** button, plus paste-your-own text (up to 100,000 characters). The sample and its position are not saved to the library.
 - Article and focus views with one shared word position.
 - A word-to-focus transition, with an immediate transition for reduced-motion preferences.
 - A stationary highlighted anchor, 100–700 WPM controls, sentence/paragraph pauses, play/pause, word stepping, and sentence replay.

@@ -1,8 +1,47 @@
 import "fake-indexeddb/auto";
-import { get, set, createStore } from "idb-keyval";
-import { expect, it, vi } from "vitest";
+import { get, set, clear, createStore } from "idb-keyval";
+import { beforeEach, expect, it, vi } from "vitest";
 import { loadLibrary, saveLibrary } from "./library-storage";
-import { initialPosition, textReading } from "./library";
+import { initialPosition, textReading, sampleReading } from "./library";
+
+beforeEach(async () => {
+  await clear();
+  await clear(createStore("still-library", "records"));
+});
+
+it("creates an empty library without saving the sample", async () => {
+  const stored = await loadLibrary();
+  expect(stored.library).toEqual({ readings: [], positions: {}, activeId: null, wpm: 250 });
+  expect(
+    await get("reading:still-sample", createStore("still-library", "records")),
+  ).toBeUndefined();
+});
+
+it("cleans saved samples atomically and invalidates stale tabs without changing user progress", async () => {
+  const db = createStore("still-library", "records");
+  const own = textReading("Words I want to keep.", "My reading", "own");
+  const position = { ...initialPosition(own), index: 2, updatedAt: 123 };
+  for (const reading of [sampleReading, own]) {
+    await set(`reading:${reading.id}`, reading, db);
+    await set(`position:${reading.id}`, reading === own ? position : initialPosition(reading), db);
+  }
+  await set(
+    "settings",
+    { activeId: sampleReading.id, wpm: 350, revision: 5, schemaVersion: 2 },
+    db,
+  );
+  const cleaned = await loadLibrary();
+  expect(cleaned).toEqual({
+    library: { readings: [own], positions: { own: position }, activeId: "own", wpm: 350 },
+    revision: 6,
+  });
+  expect(await get("reading:still-sample", db)).toBeUndefined();
+  expect(await get("position:still-sample", db)).toBeUndefined();
+  expect(await loadLibrary()).toEqual(cleaned);
+  await expect(saveLibrary(cleaned.library, { ...cleaned, revision: 5 })).rejects.toThrow(
+    "another tab",
+  );
+});
 
 it("migrates once, saves books and positions atomically, and refuses stale-tab overwrites", async () => {
   await set("still.current-reading.v1", {

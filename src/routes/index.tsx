@@ -34,6 +34,7 @@ function LandingPage() {
           <Link
             className={buttonVariants({ className: "min-w-[130px] text-[13px] no-underline" })}
             to="/reader"
+            search={{ sample: true }}
           >
             Try it <ArrowRight size={17} aria-hidden="true" />
           </Link>

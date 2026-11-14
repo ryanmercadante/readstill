@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { chromium } from "@playwright/test";
 
 // Run against an already running dev or preview server: pnpm test:e2e <url>
@@ -39,7 +39,7 @@ const importText = async (text, title) => {
 try {
   const baseUrl = process.argv[2] || "http://127.0.0.1:5173";
   const homeUrl = new URL("/", baseUrl).href;
-  const readerUrl = new URL("/reader", baseUrl).href;
+  const readerUrl = new URL("/reader?sample=true", baseUrl).href;
   // Both pages must render on the server, including a direct reader request.
   for (const [url, content] of [
     [homeUrl, "A little space."],
@@ -56,13 +56,22 @@ try {
   // The server-rendered link works before hydration; wait for the client entry
   // before asserting that this particular click uses client-side routing.
   await page.waitForLoadState("networkidle");
+  await page.getByRole("link", { name: "Library", exact: true }).click();
+  await page.getByRole("heading", { name: "Make room for your first reading." }).waitFor();
+  assert.equal(await page.getByRole("list", { name: "Saved readings" }).count(), 0);
+  await page.getByRole("button", { name: "Paste text", exact: true }).click();
+  assert.equal(await page.getByRole("button", { name: "Use sample instead" }).count(), 0);
+  await page.getByRole("button", { name: "Close paste dialog" }).click();
+  await page.goto(new URL("/reader", baseUrl).href);
+  await page.waitForURL("**/library");
+  await page.getByRole("link", { name: "Still home", exact: true }).click();
   if (process.argv[3] === "dark") {
     await page.getByRole("button", { name: "Dark mode", exact: true }).click();
   }
   await page.getByRole("heading", { name: "A little space. One word at a time." }).waitFor();
   assert.equal(
     await page.getByRole("link", { name: "Try it", exact: true }).getAttribute("href"),
-    "/reader",
+    "/reader?sample=true",
   );
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: ".impeccable/review/landing-desktop.png", fullPage: true });
@@ -147,10 +156,38 @@ try {
   const pausedPosition = await position();
   await page.waitForTimeout(500);
   assert.equal(await position(), pausedPosition);
-  await saved();
+  assert.match(await page.getByTestId("save-status").textContent(), /Sample.*not saved/);
   await page.reload();
   await ready();
-  assert.equal(await position(), pausedPosition);
+  assert.equal(await position(), "0", "Sample progress is temporary");
+  const storedKeys = await page.evaluate(async () => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("still-library");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const keys = await new Promise((resolve, reject) => {
+      const request = db.transaction("records").objectStore("records").getAllKeys();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    db.close();
+    return keys;
+  });
+  assert.deepEqual(
+    storedKeys,
+    ["settings"],
+    "Trying the sample must not save reading or position records",
+  );
+  await page.getByRole("link", { name: "Still home", exact: true }).click();
+  await page.getByRole("link", { name: "Try it", exact: true }).waitFor();
+  assert.equal(
+    page.url(),
+    homeUrl,
+    "Leaving the demo must not redirect an empty library back into the app",
+  );
+  await page.getByRole("link", { name: "Try it", exact: true }).click();
+  await ready();
 
   await page.getByRole("button", { name: "Paste text", exact: true }).click();
   await page
@@ -200,6 +237,19 @@ try {
   await page.goForward();
   await page.getByRole("link", { name: "Try it", exact: true }).click();
   await ready();
+  assert.equal(await page.locator("h1").textContent(), "The pleasure of paying attention");
+  await page.getByRole("link", { name: "Library", exact: true }).click();
+  await page.getByRole("list", { name: "Saved readings" }).waitFor();
+  assert.equal(await page.getByRole("list", { name: "Saved readings" }).locator("li").count(), 1);
+  const exported = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export library", exact: true }).click();
+  const backup = JSON.parse(await readFile(await (await exported).path(), "utf8"));
+  assert.deepEqual(
+    backup.library.readings.map((reading) => reading.title),
+    ["My reading"],
+  );
+  await page.getByRole("button", { name: "Continue reading", exact: true }).click();
+  await ready();
   assert.equal(await position(), "4");
 
   await page.locator("article").focus();
@@ -229,8 +279,9 @@ try {
   await page.getByRole("button", { name: "Pause reading", exact: true }).waitFor();
   await page.getByRole("button", { name: "Pause reading", exact: true }).click();
 
-  await page.getByRole("button", { name: "Paste text", exact: true }).click();
-  await page.getByRole("button", { name: "Use sample instead" }).click();
+  await page.getByRole("link", { name: "Still home", exact: true }).click();
+  await page.getByRole("link", { name: "Try it", exact: true }).click();
+  await ready();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: ".impeccable/review/mobile.png", fullPage: true });

@@ -47,6 +47,10 @@ try {
   const response = await context.request.get(new URL("/library", baseUrl).href);
   assert.equal(response.status(), 200);
   assert.ok((await response.text()).includes("Your library"));
+  // Seed the old snapshot before hydration can initialize the new library.
+  await page.route("**/*", (route) =>
+    route.request().resourceType() === "script" ? route.abort() : route.continue(),
+  );
   await page.goto(baseUrl);
   assert.equal(
     await page.getByRole("link", { name: "Library", exact: true }).getAttribute("href"),
@@ -77,6 +81,7 @@ try {
       };
     });
   });
+  await page.unroute("**/*");
   await page.goto(new URL("/reader", baseUrl).href);
   await ready();
   await page.getByRole("heading", { name: "An earlier reading", exact: true }).waitFor();

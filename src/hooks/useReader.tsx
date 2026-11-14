@@ -1,3 +1,4 @@
+import { useRouterState } from "@tanstack/react-router";
 import {
   createContext,
   useCallback,
@@ -23,13 +24,18 @@ import type { StoredLibrary } from "../lib/library-storage";
 import { chapterSequence, chapterText, positionAt, sequenceIndex } from "../lib/reader-document";
 
 const initialLibrary: Library = {
-  readings: [sampleReading],
-  positions: { [sampleReading.id]: initialPosition(sampleReading) },
-  activeId: sampleReading.id,
+  readings: [],
+  positions: {},
+  activeId: null,
   wpm: 250,
 };
 
 function useReaderState() {
+  const isSample = useRouterState({
+    select: (state) =>
+      state.location.pathname === "/reader" && state.location.search.sample === true,
+  });
+  const [samplePosition, setSamplePosition] = useState(() => initialPosition(sampleReading));
   const [library, setLibrary] = useState<Library>(initialLibrary);
   const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
@@ -37,8 +43,12 @@ function useReaderState() {
   const [savedLibrary, setSavedLibrary] = useState<Library | null>(null);
   const persisted = useRef<StoredLibrary | null>(null);
   const queue = useRef(Promise.resolve());
-  const reading = library.readings.find((r) => r.id === library.activeId) ?? sampleReading;
-  const position = library.positions[reading.id] ?? initialPosition(reading);
+  const reading =
+    (isSample ? sampleReading : library.readings.find((r) => r.id === library.activeId)) ??
+    sampleReading;
+  const position = isSample
+    ? samplePosition
+    : (library.positions[reading.id] ?? initialPosition(reading));
   const chapter = reading.chapters.find((c) => c.id === position.chapterId) ?? reading.chapters[0];
   const chapterIndex = reading.chapters.indexOf(chapter);
   const words = useMemo(() => chapterSequence(chapter), [chapter]);
@@ -110,6 +120,11 @@ function useReaderState() {
 
   const move = useCallback(
     (next: number, done = false) => {
+      if (isSample) {
+        setSamplePosition(positionAt(chapter, next, done));
+        return;
+      }
+      if (!library.activeId) return;
       setLibrary((state) => ({
         ...state,
         positions: {
@@ -118,7 +133,7 @@ function useReaderState() {
         },
       }));
     },
-    [reading.id, chapter],
+    [reading.id, chapter, isSample, library.activeId],
   );
 
   useEffect(() => {
@@ -224,6 +239,7 @@ function useReaderState() {
     return next.readings.length - library.readings.length;
   };
   return {
+    isSample,
     library,
     reading,
     chapter,
