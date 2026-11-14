@@ -70,7 +70,7 @@
 }
 .preview-word-stage::before,
 .preview-word-stage::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 50%;
   width: 1px;

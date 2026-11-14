@@ -87,13 +87,7 @@ function ReaderPage() {
     transitionFrame.current = requestAnimationFrame(() => {
       const target = next === "article" ? activeRef.current : focusRef.current;
       const to = target?.getBoundingClientRect();
-      if (
-        reducedMotion ||
-        !from ||
-        !to ||
-        from.bottom < 0 ||
-        from.top > window.innerHeight
-      ) {
+      if (reducedMotion || !from || !to || from.bottom < 0 || from.top > window.innerHeight) {
         finishTransition();
         return;
       }
@@ -104,9 +98,7 @@ function ReaderPage() {
         targetLeft: to.left,
         targetTop: to.top,
         size,
-        targetSize: target
-          ? parseFloat(getComputedStyle(target).fontSize)
-          : size,
+        targetSize: target ? parseFloat(getComputedStyle(target).fontSize) : size,
       });
     });
   };
@@ -125,9 +117,7 @@ function ReaderPage() {
         aboutOpen ||
         transitioning ||
         !reader.ready ||
-        target.closest(
-          'input, textarea, button, select, a, [contenteditable="true"]',
-        )
+        target.closest('input, textarea, button, select, a, [contenteditable="true"]')
       )
         return;
       if (event.code === "Space") {
@@ -162,9 +152,7 @@ function ReaderPage() {
     setView("article");
     setPasteOpen(false);
     window.scrollTo({ top: 0, behavior: "instant" });
-    requestAnimationFrame(() =>
-      articleRef.current?.focus({ preventScroll: true }),
-    );
+    requestAnimationFrame(() => articleRef.current?.focus({ preventScroll: true }));
   };
   return (
     <>
@@ -180,10 +168,7 @@ function ReaderPage() {
           setAboutOpen(true);
         }}
       />
-      <main
-        id="reading"
-        className={`reader-shell ${view === "focus" ? "is-focus" : ""}`}
-      >
+      <main id="reading" className={`reader-shell ${view === "focus" ? "is-focus" : ""}`}>
         <ReadingHeading
           title={reader.title}
           sourceIsSample={reader.text === SAMPLE_TEXT}
@@ -253,11 +238,7 @@ function ReaderPage() {
         returnFocusRef={playRef}
         onImport={importText}
       />
-      <AboutReaderDialog
-        open={aboutOpen}
-        onOpenChange={setAboutOpen}
-        returnFocusRef={playRef}
-      />
+      <AboutReaderDialog open={aboutOpen} onOpenChange={setAboutOpen} returnFocusRef={playRef} />
     </>
   );
 }

@@ -8,11 +8,7 @@ type ReaderHeaderProps = {
   onPaste: () => void;
 };
 
-export function ReaderHeader({
-  disabled,
-  onAbout,
-  onPaste,
-}: ReaderHeaderProps) {
+export function ReaderHeader({ disabled, onAbout, onPaste }: ReaderHeaderProps) {
   return (
     <header className="site-header">
       <Wordmark />

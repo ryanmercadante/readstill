@@ -27,21 +27,13 @@ try {
     );
   };
   const settled = () =>
-    page.waitForFunction(
-      () => !document.querySelector(".view-switch button")?.disabled,
-    );
+    page.waitForFunction(() => !document.querySelector(".view-switch button")?.disabled);
   const assertTrapped = async () => {
-    for (const key of [
-      ...Array(8).fill("Tab"),
-      ...Array(8).fill("Shift+Tab"),
-    ]) {
+    for (const key of [...Array(8).fill("Tab"), ...Array(8).fill("Shift+Tab")]) {
       await page.keyboard.press(key);
       // Base UI redirects its focus guards on the next frame.
       await page.waitForFunction(
-        () =>
-          document
-            .querySelector('[role="dialog"]')
-            ?.contains(document.activeElement),
+        () => document.querySelector('[role="dialog"]')?.contains(document.activeElement),
         undefined,
         { timeout: 2000 },
       );
@@ -66,17 +58,12 @@ try {
   const focusToggle = page.getByRole("button", { name: "Focus", exact: true });
   await articleToggle.focus();
   await page.keyboard.press("ArrowRight");
-  assert.equal(
-    await focusToggle.evaluate((node) => node === document.activeElement),
-    true,
-  );
+  assert.equal(await focusToggle.evaluate((node) => node === document.activeElement), true);
   await page.keyboard.press("Space");
   await settled();
   assert.equal(await focusToggle.getAttribute("aria-pressed"), "true");
   assert.equal(
-    await page
-      .getByRole("button", { name: "Read passage", exact: true })
-      .count(),
+    await page.getByRole("button", { name: "Read passage", exact: true }).count(),
     1,
     "Changing view must not start playback",
   );
@@ -96,10 +83,7 @@ try {
   assert.equal(await slider.inputValue(), "125");
   await page.keyboard.press("End");
   assert.equal(await slider.inputValue(), "700");
-  assert.equal(
-    await slider.getAttribute("aria-valuetext"),
-    "700 words per minute",
-  );
+  assert.equal(await slider.getAttribute("aria-valuetext"), "700 words per minute");
   assert.equal(
     await page.getByTestId("focus-word").textContent(),
     "There",
@@ -108,9 +92,7 @@ try {
   await audit("focus desktop");
 
   await page.getByRole("button", { name: "Paste text", exact: true }).click();
-  await page
-    .getByRole("dialog", { name: "Something worth reading." })
-    .waitFor();
+  await page.getByRole("dialog", { name: "Something worth reading." }).waitFor();
   await audit("paste dialog desktop");
   await assertTrapped();
   await page
@@ -118,15 +100,11 @@ try {
     .getByRole("button", { name: "Start reading", exact: true })
     .click();
   assert.equal(
-    await page
-      .getByLabel("Your text", { exact: true })
-      .getAttribute("aria-invalid"),
+    await page.getByLabel("Your text", { exact: true }).getAttribute("aria-invalid"),
     "true",
   );
   assert.match(
-    await page
-      .getByLabel("Your text", { exact: true })
-      .getAttribute("aria-describedby"),
+    await page.getByLabel("Your text", { exact: true }).getAttribute("aria-describedby"),
     /paste-error/,
   );
   await audit("paste validation desktop");

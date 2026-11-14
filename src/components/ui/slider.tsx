@@ -14,13 +14,7 @@ function Slider({
     ? value
     : Array.isArray(defaultValue)
       ? defaultValue
-      : [
-          typeof value === "number"
-            ? value
-            : typeof defaultValue === "number"
-              ? defaultValue
-              : min,
-        ];
+      : [typeof value === "number" ? value : typeof defaultValue === "number" ? defaultValue : min];
 
   return (
     <SliderPrimitive.Root
@@ -41,10 +35,7 @@ function Slider({
           data-slot="slider-track"
           className="relative h-2 w-full overflow-hidden rounded-[4px] border border-solid border-[#b6b6b6] bg-[#efefef]"
         >
-          <SliderPrimitive.Indicator
-            data-slot="slider-range"
-            className="h-full bg-ring"
-          />
+          <SliderPrimitive.Indicator data-slot="slider-range" className="h-full bg-ring" />
         </SliderPrimitive.Track>
         {Array.from({ length: _values.length }, (_, index) => (
           <SliderPrimitive.Thumb

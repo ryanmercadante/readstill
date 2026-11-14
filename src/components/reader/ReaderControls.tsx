@@ -3,14 +3,7 @@ import { Progress } from "../ui/progress";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import type { RefObject } from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Pause,
-  Play,
-  RotateCcw,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Pause, Play, RotateCcw } from "lucide-react";
 import { MAX_WPM, MIN_WPM } from "../../reader";
 
 type ReaderControlsProps = {
@@ -50,11 +43,7 @@ export function ReaderControls({
 
   return (
     <footer className="reader-dock">
-      <Progress
-        className="dock-progress"
-        aria-label="Reading progress"
-        value={progress}
-      />
+      <Progress className="dock-progress" aria-label="Reading progress" value={progress} />
       <div className="dock-controls">
         <div className="pace-control">
           <Label id="pace-label" htmlFor="pace">
@@ -70,15 +59,12 @@ export function ReaderControls({
             largeStep={100}
             value={[wpm]}
             disabled={!ready || transitioning}
-            onValueChange={(value) =>
-              onWpmChange(Array.isArray(value) ? value[0] : value)
-            }
+            onValueChange={(value) => onWpmChange(Array.isArray(value) ? value[0] : value)}
             thumbProps={{
               id: "pace",
               "aria-labelledby": "pace-label",
               "aria-describedby": "pace-note",
-              getAriaValueText: (_formatted, value) =>
-                `${value} words per minute`,
+              getAriaValueText: (_formatted, value) => `${value} words per minute`,
             }}
           />
           <span className="pace-note" id="pace-note">
@@ -102,13 +88,7 @@ export function ReaderControls({
             className="play-button"
             onClick={onPlay}
             disabled={!ready || transitioning}
-            aria-label={
-              playing
-                ? "Pause reading"
-                : finished
-                  ? "Read again"
-                  : "Read passage"
-            }
+            aria-label={playing ? "Pause reading" : finished ? "Read again" : "Read passage"}
           >
             {playing ? (
               <Pause size={19} fill="currentColor" />
@@ -174,8 +154,7 @@ export function ReaderControls({
       </div>
       {storageError && (
         <p className="storage-notice" role="status">
-          This browser couldn’t save your reading. Keep a copy of your text
-          before closing.
+          This browser couldn’t save your reading. Keep a copy of your text before closing.
         </p>
       )}
     </footer>

@@ -1,17 +1,21 @@
 {
   "name": "still-reader",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "type": "module",
-  "packageManager": "pnpm@12.18.0",
   "scripts": {
+    "lint": "oxlint --deny-warnings",
+    "lint:fix": "oxlint --fix --deny-warnings",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "dev": "vite --host 127.0.0.1",
     "build": "vite build && tsc -b",
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:e2e": "node scripts/smoke.mjs",
     "test:a11y": "node scripts/accessibility.mjs",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "prepare": "husky"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -35,9 +39,21 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "oxfmt": "^0.78.0",
+    "oxlint": "^1.93.0",
     "tailwindcss": "^4.3.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"
-  }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}": [
+      "oxlint --fix --deny-warnings --no-error-on-unmatched-pattern",
+      "oxfmt --no-error-on-unmatched-pattern"
+    ],
+    "!(*.{js,jsx,ts,tsx,mjs,cjs,mts,cts})": "oxfmt --no-error-on-unmatched-pattern"
+  },
+  "packageManager": "pnpm@12.18.0"
 }

@@ -88,6 +88,7 @@ Still is a quiet, warm paper reading surface. Serif prose carries the attention;
 This is an implementation record, not user-confirmed branding. The working name, metaphor, descriptive color names and visual direction are provisional. `src/styles.css` and the Tailwind classes in `src/components/ui/` are the visual source of truth; `src/routes/reader.tsx` coordinates interaction and transitions, with reading surfaces and controls in `src/components/reader/`. Frontmatter records observed values, not a new token API or a promised global spacing scale.
 
 **Key Characteristics:**
+
 - Warm paper and restrained terracotta emphasis.
 - Source Serif 4 reading text with Manrope controls.
 - A single brief word transition connects article and focus views.
@@ -97,10 +98,12 @@ This is an implementation record, not user-confirmed branding. The working name,
 The palette pairs warm neutrals with a restrained terracotta accent; exact values are in the frontmatter.
 
 ### Primary
+
 - **Terracotta** (`accent`): anchor letter, progress fill, brand mark, range control and keyboard focus.
 - **Warm clay wash** (`tint`) and **deep clay ink** (`active-word-ink`): current word within article prose.
 
 ### Neutral
+
 - **Warm paper** (`paper`): page, dock and dialogs.
 - **Soft charcoal** (`ink`): prose and primary button background; **warm charcoal** (`primary-hover`) marks primary hover.
 - **Stone gray** (`muted`): supporting labels; **paper seam** (`line`): dividers and progress track.
@@ -160,11 +163,13 @@ Shared controls live in `src/components/ui/`, installed from shadcn’s Base UI 
 ## Do's and Don'ts
 
 ### Do:
+
 - Do preserve the shared active word when moving between views.
 - Do use serif type for reading and sans-serif type for controls.
 - Do retain visible keyboard focus and the reduced-motion bypass.
 
 ### Don't:
+
 - Don't treat this provisional identity as user-confirmed branding.
 - Don't add stock imagery to the implemented reading surface.
 - Don't animate every playback word; the implemented motion connects views.

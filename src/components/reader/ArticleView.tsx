@@ -45,11 +45,8 @@ export function ArticleView({
         aria-label={title}
         aria-describedby="reading-shortcuts"
         onClick={(event) => {
-          if (transitioning || !ready || window.getSelection()?.toString())
-            return;
-          const word = (event.target as HTMLElement).closest<HTMLElement>(
-            "[data-word]",
-          );
+          if (transitioning || !ready || window.getSelection()?.toString()) return;
+          const word = (event.target as HTMLElement).closest<HTMLElement>("[data-word]");
           if (word) onSeek(Number(word.dataset.word));
         }}
       >
@@ -63,9 +60,7 @@ export function ArticleView({
                   className={token.index === index ? "current-word" : undefined}
                   aria-current={token.index === index ? "location" : undefined}
                   style={
-                    transitioning && token.index === index
-                      ? { visibility: "hidden" }
-                      : undefined
+                    transitioning && token.index === index ? { visibility: "hidden" } : undefined
                   }
                 >
                   {token.text}

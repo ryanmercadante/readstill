@@ -32,12 +32,16 @@ Click **Read** in article view to transition into focus and start playback. The 
 ## Check
 
 ```sh
+pnpm lint
+pnpm format:check
 pnpm test
 pnpm build
 pnpm exec playwright install chromium
 pnpm test:e2e http://127.0.0.1:5173
 pnpm test:a11y http://127.0.0.1:5173
 ```
+
+Run `pnpm lint:fix` to apply safe lint fixes and `pnpm format` to format files. `pnpm install` installs the Husky pre-commit hook, which runs lint-staged on every commit: staged JavaScript and TypeScript files are lint-fixed, then formatted; other supported files are formatted. Unresolved lint warnings or errors block the commit. The generated route tree is excluded from both tools, and the pnpm lockfile is excluded from formatting.
 
 The browser smoke check requires a running dev or preview server. Pass its actual base URL if Vite selected another port. It covers server rendering, landing-to-reader navigation, browser history, direct reader reloads, selection, fixed anchor alignment, playback, sentence replay, save/restore, keyboard controls, hidden-page pause, completion/restart, narrow layout, and reduced motion. Screenshots go to the ignored `.impeccable/review/` directory. Browser data created by this check is isolated from your own browser.
 

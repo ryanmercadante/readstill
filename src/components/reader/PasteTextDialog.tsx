@@ -4,13 +4,7 @@ import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import type { RefObject } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-} from "../ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "../ui/dialog";
 import { ArrowRight, X } from "lucide-react";
 import { MAX_TEXT_LENGTH } from "../../reader";
 import { SAMPLE_TEXT, SAMPLE_TITLE } from "../../sample";
@@ -30,14 +24,14 @@ export function PasteTextDialog({
 }: PasteTextDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        className="paste-dialog"
-        finalFocus={returnFocusRef}
-      >
+      <DialogContent showCloseButton={false} className="paste-dialog" finalFocus={returnFocusRef}>
         <div className="dialog-top">
           <DialogTitle>Something worth reading.</DialogTitle>
-          <DialogClose render={<Button variant="ghost" />} className="icon-button" aria-label="Close paste dialog">
+          <DialogClose
+            render={<Button variant="ghost" />}
+            className="icon-button"
+            aria-label="Close paste dialog"
+          >
             <X size={20} />
           </DialogClose>
         </div>

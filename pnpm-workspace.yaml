@@ -2,8 +2,8 @@
 # These exact-version exceptions can be removed after 2026-11-14 22:45 UTC,
 # when all listed releases are older than pnpm's default one-day minimum.
 minimumReleaseAgeExclude:
-  - '@playwright/test@1.65.1'
-  - '@rolldown/pluginutils@1.1.1'
+  - "@playwright/test@1.65.1"
+  - "@rolldown/pluginutils@1.1.1"
   - framer-motion@14.14.0
   - motion-dom@14.14.0
   - motion@14.14.0

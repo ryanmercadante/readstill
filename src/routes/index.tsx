@@ -28,9 +28,8 @@ function LandingPage() {
             One word at a time.
           </h1>
           <p className="landing-description">
-            Still lets you move from the whole passage to one word at a time.
-            Find a comfortable pace, and return to the bigger picture whenever
-            you need it.
+            Still lets you move from the whole passage to one word at a time. Find a comfortable
+            pace, and return to the bigger picture whenever you need it.
           </p>
           <Link className={buttonVariants({ className: "landing-cta" })} to="/reader">
             Try it <ArrowRight size={17} aria-hidden="true" />
@@ -47,8 +46,8 @@ function LandingPage() {
           <div className="preview-passage">
             <span className="preview-label">The whole passage</span>
             <p>
-              There is a small <mark>bookshop</mark> on a quiet street, the kind
-              of place you might walk past if you were in a hurry.
+              There is a small <mark>bookshop</mark> on a quiet street, the kind of place you might
+              walk past if you were in a hurry.
             </p>
           </div>
           <div className="preview-focus">
