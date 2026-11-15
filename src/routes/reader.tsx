@@ -139,7 +139,7 @@ function ReaderPage() {
         event.ctrlKey ||
         event.metaKey ||
         event.altKey ||
-        document.querySelector('[role="dialog"]') ||
+        document.querySelector('[role="dialog"], [role="menu"]') ||
         target.isContentEditable ||
         pasteOpen ||
         aboutOpen ||
@@ -203,7 +203,7 @@ function ReaderPage() {
       <ReaderHeader
         disabled={!reader.ready || transitioning}
         onPaste={openPaste}
-        onShortcutsOpen={() => sendPresentation({ type: "INTERRUPT" })}
+        onOverlayOpen={() => sendPresentation({ type: "INTERRUPT" })}
         onAbout={() => openDialog("about")}
       />
       <main
@@ -212,7 +212,8 @@ function ReaderPage() {
         className="group/reader mx-auto max-w-[1000px] px-10 pt-[51px] pb-[210px] min-[1500px]:pt-[65px] max-[800px]:px-7 max-[800px]:pt-[37px] max-[520px]:px-[23px] max-[520px]:pt-[30px] max-[520px]:pb-[235px] compact-reader:data-[view=focus]:pt-[22px]"
       >
         <p id="reading-shortcuts" className="sr-only">
-          Press ? or use Keyboard shortcuts in the header for the keyboard legend.
+          Press ? or choose Keyboard shortcuts from the header or mobile menu for the keyboard
+          legend.
         </p>
         <ReadingHeading
           title={reader.title}

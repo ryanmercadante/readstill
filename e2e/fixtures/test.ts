@@ -22,8 +22,33 @@ export class StillApp {
     await this.page.goto("/reader?sample=true");
     await this.readerReady();
   }
+  get mobileNavigation() {
+    return (this.page.viewportSize()?.width ?? 1440) <= 800;
+  }
+  async openMenu(advanceClock = false) {
+    if (!this.mobileNavigation) return;
+    const menu = this.page.getByRole("menu", { name: "Menu", exact: true });
+    if (!(await menu.isVisible())) {
+      await this.button("Menu").click();
+      if (advanceClock) await this.page.clock.runFor(100);
+      await expect(menu).toBeVisible();
+    }
+  }
+  async headerAction(name: string, advanceClock = false) {
+    await this.openMenu(advanceClock);
+    if (this.mobileNavigation) {
+      await this.page
+        .getByRole("menuitem", { name: name === "Dark mode" ? "Toggle theme" : name, exact: true })
+        .click();
+    } else {
+      await this.button(name).click();
+    }
+  }
   async library() {
-    await this.page.getByRole("link", { name: "Library", exact: true }).click();
+    await this.openMenu();
+    await this.page
+      .getByRole(this.mobileNavigation ? "menuitem" : "link", { name: "Library", exact: true })
+      .click();
     await expect(this.page).toHaveURL(/\/library$/);
     await expect(this.page.getByLabel("Choose Still backup", { exact: true })).toBeEnabled();
   }
@@ -32,7 +57,7 @@ export class StillApp {
     await expect(this.page.getByLabel("Choose Still backup", { exact: true })).toBeEnabled();
   }
   async paste(text: string, title = "My reading") {
-    await this.button("Paste text").click();
+    await this.headerAction("Paste text");
     await this.page.getByLabel("Title (optional)").fill(title);
     await this.page.getByLabel("Your text", { exact: true }).fill(text);
     await this.button("Start reading").click();

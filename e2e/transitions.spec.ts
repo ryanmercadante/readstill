@@ -1,11 +1,17 @@
 import { test, expect, freezeTime, hidePage } from "./fixtures/test";
 
 test.use({ reducedMotion: "no-preference" });
-for (const interruption of ["About this reader", "Keyboard shortcuts", "hidden tab"] as const) {
+for (const interruption of [
+  "About this reader",
+  "Keyboard shortcuts",
+  "Menu",
+  "hidden tab",
+] as const) {
   test(`opening ${interruption} during the word flight cancels pending autoplay`, async ({
     page,
     app,
   }) => {
+    if (interruption === "Menu") await page.setViewportSize({ width: 390, height: 844 });
     await page.clock.install();
     await app.sample();
     await freezeTime(page);
@@ -17,10 +23,10 @@ for (const interruption of ["About this reader", "Keyboard shortcuts", "hidden t
     await page.clock.runFor(1000);
     if (interruption === "hidden tab") await hidePage(page, false);
     else {
-      await expect(page.getByRole("dialog")).toBeVisible();
+      await expect(page.getByRole(interruption === "Menu" ? "menu" : "dialog")).toBeVisible();
       await page.keyboard.press("Escape");
-      await page.clock.runFor(100);
-      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await page.clock.runFor(300);
+      await expect(page.getByRole(interruption === "Menu" ? "menu" : "dialog")).toHaveCount(0);
     }
     await page.clock.runFor(2000);
     await app.readerReady();

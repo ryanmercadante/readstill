@@ -27,7 +27,7 @@ export default defineConfig({
     { name: "chromium" },
     {
       name: "mobile-chromium",
-      testMatch: /(?:accessibility|layout|guided|shortcuts)\.spec\.ts/,
+      testMatch: /(?:accessibility|layout|guided|shortcuts|mobile-menu)\.spec\.ts/,
       use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
     },
   ],

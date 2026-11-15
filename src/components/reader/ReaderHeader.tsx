@@ -1,11 +1,12 @@
 import { Button } from "../ui/button";
 import { Info, Plus } from "lucide-react";
+import { DropdownMenuItem } from "../ui/dropdown-menu";
 import { SiteHeader } from "../SiteHeader";
 import type { RefObject } from "react";
 
 type ReaderHeaderProps = {
   disabled: boolean;
-  onShortcutsOpen?: () => void;
+  onOverlayOpen?: () => void;
   onAbout: () => void;
   onPaste: () => void;
   pasteRef?: RefObject<HTMLButtonElement | null>;
@@ -16,29 +17,56 @@ export function ReaderHeader({
   onAbout,
   onPaste,
   pasteRef,
-  onShortcutsOpen,
+  onOverlayOpen,
 }: ReaderHeaderProps) {
   return (
-    <SiteHeader onShortcutsOpen={onShortcutsOpen}>
-      <div className="flex items-center gap-[22px] max-[520px]:gap-1">
+    <SiteHeader
+      onOverlayOpen={onOverlayOpen}
+      mobileActions={(run, trigger) => {
+        const openAction = (action: () => void) =>
+          run(() => {
+            if (pasteRef) pasteRef.current = trigger;
+            action();
+          });
+        return (
+          <>
+            <DropdownMenuItem disabled={disabled} onClick={() => openAction(onPaste)}>
+              <Plus aria-hidden="true" />
+              Paste text
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => openAction(onAbout)}>
+              <Info aria-hidden="true" />
+              About this reader
+            </DropdownMenuItem>
+          </>
+        );
+      }}
+    >
+      <div className="flex items-center gap-[22px]">
         <Button
           variant="ghost"
-          className="about-button max-[520px]:min-w-9"
+          className="about-button"
           aria-label="About this reader"
-          onClick={onAbout}
+          onClick={(event) => {
+            if (pasteRef) pasteRef.current = event.currentTarget;
+            onAbout();
+          }}
         >
           <Info size={19} />
         </Button>
         <Button
           variant="outline"
-          className="paste-button max-[520px]:min-w-9 max-[520px]:px-2 max-[520px]:py-[9px]"
+          className="paste-button"
           ref={pasteRef}
-          onClick={onPaste}
+          onClick={(event) => {
+            if (pasteRef) pasteRef.current = event.currentTarget;
+            onPaste();
+          }}
           disabled={disabled}
           aria-label="Paste text"
         >
           <Plus size={17} />
-          <span className="max-[520px]:hidden">Paste text</span>
+          <span>Paste text</span>
         </Button>
       </div>
     </SiteHeader>

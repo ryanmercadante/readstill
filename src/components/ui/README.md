@@ -9,6 +9,7 @@ Tailwind's theme and utilities are imported without Preflight, following the [of
 Local adaptations:
 
 - Button variants map to Still's primary, outlined, icon, and text-link styles. Navigation links use `buttonVariants` on a real link.
+- DropdownMenu was added from the official `base-nova` registry. Mobile navigation uses Still’s paper, shadow, and typography, with 44px labeled items, viewport-aware positioning, native menu keyboard navigation, and reduced-motion support.
 - Dialog content owns the portal and backdrop. Reader dialogs supply their existing close buttons and explicit final-focus target.
 - Slider accepts `thumbProps` for its input label, description, and spoken WPM value. Scalar values render one thumb; array values render one per entry. Its hidden native input and pointer/keyboard behavior belong to Base UI.
 - Toggle groups use Base UI's single-selection and roving keyboard focus. The reader keeps the active view selected when the current item is pressed again.

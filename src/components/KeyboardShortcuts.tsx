@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { Keyboard, X } from "lucide-react";
 import { useReader } from "../hooks/useReader";
 import { Button } from "./ui/button";
@@ -64,8 +64,17 @@ const groups = [
   },
 ];
 
-export function KeyboardShortcuts({ onOpen }: { onOpen?: () => void }) {
-  const [open, setOpen] = useState(false);
+export function KeyboardShortcuts({
+  onOpen,
+  open,
+  onOpenChange,
+  mobileTriggerRef,
+}: {
+  onOpen?: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  mobileTriggerRef: RefObject<HTMLButtonElement | null>;
+}) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const reader = useReader();
   const changeOpen = (next: boolean) => {
@@ -73,7 +82,7 @@ export function KeyboardShortcuts({ onOpen }: { onOpen?: () => void }) {
       reader.pause();
       onOpen?.();
     }
-    setOpen(next);
+    onOpenChange(next);
   };
 
   useEffect(() => {
@@ -86,7 +95,7 @@ export function KeyboardShortcuts({ onOpen }: { onOpen?: () => void }) {
         event.ctrlKey ||
         event.metaKey ||
         event.altKey ||
-        document.querySelector('[role="dialog"]') ||
+        document.querySelector('[role="dialog"], [role="menu"]') ||
         (event.target instanceof HTMLElement &&
           (event.target.isContentEditable || event.target.closest("input, textarea, select")))
       )
@@ -109,7 +118,14 @@ export function KeyboardShortcuts({ onOpen }: { onOpen?: () => void }) {
       >
         <Keyboard size={19} />
       </DialogTrigger>
-      <DialogContent showCloseButton={false} finalFocus={triggerRef}>
+      <DialogContent
+        showCloseButton={false}
+        finalFocus={() =>
+          window.matchMedia("(max-width: 800px)").matches
+            ? mobileTriggerRef.current
+            : triggerRef.current
+        }
+      >
         <DialogHeader>
           <DialogTitle>Keyboard shortcuts</DialogTitle>
           <DialogClose render={<Button variant="ghost" />} aria-label="Close keyboard shortcuts">

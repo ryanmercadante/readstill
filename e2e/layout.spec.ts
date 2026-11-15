@@ -3,7 +3,7 @@ import { test, expect, freezeTime } from "./fixtures/test";
 for (const theme of ["light", "dark"]) {
   test(`${theme}: navbar controls fit from 320px through desktop`, async ({ page, app }) => {
     await app.sample();
-    if (theme === "dark") await app.button("Dark mode").click();
+    if (theme === "dark") await app.headerAction("Dark mode");
     await page.evaluate(() => document.fonts.ready);
     for (const route of ["/", "/library", "/reader?sample=true"]) {
       await page.goto(route);
@@ -14,12 +14,14 @@ for (const theme of ["light", "dark"]) {
           await expect
             .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
             .toBe(true);
-          const controls = await page.locator("header a, header button").evaluateAll((nodes) =>
-            nodes.map((node) => {
-              const r = node.getBoundingClientRect();
-              return { left: r.left, right: r.right };
-            }),
-          );
+          const controls = await page
+            .locator("header a:visible, header button:visible")
+            .evaluateAll((nodes) =>
+              nodes.map((node) => {
+                const r = node.getBoundingClientRect();
+                return { left: r.left, right: r.right };
+              }),
+            );
           controls.forEach((r, index) => {
             expect(r.left).toBeGreaterThanOrEqual(0);
             expect(r.right).toBeLessThanOrEqual(width);
@@ -72,5 +74,7 @@ test("sticky navbar stays visible while reading down the page", async ({ page, a
   await expect
     .poll(() => page.locator("header").evaluate((node) => node.getBoundingClientRect().top))
     .toBe(0);
-  await expect(app.button("Keyboard shortcuts")).toBeInViewport();
+  await expect(
+    app.button((await app.button("Menu").isVisible()) ? "Menu" : "Keyboard shortcuts"),
+  ).toBeInViewport();
 });

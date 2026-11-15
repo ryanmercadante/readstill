@@ -4,18 +4,22 @@ for (const route of ["/", "/library", "/reader?sample=true"]) {
   test(`the shortcut legend opens from the header and ? on ${route}`, async ({ page, app }) => {
     await page.goto(route);
     const legend = page.getByRole("dialog", { name: "Keyboard shortcuts", exact: true });
-    await app.button("Keyboard shortcuts").click();
+    await app.headerAction("Keyboard shortcuts");
     await expect(legend).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(legend).toHaveCount(0);
-    await expect(app.button("Keyboard shortcuts")).toBeFocused();
+    await expect(
+      app.button((await app.button("Menu").isVisible()) ? "Menu" : "Keyboard shortcuts"),
+    ).toBeFocused();
     await page.keyboard.press("?");
     await expect(legend).toBeVisible();
     await page.getByRole("region", { name: "Chapters", exact: true }).scrollIntoViewIfNeeded();
     await expect(page.getByText("Move through chapters", { exact: true })).toBeVisible();
     expect(await legend.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
     await page.keyboard.press("Escape");
-    await expect(app.button("Keyboard shortcuts")).toBeFocused();
+    await expect(
+      app.button((await app.button("Menu").isVisible()) ? "Menu" : "Keyboard shortcuts"),
+    ).toBeFocused();
     await expect(page.locator(".reader-dock kbd")).toHaveCount(0);
   });
 }
@@ -34,7 +38,8 @@ for (const [trigger, title, returnButton] of [
     await app.seek(4);
     await freezeTime(page);
     await app.button("Read passage").click();
-    await app.button(trigger).click();
+    await app.headerAction(trigger, true);
+    await page.clock.runFor(100);
     const dialog = page.getByRole("dialog", { name: title, exact: true });
     await expect(dialog).toBeVisible();
     await dialog.focus();
@@ -51,7 +56,13 @@ for (const [trigger, title, returnButton] of [
     await page.keyboard.press("Escape");
     await page.clock.runFor(100);
     await expect(dialog).toHaveCount(0);
-    await expect(app.button(returnButton)).toBeFocused();
+    await expect(
+      app.button(
+        returnButton === "Keyboard shortcuts" && (await app.button("Menu").isVisible())
+          ? "Menu"
+          : returnButton,
+      ),
+    ).toBeFocused();
     await page.clock.runFor(2000);
     await expect(app.activeWord).toHaveAttribute("data-word", "4");
     await expect(app.button("Read passage")).toBeVisible();
@@ -62,7 +73,7 @@ test("paste validation is associated with the field, and drafts reset on close",
   app,
 }) => {
   await app.sample();
-  await app.button("Paste text").click();
+  await app.headerAction("Paste text");
   await app.button("Start reading").click();
   const text = page.getByLabel("Your text", { exact: true });
   await expect(text).toHaveAttribute("aria-invalid", "true");
@@ -72,7 +83,7 @@ test("paste validation is associated with the field, and drafts reset on close",
   await text.fill("Discard this text");
   await app.button("Close paste dialog").click();
   await expect(app.button("Read passage")).toBeFocused();
-  await app.button("Paste text").click();
+  await app.headerAction("Paste text");
   await expect(text).toHaveValue("");
   await expect(page.getByLabel("Title (optional)")).toHaveValue("");
   await expect(page.getByRole("alert")).toHaveCount(0);
@@ -83,7 +94,7 @@ test("typing and another open dialog suppress the question-mark shortcut", async
   app,
 }) => {
   await app.sample();
-  await app.button("Paste text").click();
+  await app.headerAction("Paste text");
   const text = page.getByLabel("Your text", { exact: true });
   await text.fill("Why");
   await text.press("End");
