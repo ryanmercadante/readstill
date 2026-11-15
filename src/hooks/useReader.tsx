@@ -11,7 +11,6 @@ import {
 import type { ReactNode } from "react";
 import type { Library, Reading } from "../lib/library";
 import { createLibraryStore } from "../lib/library-store";
-import { chapterText } from "../lib/reader-document";
 import { currentPlayback, playbackMachine } from "../lib/playback-machine";
 import { connectReaderSession } from "../lib/reader-session";
 
@@ -33,9 +32,8 @@ function useReaderState() {
   }, [store, actor, inReader, isSample]);
 
   const { reading } = store.select(isSample);
-  const { chapter, position } = snapshot.context;
+  const { chapter } = snapshot.context;
   const selection = currentPlayback(snapshot.context);
-  const text = useMemo(() => chapterText(chapter), [chapter]);
   const actions = useMemo(() => {
     const pause = () => send({ type: "PAUSE" });
     return {
@@ -76,16 +74,17 @@ function useReaderState() {
   return {
     ...selection,
     ...actions,
-    ...state,
+    library: state.library,
+    ready: state.ready,
+    saving: state.saving,
+    storageError: state.storageError,
     reading,
     chapter,
-    position,
     chapterIndex: Math.max(
       0,
       reading.chapters.findIndex((item) => item.id === chapter.id),
     ),
     isSample,
-    text,
     context: selection.current.context,
     wordCount: selection.words.filter((word) => !word.context).length,
     title: reading.title,

@@ -44,7 +44,6 @@ function ReaderPage() {
   const articleRef = useRef<HTMLElement>(null);
   const transitionFrame = useRef(0);
   const playRef = useRef<HTMLButtonElement>(null);
-  const pasteRef = useRef<HTMLButtonElement>(null);
 
   const finishTransition = () =>
     sendPresentation({ type: "TRANSITION_FINISHED", id: transitionId });
@@ -205,7 +204,6 @@ function ReaderPage() {
         disabled={!reader.ready || transitioning}
         onPaste={openPaste}
         onShortcutsOpen={() => sendPresentation({ type: "INTERRUPT" })}
-        pasteRef={pasteRef}
         onAbout={() => openDialog("about")}
       />
       <main

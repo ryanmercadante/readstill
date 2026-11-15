@@ -8,7 +8,7 @@ type ReaderHeaderProps = {
   onShortcutsOpen?: () => void;
   onAbout: () => void;
   onPaste: () => void;
-  pasteRef: RefObject<HTMLButtonElement | null>;
+  pasteRef?: RefObject<HTMLButtonElement | null>;
 };
 
 export function ReaderHeader({
