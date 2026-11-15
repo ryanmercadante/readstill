@@ -25,11 +25,11 @@ function LandingPage() {
           >
             A little space.
             <br />
-            One word at a time.
+            Your own pace.
           </h1>
           <p className="m-0 mb-7 max-w-[520px] text-[15px] leading-[1.85] text-muted-foreground max-[600px]:text-[14px]">
-            Still lets you move from the whole passage to one word at a time. Find a comfortable
-            pace, and return to the bigger picture whenever you need it.
+            Read freely, follow a moving highlight, or focus on one word at a time. Still gives you
+            three ways to read, with one shared place in the text.
           </p>
           <Link
             className={buttonVariants({ className: "min-w-[130px] text-[13px] no-underline" })}
@@ -44,12 +44,25 @@ function LandingPage() {
         </section>
 
         <figure
-          className="m-0 mt-[58px] grid grid-cols-2 border-0 border-t border-solid border-border max-[600px]:mt-[38px] max-[600px]:grid-cols-1"
-          aria-label="A preview of the article and focus reading views"
+          className="m-0 mt-[58px] grid grid-cols-3 border-0 border-t border-solid border-border max-[900px]:grid-cols-1 max-[600px]:mt-[38px]"
+          aria-label="A preview of the Article, Guided, and Focus reading modes"
         >
-          <div className="py-[26px] pr-[46px] max-[600px]:pr-0">
-            <span className="text-[11px] text-muted-foreground">The whole passage</span>
-            <p className="m-0 mt-[18px] font-serif text-[22px] leading-[1.8] max-[600px]:text-[21px]">
+          <div className="py-[26px] pr-7 max-[900px]:pr-0">
+            <h2 className="m-0 font-sans text-[13px] font-semibold tracking-normal">Article</h2>
+            <p className="m-0 mt-2 text-[12px] leading-[1.7] text-muted-foreground">
+              Read freely, with the whole passage in view.
+            </p>
+            <p className="m-0 mt-5 font-serif text-[21px] leading-[1.8]">
+              There is a small bookshop on a quiet street, the kind of place you might walk past if
+              you were in a hurry.
+            </p>
+          </div>
+          <div className="border-0 border-l border-solid border-border px-7 py-[26px] max-[900px]:border-t max-[900px]:border-l-0 max-[900px]:px-0">
+            <h2 className="m-0 font-sans text-[13px] font-semibold tracking-normal">Guided</h2>
+            <p className="m-0 mt-2 text-[12px] leading-[1.7] text-muted-foreground">
+              Follow a paced highlight through the passage.
+            </p>
+            <p className="m-0 mt-5 font-serif text-[21px] leading-[1.8]">
               There is a small{" "}
               <mark className="rounded-[3px] bg-highlight px-[3px] py-0 text-highlight-foreground">
                 bookshop
@@ -57,10 +70,17 @@ function LandingPage() {
               on a quiet street, the kind of place you might walk past if you were in a hurry.
             </p>
           </div>
-          <div className="border-0 border-l border-solid border-border py-[26px] pl-[34px] max-[600px]:border-t max-[600px]:border-l-0 max-[600px]:pl-0">
-            <span className="text-[11px] text-muted-foreground">A single word</span>
-            <div className="relative flex min-h-[155px] items-center before:absolute before:top-3 before:left-1/2 before:h-[15px] before:w-px before:bg-brand before:content-[''] after:absolute after:bottom-3 after:left-1/2 after:h-[15px] after:w-px after:bg-brand after:content-['']">
-              <span className="grid w-full grid-cols-[1fr_auto_1fr] font-serif text-[clamp(38px,4.5vw,58px)] max-[600px]:text-[46px]">
+          <div className="border-0 border-l border-solid border-border py-[26px] pl-7 max-[900px]:border-t max-[900px]:border-l-0 max-[900px]:pl-0">
+            <h2 className="m-0 font-sans text-[13px] font-semibold tracking-normal">Focus</h2>
+            <p className="m-0 mt-2 text-[12px] leading-[1.7] text-muted-foreground">
+              Read one word at a time, at a pace you choose.
+            </p>
+            <div className="relative mt-5 flex min-h-[155px] items-center before:absolute before:top-3 before:left-1/2 before:h-[15px] before:w-px before:bg-brand before:content-[''] after:absolute after:bottom-3 after:left-1/2 after:h-[15px] after:w-px after:bg-brand after:content-['']">
+              <span className="sr-only">bookshop</span>
+              <span
+                aria-hidden="true"
+                className="grid w-full grid-cols-[1fr_auto_1fr] font-serif text-[44px]"
+              >
                 <span className="text-right">bo</span>
                 <span className="text-brand">o</span>
                 <span>kshop</span>
@@ -68,7 +88,7 @@ function LandingPage() {
             </div>
           </div>
           <figcaption className="col-span-full border-0 border-t border-solid border-border pt-4 text-[12px] text-muted-foreground">
-            Two ways to read. One place in the text.
+            Three ways to read. Switch modes without losing your place.
           </figcaption>
         </figure>
 

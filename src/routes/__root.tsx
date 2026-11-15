@@ -17,7 +17,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Make room for reading. Move between the whole passage and one word at a time, at your own pace.",
+          "Make room for reading. Read freely in Article, follow a paced highlight in Guided, or read one word at a time in Focus. Keep your place as you switch.",
       },
     ],
     links: [

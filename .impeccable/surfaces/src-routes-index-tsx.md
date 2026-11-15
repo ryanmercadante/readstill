@@ -11,13 +11,13 @@ Scope: `/`, with the existing reader at `/reader`. Mode: Persuade. The user requ
 
 ## Direction contract
 
-THESIS: Introduce the passage-to-focus interaction in one short page and take the visitor directly to the reader.
+THESIS: Introduce Article, Guided, and Focus in one short page and take the visitor directly to the reader.
 
 OWN-WORLD: Inherit Still's existing paper, charcoal, terracotta, Source Serif 4, and Manrope styles. Reuse its wordmark and primary action styling.
 
-STORY: Read a short explanation, see the same word within a passage and in focus, then choose Try it. Sample and paste input need no account; saved reading stays local.
+STORY: Read a short explanation, compare free reading, a paced highlight within the passage, and one word in focus, then choose Try it. Switching modes preserves the reading position. Sample and paste input need no account; saved reading stays local.
 
-FIRST VIEWPORT: A shared header, left-aligned two-line serif headline, short explanation, and one Try it link. Below, a ruled two-column reading preview stacks on phones; a quiet footer describes local storage and comprehension-first intent.
+FIRST VIEWPORT: A shared header, left-aligned two-line serif headline, short explanation, and one Try it link. Below, a ruled three-column reading preview stacks at 900px and below; a quiet footer describes local storage and comprehension-first intent.
 
 FORM: Directly shaped narrow request inside an established world. No concept seed: the requested basic landing and single CTA settle the scope.
 

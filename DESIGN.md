@@ -142,6 +142,10 @@ Corners are gently curved: word highlights, fields, buttons, view switch and dia
 
 ## Components
 
+### Landing reading preview
+
+The landing page introduces Article, Guided, and Focus with three ruled columns, stacking at 900px and below. Each mode has its reader label and a short explanation. Article shows plain prose, Guided shows the same passage with a highlighted word, and Focus isolates that word with its anchor letter and guides. These are static illustrations; the Try it link opens the interactive sample. The headline and introduction describe all three choices, and the caption explains that switching modes preserves the reading position.
+
 ### Buttons
 
 Quiet and compact. Primary actions use charcoal on paper, a 47px minimum height and the primary hover color. Secondary actions have a 1px border; ghost icon buttons are transparent with a warm hover wash. Icon buttons normally have a 40px minimum width and 42px minimum height; the compact step controls have smaller mobile dimensions. Disabled buttons use 0.38 opacity. Keyboard focus uses a 2px terracotta outline offset by 5px.
