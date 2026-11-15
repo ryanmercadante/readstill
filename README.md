@@ -114,3 +114,11 @@ Context: [Rayner et al., 2016, “So Much to Read, So Little Time”](https://jo
 Browser storage can be cleared or evicted and is not a backup. Export a library backup before clearing browser data or changing devices. Article URLs, accounts, cloud sync, and quizzes remain outside this build.
 
 Browser automation verifies a Chromium desktop and a narrow viewport, not a physical phone or Safari. Browser timing follows the display refresh cycle and is not laboratory-grade stimulus timing.
+
+## License
+
+Copyright (C) 2026 Ryan Mercadante.
+
+Still is free software: you can redistribute it and/or modify it under the terms of the [GNU Affero General Public License, version 3](LICENSE) (`AGPL-3.0-only`). You may self-host it, including for commercial use. If you run a modified version as a network service, the AGPL requires you to offer its users the corresponding source code.
+
+The names "Still" and "ReadStill", the wordmark, and the logo are not licensed under the AGPL. A fork or hosted copy must use its own name and branding.
