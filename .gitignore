@@ -8,3 +8,4 @@ playwright-report/
 .impeccable/review/
 .playwright-cli/
 output/
+.wrangler/

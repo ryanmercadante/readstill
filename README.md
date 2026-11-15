@@ -71,6 +71,12 @@ GitHub Actions runs lint, formatting, unit tests, and the browser suite on pull 
 
 Run `pnpm lint:fix` to apply safe lint fixes and `pnpm format` to format files. `pnpm install` installs the Husky pre-commit hook, which runs lint-staged on every commit: staged JavaScript and TypeScript files are lint-fixed, then formatted; other supported files are formatted. Unresolved lint warnings or errors block the commit. The generated route tree is excluded from both tools, and the pnpm lockfile is excluded from formatting.
 
+## Deploy
+
+Still runs on Cloudflare Workers. `@cloudflare/vite-plugin` builds the TanStack Start server for the Workers runtime, so `pnpm dev`, `pnpm preview`, and the browser tests already run in workerd locally. `wrangler.jsonc` names the Worker `readstill`; that name must match the Worker in the Cloudflare dashboard.
+
+Production deploys come from Workers Builds, connected to this GitHub repository: pushes to `main` build with `pnpm build` and deploy with `npx wrangler deploy`, and other branches get preview URLs. The custom domain is `readstill.app`. `pnpm deploy` deploys from a local checkout and should only be used deliberately. Browser storage is per origin, so readings saved on a preview URL or `workers.dev` do not appear on `readstill.app`.
+
 ## Implementation
 
 - `src/lib/reader.ts`: token positions, sentence boundaries, anchor selection, pacing, and saved-data validation.
@@ -105,6 +111,6 @@ This MVP tests usability and comfort. It does not establish a reading-speed or c
 
 Context: [Rayner et al., 2016, “So Much to Read, So Little Time”](https://journals.sagepub.com/doi/10.1177/1529100615623267).
 
-Browser storage can be cleared or evicted and is not a backup. Export a library backup before clearing browser data or changing devices. Article URLs, accounts, cloud sync, quizzes, and deployment remain outside this build.
+Browser storage can be cleared or evicted and is not a backup. Export a library backup before clearing browser data or changing devices. Article URLs, accounts, cloud sync, and quizzes remain outside this build.
 
 Browser automation verifies a Chromium desktop and a narrow viewport, not a physical phone or Safari. Browser timing follows the display refresh cycle and is not laboratory-grade stimulus timing.
