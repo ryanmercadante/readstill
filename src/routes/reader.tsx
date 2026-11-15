@@ -1,5 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { useMachine } from "@xstate/react";
 import { flushSync } from "react-dom";
 import { motion, useReducedMotion } from "motion/react";
 import { useReader } from "../hooks/useReader";
@@ -12,7 +13,8 @@ import { PasteTextDialog } from "../components/reader/PasteTextDialog";
 import { ReaderControls } from "../components/reader/ReaderControls";
 import { ReaderHeader } from "../components/reader/ReaderHeader";
 import { ReadingHeading } from "../components/reader/ReadingHeading";
-import type { ReaderView } from "../components/reader/ReadingHeading";
+import { readerPresentationMachine } from "../lib/reader-presentation";
+import type { ReaderView } from "../lib/reader-presentation";
 import { ContextView } from "../components/reader/ContextView";
 import { downloadOriginal } from "../lib/reading-download";
 import { Button } from "../components/ui/button";
@@ -24,58 +26,45 @@ export const Route = createFileRoute("/reader")({
   component: ReaderPage,
 });
 
-type Flight = {
-  word: string;
-  left: number;
-  top: number;
-  targetLeft: number;
-  targetTop: number;
-  size: number;
-  targetSize: number;
-};
-
 function ReaderPage() {
   const reader = useReader();
   const navigate = Route.useNavigate();
   const router = useRouter();
-  const [view, setView] = useState<ReaderView>("article");
-  const [flight, setFlight] = useState<Flight | null>(null);
-  const [transitioning, setTransitioning] = useState(false);
-  const [pasteOpen, setPasteOpen] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
+  const [presentation, sendPresentation, presentationActor] = useMachine(
+    readerPresentationMachine.provide({ actions: { pause: reader.pause, play: reader.play } }),
+  );
+  const { view, flight, transitionId } = presentation.context;
+  const transitioning = presentation.matches("transitioning");
+  const [dialog, setDialog] = useState<"paste" | "about" | null>(null);
+  const pasteOpen = dialog === "paste";
+  const aboutOpen = dialog === "about";
   const reducedMotion = useReducedMotion();
   const activeRef = useRef<HTMLSpanElement>(null);
   const focusRef = useRef<HTMLSpanElement>(null);
   const articleRef = useRef<HTMLElement>(null);
-  const playAfterTransition = useRef(false);
   const transitionFrame = useRef(0);
   const playRef = useRef<HTMLButtonElement>(null);
   const pasteRef = useRef<HTMLButtonElement>(null);
 
-  const finishTransition = () => {
-    setFlight(null);
-    setTransitioning(false);
-    const shouldPlay = playAfterTransition.current && !document.hidden;
-    playAfterTransition.current = false;
-    if (shouldPlay) reader.togglePlay();
-  };
+  const finishTransition = () =>
+    sendPresentation({ type: "TRANSITION_FINISHED", id: transitionId });
 
   useEffect(() => {
     // The outgoing reader can render once more while another route is loading.
     if (
       router.state.location.pathname === "/reader" &&
       reader.ready &&
-      !reader.isSample &&
+      router.state.location.search.sample !== true &&
       !reader.library.readings.length
     )
       void navigate({ to: "/library", replace: true });
   }, [reader.ready, reader.isSample, reader.library.readings.length, navigate, router]);
 
   useEffect(() => () => cancelAnimationFrame(transitionFrame.current), []);
-  useEffect(() => () => reader.setPlaying(false), [reader.setPlaying]);
+  useEffect(() => () => reader.pause(), [reader.pause]);
   useEffect(() => {
     const cancelPendingPlay = () => {
-      playAfterTransition.current = false;
+      sendPresentation({ type: "INTERRUPT" });
     };
     const onVisibility = () => {
       if (document.hidden) cancelPendingPlay();
@@ -86,54 +75,52 @@ function ReaderPage() {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pagehide", cancelPendingPlay);
     };
-  }, []);
+  }, [sendPresentation]);
 
   const changeView = (next: ReaderView, playAfter = false) => {
-    if (transitioning || next === view) return;
-    reader.setPlaying(false);
-    // Article and Guided share the same surface; only Focus needs a word flight.
-    if (view !== "focus" && next !== "focus") {
-      playAfterTransition.current = false;
-      setView(next);
-      return;
-    }
-    if (reader.context) {
-      playAfterTransition.current = false;
-      flushSync(() => setView(next));
-      if (next !== "focus") {
+    const before = presentationActor.getSnapshot();
+    if (!before.matches("settled") || next === before.context.view) return;
+    const source = before.context.view === "focus" ? focusRef.current : activeRef.current;
+    const from = source?.getBoundingClientRect();
+    const size = source ? parseFloat(getComputedStyle(source).fontSize) : 24;
+    flushSync(() =>
+      sendPresentation({
+        type: "VIEW_CHANGED",
+        view: next,
+        atContext: !!reader.context,
+        playAfter,
+      }),
+    );
+    const after = presentationActor.getSnapshot();
+    if (after.matches("settled")) {
+      if (reader.context && next !== "focus") {
         activeRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
         activeRef.current?.focus({ preventScroll: true });
       }
       return;
     }
-    playAfterTransition.current = playAfter;
-    const source = view === "focus" ? focusRef.current : activeRef.current;
-    const from = source?.getBoundingClientRect();
-    const size = source ? parseFloat(getComputedStyle(source).fontSize) : 24;
-    flushSync(() => {
-      setTransitioning(true);
-      setView(next);
-    });
     if (next !== "focus")
-      activeRef.current?.scrollIntoView({
-        block: "center",
-        behavior: "instant",
-      });
+      activeRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
+    const id = after.context.transitionId;
     transitionFrame.current = requestAnimationFrame(() => {
       const target = next === "focus" ? focusRef.current : activeRef.current;
       const to = target?.getBoundingClientRect();
       if (reducedMotion || !from || !to || from.bottom < 0 || from.top > window.innerHeight) {
-        finishTransition();
+        sendPresentation({ type: "TRANSITION_FINISHED", id });
         return;
       }
-      setFlight({
-        word: reader.current.text,
-        left: from.left,
-        top: from.top,
-        targetLeft: to.left,
-        targetTop: to.top,
-        size,
-        targetSize: target ? parseFloat(getComputedStyle(target).fontSize) : size,
+      sendPresentation({
+        type: "FLIGHT_MEASURED",
+        id,
+        flight: {
+          word: reader.current.text,
+          left: from.left,
+          top: from.top,
+          targetLeft: to.left,
+          targetTop: to.top,
+          size,
+          targetSize: target ? parseFloat(getComputedStyle(target).fontSize) : size,
+        },
       });
     });
   };
@@ -184,30 +171,28 @@ function ReaderPage() {
     return () => window.removeEventListener("keydown", handleKey);
   });
 
-  const openPaste = () => {
-    playAfterTransition.current = false;
-    reader.setPlaying(false);
-    setPasteOpen(true);
+  const openDialog = (next: "paste" | "about") => {
+    sendPresentation({ type: "INTERRUPT" });
+    setDialog(next);
   };
+  const openPaste = () => openDialog("paste");
   const importText = (text: string, title: string) => {
     reader.replace(text, title);
     void navigate({ search: {}, replace: true });
-    setView("article");
-    setPasteOpen(false);
+    sendPresentation({ type: "SHOW_VIEW", view: "article" });
+    setDialog(null);
     window.scrollTo({ top: 0, behavior: "instant" });
     requestAnimationFrame(() => articleRef.current?.focus({ preventScroll: true }));
   };
   const showChapter = (id: string) => {
-    playAfterTransition.current = false;
     reader.openChapter(id);
-    setView(view === "guided" ? "guided" : "article");
+    sendPresentation({ type: "SHOW_VIEW", view: view === "guided" ? "guided" : "article" });
     window.scrollTo({ top: 0, behavior: "instant" });
     requestAnimationFrame(() => articleRef.current?.focus({ preventScroll: true }));
   };
   const continueAfterBlock = (blockId: string) => {
-    playAfterTransition.current = false;
     reader.continueAfterBlock(blockId);
-    setView(view === "guided" ? "guided" : "focus");
+    sendPresentation({ type: "SHOW_VIEW", view: view === "guided" ? "guided" : "focus" });
     requestAnimationFrame(() => playRef.current?.focus({ preventScroll: true }));
   };
   if (!reader.isSample && (!reader.ready || !reader.library.readings.length))
@@ -219,15 +204,9 @@ function ReaderPage() {
       <ReaderHeader
         disabled={!reader.ready || transitioning}
         onPaste={openPaste}
-        onShortcutsOpen={() => {
-          playAfterTransition.current = false;
-        }}
+        onShortcutsOpen={() => sendPresentation({ type: "INTERRUPT" })}
         pasteRef={pasteRef}
-        onAbout={() => {
-          playAfterTransition.current = false;
-          reader.setPlaying(false);
-          setAboutOpen(true);
-        }}
+        onAbout={() => openDialog("about")}
       />
       <main
         id="reading"
@@ -366,11 +345,15 @@ function ReaderPage() {
 
       <PasteTextDialog
         open={pasteOpen}
-        onOpenChange={setPasteOpen}
+        onOpenChange={(open) => (open ? openDialog("paste") : setDialog(null))}
         returnFocusRef={playRef}
         onImport={importText}
       />
-      <AboutReaderDialog open={aboutOpen} onOpenChange={setAboutOpen} returnFocusRef={playRef} />
+      <AboutReaderDialog
+        open={aboutOpen}
+        onOpenChange={(open) => (open ? openDialog("about") : setDialog(null))}
+        returnFocusRef={playRef}
+      />
     </>
   );
 }

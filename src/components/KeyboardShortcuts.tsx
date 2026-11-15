@@ -70,7 +70,7 @@ export function KeyboardShortcuts({ onOpen }: { onOpen?: () => void }) {
   const reader = useReader();
   const changeOpen = (next: boolean) => {
     if (next) {
-      reader.setPlaying(false);
+      reader.pause();
       onOpen?.();
     }
     setOpen(next);

@@ -1,7 +1,7 @@
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { AlignLeft, Focus, Highlighter } from "lucide-react";
 
-export type ReaderView = "article" | "guided" | "focus";
+import type { ReaderView } from "../../lib/reader-presentation";
 
 type ReadingHeadingProps = {
   title: string;
