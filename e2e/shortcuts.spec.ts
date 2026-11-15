@@ -172,3 +172,36 @@ test("reader shortcuts step, replay, play, pause, and leave Focus", async ({ pag
   await page.clock.runFor(1000);
   await expect(app.button("Article")).toHaveAttribute("aria-pressed", "true");
 });
+test("on phones the legend is a bottom sheet that drags open and swipes closed", async ({
+  page,
+  app,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-chromium", "The bottom sheet is phone-only.");
+  await app.sample();
+  await app.headerAction("Keyboard shortcuts");
+  const sheet = page.getByRole("dialog", { name: "Keyboard shortcuts", exact: true });
+  await expect(sheet).toBeVisible();
+  const viewport = page.viewportSize()!;
+  const top = async () => (await sheet.boundingBox())!.y;
+  // Opens at a peek height, anchored to the bottom edge.
+  await expect.poll(top).toBeGreaterThan(viewport.height * 0.35);
+  await expect(sheet).not.toHaveAttribute("data-expanded");
+  // The page behind the resting sheet is visibly dimmed.
+  await expect(page.locator('[data-slot="drawer-overlay"]')).toHaveCSS("opacity", "1");
+  const drag = async (from: number, to: number) => {
+    const x = viewport.width / 2;
+    await page.mouse.move(x, from);
+    await page.mouse.down();
+    for (let step = 1; step <= 10; step++)
+      await page.mouse.move(x, from + ((to - from) * step) / 10);
+    await page.mouse.up();
+  };
+  const handle = async () => (await top()) + 8;
+  await drag(await handle(), 40);
+  await expect(sheet).toHaveAttribute("data-expanded");
+  await expect.poll(top).toBeLessThan(40);
+  await page.screenshot({ path: testInfo.outputPath("shortcuts-sheet-expanded.png") });
+  await drag(await handle(), viewport.height - 10);
+  await expect(sheet).toHaveCount(0);
+  await expect(app.button("Menu")).toBeFocused();
+});

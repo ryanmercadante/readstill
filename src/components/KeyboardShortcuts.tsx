@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useRef, useSyncExternalStore, type RefObject } from "react";
 import { Keyboard, X } from "lucide-react";
 import { useReader } from "../hooks/useReader";
 import { Button } from "./ui/button";
@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle } from "./ui/drawer";
 
 const groups = [
   {
@@ -107,54 +108,92 @@ export function KeyboardShortcuts({
     return () => window.removeEventListener("keydown", handleKey);
   });
 
+  const compact = useCompactViewport();
+  const intro = "Press ? to open this guide. Reading pauses while it’s open.";
+  const closeLabel = "Close keyboard shortcuts";
+
   return (
-    <Dialog open={open} onOpenChange={changeOpen}>
-      <DialogTrigger
-        render={<Button variant="ghost" className="max-[520px]:min-w-9" />}
-        ref={triggerRef}
-        aria-label="Keyboard shortcuts"
-        aria-keyshortcuts="Shift+/"
-        title="Keyboard shortcuts (?)"
-      >
-        <Keyboard size={19} />
-      </DialogTrigger>
-      <DialogContent
-        showCloseButton={false}
-        finalFocus={() =>
-          window.matchMedia("(max-width: 800px)").matches
-            ? mobileTriggerRef.current
-            : triggerRef.current
-        }
-      >
-        <DialogHeader>
-          <DialogTitle>Keyboard shortcuts</DialogTitle>
-          <DialogClose render={<Button variant="ghost" />} aria-label="Close keyboard shortcuts">
-            <X size={20} />
-          </DialogClose>
-        </DialogHeader>
-        <DialogDescription>
-          Press ? to open this guide. Reading pauses while it’s open.
-        </DialogDescription>
-        {groups.map((group) => (
-          <section key={group.title} className="mt-6" aria-label={group.title}>
-            <h2 className="m-0 font-sans text-sm font-semibold">{group.title}</h2>
-            <p className="mt-2 mb-3 text-xs leading-relaxed text-muted-foreground">{group.note}</p>
-            <dl className="m-0">
-              {group.shortcuts.map(([action, keys]) => (
-                <div
-                  key={action}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-2 text-xs leading-relaxed"
-                >
-                  <dt>{action}</dt>
-                  <dd className="m-0">
-                    <kbd className="mr-0 whitespace-nowrap bg-control">{keys}</kbd>
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        ))}
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={open && !compact} onOpenChange={changeOpen}>
+        <DialogTrigger
+          render={<Button variant="ghost" className="max-[520px]:min-w-9" />}
+          ref={triggerRef}
+          aria-label="Keyboard shortcuts"
+          aria-keyshortcuts="Shift+/"
+          title="Keyboard shortcuts (?)"
+        >
+          <Keyboard size={19} />
+        </DialogTrigger>
+        <DialogContent showCloseButton={false} finalFocus={triggerRef}>
+          <DialogHeader>
+            <DialogTitle>Keyboard shortcuts</DialogTitle>
+            <DialogClose render={<Button variant="ghost" />} aria-label={closeLabel}>
+              <X size={20} />
+            </DialogClose>
+          </DialogHeader>
+          <DialogDescription>{intro}</DialogDescription>
+          <ShortcutGroups />
+        </DialogContent>
+      </Dialog>
+      {/* At the mobile breakpoint the legend is a bottom sheet: it opens at a peek
+          height, drags up to full height, and swipes down to dismiss. */}
+      <Drawer open={open && compact} onOpenChange={changeOpen} snapPoints={SNAP_POINTS}>
+        <DrawerContent
+          finalFocus={mobileTriggerRef}
+          header={
+            <>
+              <div className="flex items-center justify-between gap-[10px]">
+                <DrawerTitle>Keyboard shortcuts</DrawerTitle>
+                <DrawerClose render={<Button variant="ghost" />} aria-label={closeLabel}>
+                  <X size={20} />
+                </DrawerClose>
+              </div>
+              <DrawerDescription className="mt-1 mb-0">{intro}</DrawerDescription>
+            </>
+          }
+        >
+          <ShortcutGroups first="mt-2" />
+        </DrawerContent>
+      </Drawer>
+    </>
   );
+}
+
+const SNAP_POINTS = [0.6, 1];
+const COMPACT_QUERY = "(max-width: 800px)";
+
+function subscribeCompact(onChange: () => void) {
+  const query = window.matchMedia(COMPACT_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+function useCompactViewport() {
+  return useSyncExternalStore(
+    subscribeCompact,
+    () => window.matchMedia(COMPACT_QUERY).matches,
+    () => false,
+  );
+}
+
+function ShortcutGroups({ first = "mt-6" }: { first?: string }) {
+  return groups.map((group, index) => (
+    <section key={group.title} className={index === 0 ? first : "mt-6"} aria-label={group.title}>
+      <h2 className="m-0 font-sans text-sm font-semibold">{group.title}</h2>
+      <p className="mt-2 mb-3 text-xs leading-relaxed text-muted-foreground">{group.note}</p>
+      <dl className="m-0">
+        {group.shortcuts.map(([action, keys]) => (
+          <div
+            key={action}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-2 text-xs leading-relaxed"
+          >
+            <dt>{action}</dt>
+            <dd className="m-0">
+              <kbd className="mr-0 whitespace-nowrap bg-control">{keys}</kbd>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  ));
 }
