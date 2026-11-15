@@ -1,5 +1,6 @@
-import { useEffect, useRef, useSyncExternalStore, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { Keyboard, X } from "lucide-react";
+import { useCompactViewport } from "../hooks/useCompactViewport";
 import { useReader } from "../hooks/useReader";
 import { Button } from "./ui/button";
 import {
@@ -160,22 +161,6 @@ export function KeyboardShortcuts({
 }
 
 const SNAP_POINTS = [0.6, 1];
-const COMPACT_QUERY = "(max-width: 800px)";
-
-function subscribeCompact(onChange: () => void) {
-  const query = window.matchMedia(COMPACT_QUERY);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-}
-
-function useCompactViewport() {
-  return useSyncExternalStore(
-    subscribeCompact,
-    () => window.matchMedia(COMPACT_QUERY).matches,
-    () => false,
-  );
-}
-
 function ShortcutGroups({ first = "mt-6" }: { first?: string }) {
   return groups.map((group, index) => (
     <section key={group.title} className={index === 0 ? first : "mt-6"} aria-label={group.title}>

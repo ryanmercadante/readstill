@@ -18,7 +18,8 @@ function DrawerClose({ ...props }: DrawerPrimitive.Close.Props) {
  * A bottom sheet. The popup is a flex column: `header` stays pinned (and is the
  * comfortable drag target), `children` scroll inside `DrawerPrimitive.Content`.
  * Snap point offsets are applied both as a transform and as bottom padding so the
- * scroll area always ends at the visible edge of the sheet.
+ * scroll area always ends at the visible edge of the sheet. Without `snapPoints`
+ * on the root, the sheet sizes to its content.
  */
 function DrawerContent({
   className,
@@ -45,7 +46,7 @@ function DrawerContent({
           data-slot="drawer-content"
           className={cn(
             "relative z-1 flex max-h-[calc(100dvh-24px)] min-h-0 w-full touch-none flex-col rounded-t-xl border-0 border-t border-solid border-border bg-background shadow-dialog outline-none",
-            "[padding-bottom:max(0px,calc(var(--drawer-snap-point-offset)+var(--drawer-swipe-movement-y)))] [transform:translateY(calc(var(--drawer-snap-point-offset)+var(--drawer-swipe-movement-y)))]",
+            "[padding-bottom:max(0px,calc(var(--drawer-snap-point-offset,0px)+var(--drawer-swipe-movement-y,0px)))] [transform:translateY(calc(var(--drawer-snap-point-offset,0px)+var(--drawer-swipe-movement-y,0px)))]",
             "transition-[transform,padding] duration-[450ms] data-swiping:select-none",
             "data-starting-style:[padding-bottom:0] data-starting-style:[transform:translateY(calc(100%+2px))] data-ending-style:[padding-bottom:0] data-ending-style:[transform:translateY(calc(100%+2px))] data-ending-style:duration-[calc(var(--drawer-swipe-strength)*400ms)]",
             "after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-(--bleed) after:bg-[inherit] after:content-['']",

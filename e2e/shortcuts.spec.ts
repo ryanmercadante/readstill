@@ -205,3 +205,28 @@ test("on phones the legend is a bottom sheet that drags open and swipes closed",
   await expect(sheet).toHaveCount(0);
   await expect(app.button("Menu")).toBeFocused();
 });
+test("on phones the about dialog is a content-height sheet that swipes closed", async ({
+  page,
+  app,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-chromium", "The bottom sheet is phone-only.");
+  await app.sample();
+  await app.headerAction("About this reader");
+  const sheet = page.getByRole("dialog", { name: "A little more focus.", exact: true });
+  await expect(sheet).toBeVisible();
+  await expect(page.locator('[data-slot="drawer-overlay"]')).toHaveCSS("opacity", "1");
+  const viewport = page.viewportSize()!;
+  const box = (await sheet.boundingBox())!;
+  // Sized to its content and anchored to the bottom edge.
+  expect(box.y).toBeGreaterThan(40);
+  expect(Math.abs(box.y + box.height - viewport.height)).toBeLessThanOrEqual(2);
+  await page.screenshot({ path: testInfo.outputPath("about-sheet.png") });
+  const x = viewport.width / 2;
+  await page.mouse.move(x, box.y + 8);
+  await page.mouse.down();
+  for (let step = 1; step <= 10; step++)
+    await page.mouse.move(x, box.y + 8 + ((viewport.height - box.y) * step) / 10);
+  await page.mouse.up();
+  await expect(sheet).toHaveCount(0);
+  await expect(app.button("Read passage")).toBeFocused();
+});
