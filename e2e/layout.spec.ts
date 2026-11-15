@@ -51,6 +51,40 @@ test("Focus word and return control stay above the dock on a short phone", async
     )
     .toBe(true);
 });
+test("long Focus words settle on one size when glyph widths round unevenly", async ({
+  page,
+  app,
+}) => {
+  const errors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  // Text width is not perfectly proportional to font size: glyph widths round
+  // differently at neighboring sizes (notably on Linux CI). Exaggerate that so a
+  // fit that re-measures after every size change overshoots back and forth forever.
+  await page.addInitScript(() => {
+    const measure = Element.prototype.getBoundingClientRect;
+    Element.prototype.getBoundingClientRect = function () {
+      const rect = measure.call(this);
+      if (!this.parentElement?.classList.contains("focus-word")) return rect;
+      const size = parseFloat(getComputedStyle(this).fontSize);
+      const width = rect.width * (size / 40) ** 2;
+      return new DOMRect(rect.x, rect.y, width, rect.height);
+    };
+  });
+  await page.setViewportSize({ width: 320, height: 568 });
+  await app.emptyLibrary();
+  await app.paste("Incomprehensibilities notwithstanding, read on.");
+  await app.mode("Focus");
+  const word = page.getByTestId("focus-word");
+  await expect(word).toHaveText("Incomprehensibilities");
+  const size = () => word.evaluate((node) => getComputedStyle(node).fontSize);
+  const settled = await size();
+  expect(parseFloat(settled)).toBeLessThan(52);
+  await page.waitForTimeout(200);
+  expect(await size()).toBe(settled);
+  expect(errors.filter((text) => /React error #185|Maximum update depth/.test(text))).toEqual([]);
+});
 test("reduced motion skips word-flight animation while preserving position", async ({
   page,
   app,

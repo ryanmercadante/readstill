@@ -27,31 +27,31 @@ export function FocusView({
   const [focusOffset, setFocusOffset] = useState(0);
   const focusStageRef = useRef<HTMLDivElement>(null);
 
+  // Fit the word in one step. Width scales with font size, so a single measurement
+  // gives the fitting size. Re-fitting after each size change can oscillate forever
+  // when glyph widths round differently at neighboring sizes (React error #185).
   useLayoutEffect(() => {
-    const measure = () => {
+    const fit = () => {
       const stage = focusStageRef.current;
       const word = wordRef.current;
       if (!stage || !word) return;
       const viewportWidth = stage.clientWidth;
       const base = viewportWidth < 600 ? 52 : 76;
-      const parts = word.children;
-      const left =
-        (parts[0]?.getBoundingClientRect().width ?? 0) +
-        (parts[1]?.getBoundingClientRect().width ?? 0) / 2;
-      const right =
-        (parts[2]?.getBoundingClientRect().width ?? 0) +
-        (parts[1]?.getBoundingClientRect().width ?? 0) / 2;
-      const currentSize = parseFloat(getComputedStyle(word).fontSize);
-      const ideal = Math.min(
-        base,
-        currentSize * ((viewportWidth / 2 - 20) / Math.max(left, right, 1)),
-      );
+      const { left, right } = anchorSides(word);
+      const widthPerPx = Math.max(left, right, 1) / parseFloat(getComputedStyle(word).fontSize);
+      const ideal = Math.min(base, (viewportWidth / 2 - 20) / widthPerPx);
       setFocusSize(Math.max(8, Math.floor(ideal)));
-      setFocusOffset(left);
     };
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [word, wordRef]);
+
+  // Center the anchor letter at the rendered size. This only moves the word, so it
+  // cannot feed back into the size.
+  useLayoutEffect(() => {
+    const word = wordRef.current;
+    if (word) setFocusOffset(anchorSides(word).left);
   }, [word, focusSize, wordRef]);
 
   return (
@@ -119,4 +119,14 @@ export function FocusView({
       )}
     </section>
   );
+}
+
+/** Widths from the word's start and end to the middle of its anchor letter. */
+function anchorSides(word: HTMLElement) {
+  const [before, anchor, after] = Array.from(
+    word.children,
+    (part) => part.getBoundingClientRect().width,
+  );
+  const half = (anchor ?? 0) / 2;
+  return { left: (before ?? 0) + half, right: (after ?? 0) + half };
 }
