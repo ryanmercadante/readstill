@@ -16,18 +16,18 @@ function LandingPage() {
 
       <main
         id="main"
-        className="mx-auto max-w-[1080px] px-13 pt-[82px] pb-7 max-[600px]:px-[23px] max-[600px]:pt-[46px] max-[600px]:pb-6"
+        className="mx-auto max-w-[1080px] px-13 pt-12 pb-7 max-[600px]:px-[23px] max-[600px]:pt-7 max-[600px]:pb-6"
       >
         <section className="max-w-[700px]" aria-labelledby="landing-title">
           <h1
             id="landing-title"
-            className="mb-[26px] text-[clamp(44px,6vw,72px)] leading-[1.08] max-[600px]:text-[clamp(38px,9vw,52px)]"
+            className="mb-5 text-[clamp(44px,6vw,72px)] leading-[1.08] max-[600px]:text-[clamp(38px,9vw,52px)]"
           >
             A little space.
             <br />
             Your own pace.
           </h1>
-          <p className="m-0 mb-7 max-w-[520px] text-[15px] leading-[1.85] text-muted-foreground max-[600px]:text-[14px]">
+          <p className="m-0 mb-6 max-w-[520px] text-[15px] leading-[1.85] text-muted-foreground max-[600px]:text-[14px]">
             Read freely, follow a moving highlight, or focus on one word at a time. Still gives you
             three ways to read, with one shared place in the text.
           </p>
@@ -39,30 +39,31 @@ function LandingPage() {
             Try it <ArrowRight size={17} aria-hidden="true" />
           </Link>
           <p className="m-0 mt-[15px] text-[12px] leading-[1.7] text-muted-foreground">
-            Start with a sample or paste your own text. No account needed.
+            Start with a sample or paste your own text. No account needed, and it all stays in this
+            browser.
           </p>
         </section>
 
         <figure
-          className="m-0 mt-[58px] grid grid-cols-3 border-0 border-t border-solid border-border max-[900px]:grid-cols-1 max-[600px]:mt-[38px]"
+          className="m-0 mt-10 grid grid-cols-3 border-0 border-t border-solid border-border max-[900px]:grid-cols-1 max-[600px]:mt-7"
           aria-label="A preview of the Article, Guided, and Focus reading modes"
         >
-          <div className="py-[26px] pr-7 max-[900px]:pr-0">
+          <div className="py-5 pr-7 max-[900px]:pr-0">
             <h2 className="m-0 font-sans text-[13px] font-semibold tracking-normal">Article</h2>
             <p className="m-0 mt-2 text-[12px] leading-[1.7] text-muted-foreground">
               Read freely, with the whole passage in view.
             </p>
-            <p className="m-0 mt-5 font-serif text-[21px] leading-[1.8]">
+            <p className="m-0 mt-4 font-serif text-[21px] leading-[1.7]">
               There is a small bookshop on a quiet street, the kind of place you might walk past if
               you were in a hurry.
             </p>
           </div>
-          <div className="border-0 border-l border-solid border-border px-7 py-[26px] max-[900px]:border-t max-[900px]:border-l-0 max-[900px]:px-0">
+          <div className="border-0 border-l border-solid border-border px-7 py-5 max-[900px]:border-t max-[900px]:border-l-0 max-[900px]:px-0">
             <h2 className="m-0 font-sans text-[13px] font-semibold tracking-normal">Guided</h2>
             <p className="m-0 mt-2 text-[12px] leading-[1.7] text-muted-foreground">
               Follow a paced highlight through the passage.
             </p>
-            <p className="m-0 mt-5 font-serif text-[21px] leading-[1.8]">
+            <p className="m-0 mt-4 font-serif text-[21px] leading-[1.7]">
               There is a small{" "}
               <mark className="rounded-[3px] bg-highlight px-[3px] py-0 text-highlight-foreground">
                 bookshop
@@ -70,12 +71,12 @@ function LandingPage() {
               on a quiet street, the kind of place you might walk past if you were in a hurry.
             </p>
           </div>
-          <div className="border-0 border-l border-solid border-border py-[26px] pl-7 max-[900px]:border-t max-[900px]:border-l-0 max-[900px]:pl-0">
+          <div className="border-0 border-l border-solid border-border py-5 pl-7 max-[900px]:border-t max-[900px]:border-l-0 max-[900px]:pl-0">
             <h2 className="m-0 font-sans text-[13px] font-semibold tracking-normal">Focus</h2>
             <p className="m-0 mt-2 text-[12px] leading-[1.7] text-muted-foreground">
               Read one word at a time, at a pace you choose.
             </p>
-            <div className="relative mt-5 flex min-h-[155px] items-center before:absolute before:top-3 before:left-1/2 before:h-[15px] before:w-px before:bg-brand before:content-[''] after:absolute after:bottom-3 after:left-1/2 after:h-[15px] after:w-px after:bg-brand after:content-['']">
+            <div className="relative mt-4 flex min-h-[124px] items-center before:absolute before:top-3 before:left-1/2 before:h-[15px] before:w-px before:bg-brand before:content-[''] after:absolute after:bottom-3 after:left-1/2 after:h-[15px] after:w-px after:bg-brand after:content-['']">
               <span className="sr-only">bookshop</span>
               <span
                 aria-hidden="true"
@@ -91,11 +92,6 @@ function LandingPage() {
             Three ways to read. Switch modes without losing your place.
           </figcaption>
         </figure>
-
-        <footer className="mt-12 flex justify-between gap-4 text-[11px] leading-[1.7] text-muted-foreground max-[600px]:mt-8 max-[600px]:flex-col max-[600px]:gap-1.5">
-          <p className="m-0">Your text and progress stay in this browser.</p>
-          <p className="m-0">Understanding comes before speed.</p>
-        </footer>
       </main>
     </>
   );

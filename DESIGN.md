@@ -130,7 +130,7 @@ Focus words use the serif with a base size of 76px, or 52px when the stage is na
 
 The header has a 1320px maximum width; the reader shell is 1000px with desktop padding of 51px 40px 210px. The article is a centered 680px column. The fixed paper dock is at most 1060px wide and uses three columns for pace, playback and position. Article paragraph spacing is 25px. The Tailwind utilities preserve these contextual spacing values, using the standard spacing scale where values match.
 
-At 800px and below, the heading stacks, dock position details disappear and dock controls become two columns. At 520px and below, the view switch fills its row, prose is inset 23px, the play label disappears, step buttons stack and dialogs use 23px padding. Header tagline and extra keyboard hints also disappear. Short screens at most 740px high and 800px wide compress the focus heading to a single line and the stage to `clamp(96px, 20dvh, 160px)`, and hide secondary context. At 1500px and above, reader top padding becomes 65px. The dock includes safe-area bottom padding; the body minimum width is 320px.
+At 800px and below, the heading stacks, dock position details disappear and dock controls become two columns. At 520px and below, the view switch fills its row, prose is inset 23px, the play label disappears, step buttons stack and dialogs use 23px padding. Extra keyboard hints also disappear. Short screens at most 740px high and 800px wide compress the focus heading to a single line and the stage to `clamp(96px, 20dvh, 160px)`, and hide secondary context. At 1500px and above, reader top padding becomes 65px. The dock includes safe-area bottom padding; the body minimum width is 320px.
 
 ## Elevation & Depth
 
