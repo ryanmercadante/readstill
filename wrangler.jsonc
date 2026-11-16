@@ -5,6 +5,9 @@
   "name": "readstill",
   "compatibility_date": "2026-11-15",
   "main": "@tanstack/react-start/server-entry",
+  // Staging uploads from main get their own preview URL. Production traffic
+  // only moves on a release.
+  "preview_urls": true,
   "observability": {
     "enabled": true,
   },
