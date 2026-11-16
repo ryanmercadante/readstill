@@ -58,3 +58,37 @@ test("Article and Guided share a surface without a transition or autoplay", asyn
     await expect(app.button("Read passage")).toBeVisible();
   }
 });
+test("Guided saves the position on pause, not on every word", async ({ page, app }) => {
+  await app.emptyLibrary();
+  await app.paste(
+    "Steady words keep moving along the page while the reader follows the highlight.",
+  );
+  await app.mode("Guided");
+  await page.getByRole("slider").fill("700");
+  await app.saved();
+  await page.getByTestId("save-status").evaluate((node) => {
+    const seen: string[] = [];
+    (window as unknown as { saveStatuses: string[] }).saveStatuses = seen;
+    new MutationObserver(() => seen.push(node.textContent ?? "")).observe(node, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+  });
+  await app.button("Read passage").click();
+  await expect
+    .poll(async () => Number(await app.activeWord.getAttribute("data-word")), { timeout: 10_000 })
+    .toBeGreaterThanOrEqual(8);
+  await app.button("Pause reading").click();
+  await app.saved();
+  const statuses = await page.evaluate(
+    () => (window as unknown as { saveStatuses: string[] }).saveStatuses,
+  );
+  // One write for the pause, none for the words read before it.
+  expect(statuses.filter((status) => status.includes("Saving")).length).toBeLessThanOrEqual(1);
+  // Pausing saves the position, so it survives a reload.
+  const paused = await app.activeWord.getAttribute("data-word");
+  await page.reload();
+  await app.mode("Guided");
+  await expect(app.activeWord).toHaveAttribute("data-word", paused!);
+});

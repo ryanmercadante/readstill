@@ -27,8 +27,14 @@ export function connectReaderSession(
   };
   // Subscribe to committed snapshots: during a machine action getSnapshot() would still
   // expose the previous cursor, causing the store notification to issue a spurious LOAD.
-  const playback = actor.subscribe(({ context }) =>
-    store.recordPosition(context.readingId, context.position),
+  // While playing, the cursor moves every word; keep it in memory and write it once
+  // playback stops (pause, finish, a context stop, leaving, or the page hiding).
+  const playback = actor.subscribe((snapshot) =>
+    store.recordPosition(
+      snapshot.context.readingId,
+      snapshot.context.position,
+      !snapshot.matches("playing"),
+    ),
   );
   const unsubscribe = store.subscribe(sync);
   sync();

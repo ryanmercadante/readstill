@@ -2,12 +2,18 @@ import { afterEach, expect, it, vi } from "vitest";
 import { createActor, fromCallback } from "xstate";
 import { createLibraryStore } from "./library-store";
 import { initialPosition, textReading } from "./library";
+import type { Library } from "./library";
+import type { StoredLibrary } from "./library-storage";
 import { playbackMachine, currentPlayback } from "./playback-machine";
 import { connectReaderSession } from "./reader-session";
 
 const cleanup: (() => void)[] = [];
 afterEach(() => cleanup.splice(0).forEach((stop) => stop()));
 async function start() {
+  const save = vi.fn(async (library: Library, previous: StoredLibrary) => ({
+    library,
+    revision: previous.revision + 1,
+  }));
   const reading = textReading("One two three four five.", "Reading", "reading");
   const store = createLibraryStore({
     load: async () => ({
@@ -19,7 +25,7 @@ async function start() {
       },
       revision: 1,
     }),
-    save: async (library, previous) => ({ library, revision: previous.revision + 1 }),
+    save,
   });
   const actor = createActor(
     playbackMachine.provide({
@@ -38,22 +44,30 @@ async function start() {
   const disconnect = connect();
   cleanup.push(() => actor.stop());
   await store.load();
-  return { store, actor, connect, disconnect };
+  return { store, actor, connect, disconnect, save };
 }
 
-it("checkpoints each word without pausing playback when the save completes", async () => {
-  const { store, actor } = await start();
+it("holds the cursor in memory while playing and saves once playback stops", async () => {
+  const { store, actor, save } = await start();
   actor.send({ type: "PLAY" });
   actor.send({ type: "TICK" });
-  expect(store.select(false).position.index).toBe(1);
-  expect(store.getSnapshot().saving).toBe(true);
-  await vi.waitFor(() => expect(store.getSnapshot().saving).toBe(false));
-  expect(actor.getSnapshot().matches("playing")).toBe(true);
   actor.send({ type: "TICK" });
-  expect(currentPlayback(actor.getSnapshot().context).index).toBe(2);
+  expect(store.select(false).position.index).toBe(2);
+  expect(store.getSnapshot().saving).toBe(false);
+  expect(save).not.toHaveBeenCalled();
   store.setWpm(500);
   expect(actor.getSnapshot().context.wpm).toBe(500);
   expect(actor.getSnapshot().matches("playing")).toBe(true);
+  await vi.waitFor(() => expect(store.getSnapshot().saving).toBe(false));
+  expect(save).toHaveBeenCalledTimes(1);
+  actor.send({ type: "TICK" });
+  expect(save).toHaveBeenCalledTimes(1);
+  actor.send({ type: "PAUSE" });
+  expect(store.getSnapshot().saving).toBe(true);
+  await vi.waitFor(() => expect(store.getSnapshot().saving).toBe(false));
+  expect(save).toHaveBeenCalledTimes(2);
+  expect(save.mock.calls[1][0].positions.reading.index).toBe(3);
+  expect(actor.getSnapshot().matches("paused")).toBe(true);
 });
 
 it("switches between sample and saved progress, pauses on departure, and reconnects safely", async () => {

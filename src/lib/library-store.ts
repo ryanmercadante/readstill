@@ -37,13 +37,16 @@ export function createLibraryStore(storage: Storage = { load: loadLibrary, save:
     const next = { ...state, ...patch };
     state = {
       ...next,
-      saving: next.ready && !!persisted && next.library !== persisted.library && !next.storageError,
+      // An in-flight write, not merely unsaved edits: positions recorded during playback
+      // are held in memory until playback stops.
+      saving: next.ready && !!persisted && writing && !next.storageError,
     };
     listeners.forEach((listener) => listener());
   };
   const persist = async () => {
-    if (!persisted || writing) return;
+    if (!persisted || writing || state.library === persisted.library) return;
     writing = true;
+    publish();
     try {
       while (state.library !== persisted.library) {
         const attempted = state.library;
@@ -63,12 +66,12 @@ export function createLibraryStore(storage: Storage = { load: loadLibrary, save:
       }
     } finally {
       writing = false;
+      publish();
     }
   };
-  const update = (library: Library) => {
-    if (library === state.library) return;
-    publish({ library });
-    void persist();
+  const update = (library: Library, save = true) => {
+    if (library !== state.library) publish({ library });
+    if (save) void persist();
   };
   const addReading = (reading: Reading) => {
     if (state.library.readings.length >= MAX_READINGS)
@@ -82,11 +85,20 @@ export function createLibraryStore(storage: Storage = { load: loadLibrary, save:
     assertLibraryCapacity(next);
     update(next);
   };
-  const recordPosition = (id: string | null, position: Position) => {
+  /**
+   * Move a reading's cursor. With `save: false` the position only changes in memory;
+   * the next saving call (any edit, or recording with `save: true`) writes it.
+   */
+  const recordPosition = (id: string | null, position: Position, save = true) => {
     if (id === sampleReading.id) {
       if (state.samplePosition !== position) publish({ samplePosition: position });
-    } else if (id && state.library.positions[id] && state.library.positions[id] !== position) {
-      update({ ...state.library, positions: { ...state.library.positions, [id]: position } });
+    } else if (id && state.library.positions[id]) {
+      update(
+        state.library.positions[id] === position
+          ? state.library
+          : { ...state.library, positions: { ...state.library.positions, [id]: position } },
+        save,
+      );
     }
   };
 
