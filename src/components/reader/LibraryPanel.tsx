@@ -322,7 +322,10 @@ export function LibraryPanel({
           )}
         </>
       )}
-      <footer className="mt-10">
+      <footer
+        className="mt-10"
+        data-save={storageError ? "error" : saving ? "saving" : ready ? "saved" : "loading"}
+      >
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <Button
             variant="text"
@@ -338,15 +341,9 @@ export function LibraryPanel({
           >
             Restore backup
           </Button>
-          <span className="text-xs text-muted-foreground">
-            {storageError
-              ? "Changes are not saved"
-              : saving
-                ? "Saving on this device…"
-                : ready
-                  ? "Saved on this device"
-                  : ""}
-          </span>
+          {storageError && (
+            <span className="text-xs text-muted-foreground">Changes are not saved</span>
+          )}
         </div>
         <p className="max-w-lg text-xs leading-relaxed text-muted-foreground">
           Clearing browser data removes your library. Export a backup to keep your readings and

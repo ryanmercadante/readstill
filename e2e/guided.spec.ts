@@ -66,13 +66,11 @@ test("Guided saves the position on pause, not on every word", async ({ page, app
   await app.mode("Guided");
   await page.getByRole("slider").fill("700");
   await app.saved();
-  await page.getByTestId("save-status").evaluate((node) => {
+  await page.locator("[data-save]").evaluate((node) => {
     const seen: string[] = [];
-    (window as unknown as { saveStatuses: string[] }).saveStatuses = seen;
-    new MutationObserver(() => seen.push(node.textContent ?? "")).observe(node, {
-      childList: true,
-      subtree: true,
-      characterData: true,
+    (window as unknown as { saveStates: string[] }).saveStates = seen;
+    new MutationObserver(() => seen.push(node.getAttribute("data-save") ?? "")).observe(node, {
+      attributeFilter: ["data-save"],
     });
   });
   await app.button("Read passage").click();
@@ -81,11 +79,13 @@ test("Guided saves the position on pause, not on every word", async ({ page, app
     .toBeGreaterThanOrEqual(8);
   await app.button("Pause reading").click();
   await app.saved();
-  const statuses = await page.evaluate(
-    () => (window as unknown as { saveStatuses: string[] }).saveStatuses,
+  const states = await page.evaluate(
+    () => (window as unknown as { saveStates: string[] }).saveStates,
   );
   // One write for the pause, none for the words read before it.
-  expect(statuses.filter((status) => status.includes("Saving")).length).toBeLessThanOrEqual(1);
+  expect(states.filter((state) => state === "saving").length).toBeLessThanOrEqual(1);
+  // A successful save is never announced in the dock.
+  await expect(page.getByTestId("save-status")).toHaveText("");
   // Pausing saves the position, so it survives a reload.
   const paused = await app.activeWord.getAttribute("data-word");
   await page.reload();

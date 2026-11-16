@@ -3,7 +3,7 @@ import { Progress } from "../ui/progress";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
 import type { RefObject } from "react";
-import { ArrowLeft, ArrowRight, Check, Pause, Play, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Pause, Play, RotateCcw } from "lucide-react";
 import { MAX_WPM, MIN_WPM } from "../../lib/reader";
 
 type ReaderControlsProps = {
@@ -46,20 +46,20 @@ export function ReaderControls({
   onWpmChange,
 }: ReaderControlsProps) {
   const progress = finished ? 100 : Math.round((index / wordCount) * 100);
+  // Saving is quiet: the status only speaks up when something needs attention. The
+  // attribute lets tests wait for a write to finish.
+  const saveState = storageError ? "error" : saving ? "saving" : ready ? "saved" : "loading";
 
   if (contextPaused)
     return (
-      <footer className="reader-dock fixed bottom-0 left-1/2 z-10 w-[min(100%,1060px)] -translate-x-1/2 bg-background px-5">
+      <footer
+        data-save={saveState}
+        className="reader-dock fixed bottom-0 left-1/2 z-10 w-[min(100%,1060px)] -translate-x-1/2 bg-background px-5"
+      >
         <Progress className="h-0.5 bg-border" aria-label="Reading progress" value={progress} />
         <div className="flex flex-wrap justify-between gap-2 pt-4 pb-[max(20px,env(safe-area-inset-bottom))] text-xs text-muted-foreground">
           <span>{finished ? "Chapter complete" : "Reading paused"}</span>
-          <span data-testid="save-status">
-            {storageError
-              ? "Changes are not saved"
-              : saving
-                ? "Saving on this device…"
-                : "Saved on this device"}
-          </span>
+          <span data-testid="save-status">{storageError && "Changes are not saved"}</span>
         </div>
         {storageError && (
           <p role="status" className="mt-0 text-xs leading-relaxed text-destructive">
@@ -70,7 +70,10 @@ export function ReaderControls({
     );
 
   return (
-    <footer className="reader-dock fixed bottom-0 left-1/2 z-10 w-[min(100%,1060px)] -translate-x-1/2 bg-background px-[34px] py-0 max-[800px]:px-7 max-[520px]:px-5">
+    <footer
+      data-save={saveState}
+      className="reader-dock fixed bottom-0 left-1/2 z-10 w-[min(100%,1060px)] -translate-x-1/2 bg-background px-[34px] py-0 max-[800px]:px-7 max-[520px]:px-5"
+    >
       <Progress className="h-0.5 bg-border" aria-label="Reading progress" value={progress} />
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-[38px] pt-6 pb-5 max-[800px]:grid-cols-[1fr_auto] max-[800px]:gap-[15px] max-[520px]:gap-3 max-[520px]:py-5">
         <div className="w-[218px] max-[520px]:w-[140px]">
@@ -92,16 +95,9 @@ export function ReaderControls({
             thumbProps={{
               id: "pace",
               "aria-labelledby": "pace-label",
-              "aria-describedby": "pace-note",
               getAriaValueText: (_formatted, value) => `${value} words per minute`,
             }}
           />
-          <span
-            className="block text-[9px] text-muted-foreground max-[520px]:max-w-[140px] max-[520px]:text-[8px] max-[520px]:leading-[1.5]"
-            id="pace-note"
-          >
-            A little breathing room at punctuation
-          </span>
         </div>
         <div className="flex items-center gap-2.5 max-[520px]:gap-0.5">
           <Button
@@ -161,23 +157,16 @@ export function ReaderControls({
             {index + 1} <span className="mx-[5px] text-muted-foreground">/</span> {wordCount}
           </span>
           <small
-            className="mt-2 flex items-center justify-end gap-1 text-[9px] text-muted-foreground"
+            className="mt-2 block min-h-lh text-[9px] text-muted-foreground"
             data-testid="save-status"
           >
-            {isSample ? (
-              "Sample · not saved to your library"
-            ) : storageError ? (
-              "Progress could not be saved"
-            ) : !ready ? (
-              "Opening your reading…"
-            ) : saving ? (
-              "Saving on this device…"
-            ) : (
-              <>
-                <Check size={13} />
-                Saved on this device
-              </>
-            )}
+            {isSample
+              ? "Sample · not saved to your library"
+              : storageError
+                ? "Progress could not be saved"
+                : !ready
+                  ? "Opening your reading…"
+                  : ""}
           </small>
         </div>
       </div>

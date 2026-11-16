@@ -24,7 +24,7 @@ The first visit migrates the previous single reading or version-1 library into t
 - A word-to-focus transition, with an immediate transition for reduced-motion preferences.
 - A stationary highlighted anchor, 100–700 WPM controls, sentence/paragraph pauses, play/pause, word stepping, and sentence replay.
 - Automatic pause when the page is hidden. Resuming gives the current word a full presentation interval; missed frames never skip words.
-- A local library of pasted passages and EPUB books, with a separate chapter/word position for each reading and a shared pace setting. Wait for “Saved on this device” before closing or refreshing after a change.
+- A local library of pasted passages and EPUB books, with a separate chapter/word position for each reading and a shared pace setting. Positions are written when playback stops (pause, finish, leaving the reader, or the page hiding). Successful saves are silent; the dock only speaks up when a save fails or when reading the sample, which is never saved.
 - Browser-local EPUB import with a review before adding the book, chapter navigation, semantic tables, and raster/SVG illustrations in article view. Playback pauses at tables, illustrations, unavailable sections, and chapter endings.
 - Original EPUB downloads for newly imported books. Remaining unsupported content is marked in place and disclosed in the import report.
 - Export the entire library or an individual reading as a Still JSON backup; restore adds readings and preserves existing progress. Removal asks for confirmation.

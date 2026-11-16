@@ -85,7 +85,7 @@ test("removal requires confirmation and removing the last item returns the empty
   await app.button("Remove reading").click();
   await expect(app.savedReadings).toHaveCount(0);
   await expect(app.button("Export library")).toBeDisabled();
-  await expect(page.getByText("Saved on this device", { exact: true })).toBeVisible();
+  await app.saved();
   await page.goto("/reader");
   await expect(page).toHaveURL(/\/library$/);
 });

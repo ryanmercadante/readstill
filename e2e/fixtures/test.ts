@@ -75,7 +75,8 @@ export class StillApp {
     await this.page.locator(`[data-word="${index}"]`).click();
   }
   async saved() {
-    await expect(this.page.getByTestId("save-status")).toHaveText("Saved on this device");
+    // The UI stays quiet when saves succeed; the dock exposes the write state instead.
+    await expect(this.page.locator("[data-save]")).toHaveAttribute("data-save", "saved");
   }
   async exportLibrary(): Promise<{ buffer: Buffer; data: Backup }> {
     const download = this.page.waitForEvent("download");
