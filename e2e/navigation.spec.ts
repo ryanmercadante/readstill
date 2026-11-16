@@ -105,3 +105,25 @@ test("history and reload preserve a saved reading; trying the demo does not repl
   await expect(app.activeWord).toHaveAttribute("data-word", "4");
   await expect(page.getByRole("slider")).toHaveValue("400");
 });
+test("About is a page in the header and menu, and leaving the reader keeps your place", async ({
+  page,
+  app,
+}) => {
+  await app.sample();
+  await app.mode("Guided");
+  await app.seek(4);
+  await app.openMenu();
+  await (
+    app.mobileNavigation
+      ? page.getByRole("menuitem", { name: "About", exact: true })
+      : page.getByRole("link", { name: "About", exact: true })
+  ).click();
+  await expect(page).toHaveURL(/\/about$/);
+  await expect(page).toHaveTitle("About — Still");
+  await expect(page.getByRole("heading", { level: 1, name: "About Still" })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.goBack();
+  await app.readerReady();
+  await app.mode("Guided");
+  await expect(app.activeWord).toHaveAttribute("data-word", "4");
+});

@@ -10,6 +10,9 @@ for (const theme of ["light", "dark"] as const) {
       await page.goto("/");
       await expect(page.getByRole("link", { name: "Try it", exact: true })).toBeVisible();
       await audit();
+      await page.goto("/about");
+      await expect(page.getByRole("heading", { level: 1, name: "About Still" })).toBeVisible();
+      await audit();
       await app.library();
       await expect(
         page.getByRole("heading", { name: "Make room for your first reading." }),
@@ -23,7 +26,7 @@ for (const theme of ["light", "dark"] as const) {
         await audit();
       });
     }
-    for (const name of ["Paste text", "About this reader", "Keyboard shortcuts"]) {
+    for (const name of ["Paste text", "Keyboard shortcuts"]) {
       test(`${name} dialog meets automated WCAG checks`, async ({ page, app, audit }) => {
         await app.sample();
         await app.headerAction(name);

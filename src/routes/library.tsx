@@ -5,7 +5,6 @@ import { SkipLink } from "../components/SkipLink";
 import { ReaderHeader } from "../components/reader/ReaderHeader";
 import { LibraryPanel } from "../components/reader/LibraryPanel";
 import { PasteTextDialog } from "../components/reader/PasteTextDialog";
-import { AboutReaderDialog } from "../components/reader/AboutReaderDialog";
 
 export const Route = createFileRoute("/library")({
   head: () => ({ meta: [{ title: "Library — Still" }] }),
@@ -16,7 +15,6 @@ function LibraryPage() {
   const reader = useReader();
   const navigate = Route.useNavigate();
   const [pasteOpen, setPasteOpen] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
   const [importing, setImporting] = useState(false);
   const pasteRef = useRef<HTMLButtonElement>(null);
 
@@ -35,7 +33,6 @@ function LibraryPage() {
       <ReaderHeader
         disabled={!reader.ready || importing}
         onPaste={() => setPasteOpen(true)}
-        onAbout={() => setAboutOpen(true)}
         pasteRef={pasteRef}
       />
       <LibraryPanel
@@ -55,7 +52,6 @@ function LibraryPage() {
         returnFocusRef={pasteRef}
         onImport={importText}
       />
-      <AboutReaderDialog open={aboutOpen} onOpenChange={setAboutOpen} returnFocusRef={pasteRef} />
     </>
   );
 }

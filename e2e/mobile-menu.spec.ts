@@ -15,13 +15,7 @@ for (const theme of ["light", "dark"]) {
     const menu = page.getByRole("menu", { name: "Menu", exact: true });
     await expect(menu).toBeVisible();
     await audit();
-    for (const name of [
-      "Library",
-      "Paste text",
-      "About this reader",
-      "Keyboard shortcuts",
-      "Toggle theme",
-    ]) {
+    for (const name of ["Library", "About", "Paste text", "Keyboard shortcuts", "Toggle theme"]) {
       const item = menu.getByRole("menuitem", {
         name,
         exact: true,
@@ -44,7 +38,7 @@ for (const theme of ["light", "dark"]) {
     await page.keyboard.press("Home");
     await expect(menu.getByRole("menuitem", { name: "Library", exact: true })).toBeFocused();
     await page.keyboard.press("ArrowDown");
-    await expect(menu.getByRole("menuitem", { name: "Paste text", exact: true })).toBeFocused();
+    await expect(menu.getByRole("menuitem", { name: "About", exact: true })).toBeFocused();
     await page.keyboard.press("?");
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await page.keyboard.press("Escape");

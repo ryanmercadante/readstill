@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { BookOpen, Keyboard, Menu, Moon, Sun } from "lucide-react";
+import { BookOpen, Info, Keyboard, Menu, Moon, Sun } from "lucide-react";
 import { cn } from "cn";
 import { useTheme } from "../hooks/useTheme";
 import { useReader } from "../hooks/useReader";
@@ -76,6 +76,19 @@ export function SiteHeader({
           <BookOpen size={19} />
           <span>Library</span>
         </Link>
+        <Link
+          to="/about"
+          activeProps={{ "aria-current": "page" }}
+          className={cn(
+            buttonVariants({
+              variant: "ghost",
+              className: "gap-2 text-xs no-underline hover:bg-ghost-hover",
+            }),
+          )}
+        >
+          <Info size={19} />
+          <span>About</span>
+        </Link>
         {children}
         <KeyboardShortcuts
           onOpen={onOverlayOpen}
@@ -125,6 +138,13 @@ export function SiteHeader({
           >
             <BookOpen aria-hidden="true" />
             Library
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            render={<Link to="/about" activeProps={{ "aria-current": "page" }} />}
+            className="no-underline aria-[current=page]:bg-accent"
+          >
+            <Info aria-hidden="true" />
+            About
           </DropdownMenuItem>
           {mobileActions && (
             <>

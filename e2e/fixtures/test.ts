@@ -46,9 +46,11 @@ export class StillApp {
   }
   async library() {
     await this.openMenu();
-    await this.page
-      .getByRole(this.mobileNavigation ? "menuitem" : "link", { name: "Library", exact: true })
-      .click();
+    await (
+      this.mobileNavigation
+        ? this.page.getByRole("menuitem", { name: "Library", exact: true })
+        : this.page.getByRole("banner").getByRole("link", { name: "Library", exact: true })
+    ).click();
     await expect(this.page).toHaveURL(/\/library$/);
     await expect(this.page.getByLabel("Choose Still backup", { exact: true })).toBeEnabled();
   }

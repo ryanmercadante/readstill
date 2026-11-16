@@ -4,7 +4,6 @@ import { useMachine } from "@xstate/react";
 import { flushSync } from "react-dom";
 import { motion, useReducedMotion } from "motion/react";
 import { useReader } from "../hooks/useReader";
-import { AboutReaderDialog } from "../components/reader/AboutReaderDialog";
 import { SkipLink } from "../components/SkipLink";
 import { AnchoredWord } from "../components/reader/AnchoredWord";
 import { ArticleView } from "../components/reader/ArticleView";
@@ -35,9 +34,7 @@ function ReaderPage() {
   );
   const { view, flight, transitionId } = presentation.context;
   const transitioning = presentation.matches("transitioning");
-  const [dialog, setDialog] = useState<"paste" | "about" | null>(null);
-  const pasteOpen = dialog === "paste";
-  const aboutOpen = dialog === "about";
+  const [pasteOpen, setPasteOpen] = useState(false);
   const reducedMotion = useReducedMotion();
   const activeRef = useRef<HTMLSpanElement>(null);
   const focusRef = useRef<HTMLSpanElement>(null);
@@ -142,7 +139,6 @@ function ReaderPage() {
         document.querySelector('[role="dialog"], [role="menu"]') ||
         target.isContentEditable ||
         pasteOpen ||
-        aboutOpen ||
         transitioning ||
         !reader.ready ||
         target.closest('input, textarea, button, select, a, [contenteditable="true"]')
@@ -170,16 +166,15 @@ function ReaderPage() {
     return () => window.removeEventListener("keydown", handleKey);
   });
 
-  const openDialog = (next: "paste" | "about") => {
+  const openPaste = () => {
     sendPresentation({ type: "INTERRUPT" });
-    setDialog(next);
+    setPasteOpen(true);
   };
-  const openPaste = () => openDialog("paste");
   const importText = (text: string, title: string) => {
     reader.replace(text, title);
     void navigate({ search: {}, replace: true });
     sendPresentation({ type: "SHOW_VIEW", view: "article" });
-    setDialog(null);
+    setPasteOpen(false);
     window.scrollTo({ top: 0, behavior: "instant" });
     requestAnimationFrame(() => articleRef.current?.focus({ preventScroll: true }));
   };
@@ -204,7 +199,6 @@ function ReaderPage() {
         disabled={!reader.ready || transitioning}
         onPaste={openPaste}
         onOverlayOpen={() => sendPresentation({ type: "INTERRUPT" })}
-        onAbout={() => openDialog("about")}
       />
       <main
         id="reading"
@@ -344,14 +338,9 @@ function ReaderPage() {
 
       <PasteTextDialog
         open={pasteOpen}
-        onOpenChange={(open) => (open ? openDialog("paste") : setDialog(null))}
+        onOpenChange={(open) => (open ? openPaste() : setPasteOpen(false))}
         returnFocusRef={playRef}
         onImport={importText}
-      />
-      <AboutReaderDialog
-        open={aboutOpen}
-        onOpenChange={(open) => (open ? openDialog("about") : setDialog(null))}
-        returnFocusRef={playRef}
       />
     </>
   );

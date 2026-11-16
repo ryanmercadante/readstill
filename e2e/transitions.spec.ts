@@ -1,12 +1,7 @@
 import { test, expect, freezeTime, hidePage } from "./fixtures/test";
 
 test.use({ reducedMotion: "no-preference" });
-for (const interruption of [
-  "About this reader",
-  "Keyboard shortcuts",
-  "Menu",
-  "hidden tab",
-] as const) {
+for (const interruption of ["Keyboard shortcuts", "Menu", "hidden tab"] as const) {
   test(`opening ${interruption} during the word flight cancels pending autoplay`, async ({
     page,
     app,
