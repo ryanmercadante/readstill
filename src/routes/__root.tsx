@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { createRootRoute, HeadContent, Link, Scripts } from "@tanstack/react-router";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import stylesUrl from "../styles.css?url";
 import manropeUrl from "@fontsource-variable/manrope/index.css?url";
 import sourceSerifUrl from "@fontsource-variable/source-serif-4/index.css?url";
@@ -72,6 +74,10 @@ function RootDocument({ children }: { children: ReactNode }) {
         <ThemeContext value={{ theme, toggleTheme }}>
           <ReaderProvider>{children}</ReaderProvider>
         </ThemeContext>
+        <TanStackDevtools
+          config={{ position: "bottom-left" }}
+          plugins={[{ name: "TanStack Router", render: <TanStackRouterDevtoolsPanel /> }]}
+        />
         <Scripts />
       </body>
     </html>
