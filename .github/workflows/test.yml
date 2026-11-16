@@ -46,6 +46,8 @@ jobs:
     needs: test
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    # Needs its own copy of the Cloudflare secrets.
+    environment: staging
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
