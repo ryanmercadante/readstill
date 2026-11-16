@@ -209,7 +209,7 @@ function ReaderPage() {
       <main
         id="reading"
         data-view={view}
-        className="group/reader mx-auto max-w-[1000px] px-10 pt-[51px] pb-[210px] min-[1500px]:pt-[65px] max-[800px]:px-7 max-[800px]:pt-[37px] max-[520px]:px-[23px] max-[520px]:pt-[30px] max-[520px]:pb-[235px] compact-reader:data-[view=focus]:pt-[22px]"
+        className="group/reader mx-auto max-w-[1000px] px-10 pt-[51px] pb-[166px] min-[1500px]:pt-[65px] max-[800px]:px-7 max-[800px]:pt-[37px] max-[520px]:px-[23px] max-[520px]:pt-[30px] max-[520px]:pb-[191px] compact-reader:data-[view=focus]:pt-[22px]"
       >
         <p id="reading-shortcuts" className="sr-only">
           Press ? or choose Keyboard shortcuts from the header or mobile menu for the keyboard

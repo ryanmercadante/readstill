@@ -75,7 +75,7 @@ export function ReaderControls({
       className="reader-dock fixed bottom-0 left-1/2 z-10 w-[min(100%,1060px)] -translate-x-1/2 bg-background px-[34px] py-0 max-[800px]:px-7 max-[520px]:px-5"
     >
       <Progress className="h-0.5 bg-border" aria-label="Reading progress" value={progress} />
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-[38px] pt-6 pb-5 max-[800px]:grid-cols-[1fr_auto] max-[800px]:gap-[15px] max-[520px]:gap-3 max-[520px]:py-5">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-[38px] pt-6 pb-[max(20px,env(safe-area-inset-bottom))] max-[800px]:grid-cols-[1fr_auto] max-[800px]:gap-[15px] max-[520px]:gap-3 max-[520px]:pt-5">
         <div className="w-[218px] max-[520px]:w-[140px]">
           <Label className="flex justify-between font-semibold" id="pace-label" htmlFor="pace">
             Your pace{" "}
@@ -169,9 +169,6 @@ export function ReaderControls({
                   : ""}
           </small>
         </div>
-      </div>
-      <div className="flex items-center justify-end border-0 border-t border-solid border-border pt-[13px] pb-[max(16px,env(safe-area-inset-bottom))] text-[9px] text-muted-foreground max-[520px]:pt-3 max-[520px]:text-[8px]">
-        <span>Understanding comes before speed.</span>
       </div>
       {storageError && (
         <p className="m-0 pb-2.5 text-[12px] leading-[1.5] text-destructive" role="status">
