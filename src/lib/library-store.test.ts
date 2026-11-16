@@ -29,8 +29,18 @@ function start(
   const save = vi.fn(
     options.save ?? (async (library, previous) => ({ library, revision: previous.revision + 1 })),
   );
-  return { store: createLibraryStore({ load, save }), load, save };
+  const requestPersistence = vi.fn(async () => true);
+  return {
+    store: createLibraryStore({ load, save, requestPersistence }),
+    load,
+    save,
+    requestPersistence,
+  };
 }
+const emptyLibrary = (): StoredLibrary => ({
+  library: { readings: [], positions: {}, activeId: null, wpm: 250 },
+  revision: 0,
+});
 
 it("loads once on demand, including when the provider effect reconnects", async () => {
   const pending = deferred<StoredLibrary>();
@@ -119,4 +129,41 @@ it("keeps editing available after a failed load without overwriting unread saved
   expect(store.getSnapshot().storageError).toContain("couldn't be opened");
   expect(store.getSnapshot().ready).toBe(true);
   expect(save).not.toHaveBeenCalled();
+});
+
+it("asks the browser to keep storage once, after the first reading is saved", async () => {
+  const { store, save, requestPersistence } = start({ load: async () => emptyLibrary() });
+  await store.load();
+  store.setWpm(300);
+  await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+  expect(requestPersistence).not.toHaveBeenCalled();
+
+  store.addReading(book);
+  await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(2));
+  expect(requestPersistence).toHaveBeenCalledTimes(1);
+
+  store.recordPosition(book.id, positionAt(book.chapters[0], 2));
+  await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(3));
+  expect(requestPersistence).toHaveBeenCalledTimes(1);
+});
+
+it("waits for a successful save before asking to keep storage", async () => {
+  const { store, save, requestPersistence } = start({
+    load: async () => emptyLibrary(),
+    save: async () => {
+      throw new Error("Quota exceeded");
+    },
+  });
+  await store.load();
+  store.addReading(book);
+  await vi.waitFor(() => expect(store.getSnapshot().storageError).toContain("couldn't save"));
+  expect(requestPersistence).not.toHaveBeenCalled();
+
+  save.mockImplementation(async (library, previous) => ({
+    library,
+    revision: previous.revision + 1,
+  }));
+  store.setWpm(320);
+  await vi.waitFor(() => expect(store.getSnapshot().storageError).toBe(""));
+  expect(requestPersistence).toHaveBeenCalledTimes(1);
 });

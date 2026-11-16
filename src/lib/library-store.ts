@@ -10,6 +10,7 @@ import type { Library, Position, Reading } from "./library";
 import { positionAt } from "./reader-document";
 import { loadLibrary, saveLibrary } from "./library-storage";
 import type { StoredLibrary } from "./library-storage";
+import { requestPersistentStorage } from "./persistent-storage";
 
 type LibraryState = {
   library: Library;
@@ -18,10 +19,21 @@ type LibraryState = {
   saving: boolean;
   storageError: string;
 };
-type Storage = { load: () => Promise<StoredLibrary>; save: typeof saveLibrary };
+type Storage = {
+  load: () => Promise<StoredLibrary>;
+  save: typeof saveLibrary;
+  /** Asks the browser not to evict saved readings. */
+  requestPersistence?: () => Promise<unknown>;
+};
 
 /** One browser session's editable library; constructing it performs no IO. */
-export function createLibraryStore(storage: Storage = { load: loadLibrary, save: saveLibrary }) {
+export function createLibraryStore(
+  storage: Storage = {
+    load: loadLibrary,
+    save: saveLibrary,
+    requestPersistence: requestPersistentStorage,
+  },
+) {
   let state: LibraryState = {
     library: { readings: [], positions: {}, activeId: null, wpm: 250 },
     samplePosition: initialPosition(sampleReading),
@@ -32,6 +44,7 @@ export function createLibraryStore(storage: Storage = { load: loadLibrary, save:
   let persisted: StoredLibrary | null = null;
   let loading: Promise<void> | undefined;
   let writing = false;
+  let persistenceRequested = false;
   const listeners = new Set<() => void>();
   const publish = (patch: Partial<LibraryState> = {}) => {
     const next = { ...state, ...patch };
@@ -53,6 +66,11 @@ export function createLibraryStore(storage: Storage = { load: loadLibrary, save:
         let error = "";
         try {
           persisted = await storage.save(attempted, persisted);
+          // Once per session, after a reader action has saved something worth keeping.
+          if (!persistenceRequested && persisted.library.readings.length) {
+            persistenceRequested = true;
+            void storage.requestPersistence?.();
+          }
         } catch (cause) {
           error =
             cause instanceof Error && cause.message.includes("another tab")
