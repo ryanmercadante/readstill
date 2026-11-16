@@ -15,7 +15,7 @@ for (const theme of ["light", "dark"]) {
     const menu = page.getByRole("menu", { name: "Menu", exact: true });
     await expect(menu).toBeVisible();
     await audit();
-    for (const name of ["Library", "About", "Paste text", "Keyboard shortcuts", "Toggle theme"]) {
+    for (const name of ["Library", "About", "Keyboard shortcuts", "Toggle theme"]) {
       const item = menu.getByRole("menuitem", {
         name,
         exact: true,
@@ -48,9 +48,9 @@ for (const theme of ["light", "dark"]) {
     await menu.getByRole("menuitem", { name: "Library", exact: true }).click();
     await expect(page).toHaveURL(/\/library$/);
     await expect(menu).toHaveCount(0);
-    await app.headerAction("Paste text");
+    await app.headerAction("Keyboard shortcuts");
     await expect(
-      page.getByRole("dialog", { name: "Something worth reading.", exact: true }),
+      page.getByRole("dialog", { name: "Keyboard shortcuts", exact: true }),
     ).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(app.button("Menu")).toBeFocused();
@@ -73,7 +73,12 @@ for (const theme of ["light", "dark"]) {
     await page.setViewportSize({ width: 1024, height: 800 });
     await expect(menu).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Library", exact: true })).toBeFocused();
-    await expect(app.button("Paste text")).toBeVisible();
+    await expect(
+      page.getByRole("banner").getByRole("link", { name: "About", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("banner").getByRole("button", { name: "Paste text" })).toHaveCount(
+      0,
+    );
     await page.screenshot({ path: testInfo.outputPath("desktop-header.png") });
   });
 }

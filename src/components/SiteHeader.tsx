@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { BookOpen, Info, Keyboard, Menu, Moon, Sun } from "lucide-react";
 import { cn } from "cn";
@@ -16,18 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
-export function SiteHeader({
-  children,
-  mobileActions,
-  onOverlayOpen,
-}: {
-  children?: ReactNode;
-  mobileActions?: (
-    run: (action: () => void) => void,
-    trigger: HTMLButtonElement | null,
-  ) => ReactNode;
-  onOverlayOpen?: () => void;
-}) {
+export function SiteHeader({ onOverlayOpen }: { onOverlayOpen?: () => void }) {
   const reader = useReader();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
@@ -89,7 +78,6 @@ export function SiteHeader({
           <Info size={19} />
           <span>About</span>
         </Link>
-        {children}
         <KeyboardShortcuts
           onOpen={onOverlayOpen}
           open={shortcutsOpen}
@@ -146,12 +134,6 @@ export function SiteHeader({
             <Info aria-hidden="true" />
             About
           </DropdownMenuItem>
-          {mobileActions && (
-            <>
-              <DropdownMenuSeparator />
-              {mobileActions(runAfterClose, menuRef.current)}
-            </>
-          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => runAfterClose(() => setShortcutsOpen(true))}>
             <Keyboard aria-hidden="true" />

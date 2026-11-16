@@ -28,8 +28,13 @@ for (const theme of ["light", "dark"] as const) {
     }
     for (const name of ["Paste text", "Keyboard shortcuts"]) {
       test(`${name} dialog meets automated WCAG checks`, async ({ page, app, audit }) => {
-        await app.sample();
-        await app.headerAction(name);
+        if (name === "Paste text") {
+          await app.emptyLibrary();
+          await app.button(name).click();
+        } else {
+          await app.sample();
+          await app.headerAction(name);
+        }
         await expect(page.getByRole("dialog")).toBeVisible();
         await audit();
         if (name === "Paste text") {

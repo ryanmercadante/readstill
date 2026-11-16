@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useMachine } from "@xstate/react";
 import { flushSync } from "react-dom";
 import { motion, useReducedMotion } from "motion/react";
@@ -8,9 +8,8 @@ import { SkipLink } from "../components/SkipLink";
 import { AnchoredWord } from "../components/reader/AnchoredWord";
 import { ArticleView } from "../components/reader/ArticleView";
 import { FocusView } from "../components/reader/FocusView";
-import { PasteTextDialog } from "../components/reader/PasteTextDialog";
 import { ReaderControls } from "../components/reader/ReaderControls";
-import { ReaderHeader } from "../components/reader/ReaderHeader";
+import { SiteHeader } from "../components/SiteHeader";
 import { ReadingHeading } from "../components/reader/ReadingHeading";
 import { readerPresentationMachine } from "../lib/reader-presentation";
 import type { ReaderView } from "../lib/reader-presentation";
@@ -34,7 +33,6 @@ function ReaderPage() {
   );
   const { view, flight, transitionId } = presentation.context;
   const transitioning = presentation.matches("transitioning");
-  const [pasteOpen, setPasteOpen] = useState(false);
   const reducedMotion = useReducedMotion();
   const activeRef = useRef<HTMLSpanElement>(null);
   const focusRef = useRef<HTMLSpanElement>(null);
@@ -138,7 +136,6 @@ function ReaderPage() {
         event.altKey ||
         document.querySelector('[role="dialog"], [role="menu"]') ||
         target.isContentEditable ||
-        pasteOpen ||
         transitioning ||
         !reader.ready ||
         target.closest('input, textarea, button, select, a, [contenteditable="true"]')
@@ -166,18 +163,6 @@ function ReaderPage() {
     return () => window.removeEventListener("keydown", handleKey);
   });
 
-  const openPaste = () => {
-    sendPresentation({ type: "INTERRUPT" });
-    setPasteOpen(true);
-  };
-  const importText = (text: string, title: string) => {
-    reader.replace(text, title);
-    void navigate({ search: {}, replace: true });
-    sendPresentation({ type: "SHOW_VIEW", view: "article" });
-    setPasteOpen(false);
-    window.scrollTo({ top: 0, behavior: "instant" });
-    requestAnimationFrame(() => articleRef.current?.focus({ preventScroll: true }));
-  };
   const showChapter = (id: string) => {
     reader.openChapter(id);
     sendPresentation({ type: "SHOW_VIEW", view: view === "guided" ? "guided" : "article" });
@@ -195,11 +180,7 @@ function ReaderPage() {
   return (
     <>
       <SkipLink href="#reading">Skip to reading</SkipLink>
-      <ReaderHeader
-        disabled={!reader.ready || transitioning}
-        onPaste={openPaste}
-        onOverlayOpen={() => sendPresentation({ type: "INTERRUPT" })}
-      />
+      <SiteHeader onOverlayOpen={() => sendPresentation({ type: "INTERRUPT" })} />
       <main
         id="reading"
         data-view={view}
@@ -335,13 +316,6 @@ function ReaderPage() {
           <AnchoredWord word={flight.word} />
         </motion.div>
       )}
-
-      <PasteTextDialog
-        open={pasteOpen}
-        onOpenChange={(open) => (open ? openPaste() : setPasteOpen(false))}
-        returnFocusRef={playRef}
-        onImport={importText}
-      />
     </>
   );
 }

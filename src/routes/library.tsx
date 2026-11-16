@@ -1,10 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
 import { useReader } from "../hooks/useReader";
 import { SkipLink } from "../components/SkipLink";
-import { ReaderHeader } from "../components/reader/ReaderHeader";
+import { SiteHeader } from "../components/SiteHeader";
 import { LibraryPanel } from "../components/reader/LibraryPanel";
-import { PasteTextDialog } from "../components/reader/PasteTextDialog";
 
 export const Route = createFileRoute("/library")({
   head: () => ({ meta: [{ title: "Library — Still" }] }),
@@ -14,9 +12,6 @@ export const Route = createFileRoute("/library")({
 function LibraryPage() {
   const reader = useReader();
   const navigate = Route.useNavigate();
-  const [pasteOpen, setPasteOpen] = useState(false);
-  const [importing, setImporting] = useState(false);
-  const pasteRef = useRef<HTMLButtonElement>(null);
 
   const showReading = (id: string) => {
     reader.openReading(id);
@@ -30,11 +25,7 @@ function LibraryPage() {
   return (
     <>
       <SkipLink href="#library">Skip to library</SkipLink>
-      <ReaderHeader
-        disabled={!reader.ready || importing}
-        onPaste={() => setPasteOpen(true)}
-        pasteRef={pasteRef}
-      />
+      <SiteHeader />
       <LibraryPanel
         library={reader.library}
         ready={reader.ready}
@@ -44,13 +35,7 @@ function LibraryPage() {
         onAdd={reader.addReading}
         onRemove={reader.removeReading}
         onRestore={reader.restore}
-        onBusyChange={setImporting}
-      />
-      <PasteTextDialog
-        open={pasteOpen}
-        onOpenChange={setPasteOpen}
-        returnFocusRef={pasteRef}
-        onImport={importText}
+        onPaste={importText}
       />
     </>
   );

@@ -58,8 +58,10 @@ export class StillApp {
     await this.page.goto("/library");
     await expect(this.page.getByLabel("Choose Still backup", { exact: true })).toBeEnabled();
   }
+  /** Paste lives on the Library page; it opens Library first when needed. */
   async paste(text: string, title = "My reading") {
-    await this.headerAction("Paste text");
+    if (!new URL(this.page.url()).pathname.endsWith("/library")) await this.library();
+    await this.button("Paste text").click();
     await this.page.getByLabel("Title (optional)").fill(title);
     await this.page.getByLabel("Your text", { exact: true }).fill(text);
     await this.button("Start reading").click();

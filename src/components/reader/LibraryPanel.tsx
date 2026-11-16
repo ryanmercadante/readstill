@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ArrowRight, BookOpen, Download, Upload, X } from "lucide-react";
+import { ArrowRight, BookOpen, Download, Plus, Upload, X } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   initialPosition,
@@ -11,6 +11,7 @@ import {
 } from "../../lib/library";
 import { downloadOriginal } from "../../lib/reading-download";
 import { ImportReport, ImportNotes } from "./ImportReport";
+import { PasteTextDialog } from "./PasteTextDialog";
 import type { Library, Reading } from "../../lib/library";
 
 type Props = {
@@ -22,7 +23,7 @@ type Props = {
   onAdd: (reading: Reading) => void;
   onRemove: (id: string) => void;
   onRestore: (library: Library) => number;
-  onBusyChange: (busy: boolean) => void;
+  onPaste: (text: string, title: string) => void;
 };
 
 function download(library: Library) {
@@ -45,9 +46,11 @@ export function LibraryPanel({
   onAdd,
   onRemove,
   onRestore,
-  onBusyChange,
+  onPaste,
 }: Props) {
   const epubInput = useRef<HTMLInputElement>(null);
+  const pasteButton = useRef<HTMLButtonElement>(null);
+  const [pasteOpen, setPasteOpen] = useState(false);
   const backupInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -66,7 +69,6 @@ export function LibraryPanel({
     setMessage("");
     setPendingReading(null);
     setBusy(true);
-    onBusyChange(true);
     try {
       if (file.size > (kind === "epub" ? MAX_FILE_BYTES : MAX_BACKUP_BYTES))
         throw new Error(
@@ -97,7 +99,6 @@ export function LibraryPanel({
       );
     } finally {
       setBusy(false);
-      onBusyChange(false);
     }
   };
   const exportLibrary = (value: Library) => {
@@ -122,10 +123,26 @@ export function LibraryPanel({
             A place for the reading you want to return to.
           </p>
         </div>
-        <Button onClick={() => epubInput.current?.click()} disabled={busy || !ready}>
-          <Upload size={17} /> Import EPUB
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant="outline"
+            ref={pasteButton}
+            onClick={() => setPasteOpen(true)}
+            disabled={busy || !ready}
+          >
+            <Plus size={17} /> Paste text
+          </Button>
+          <Button onClick={() => epubInput.current?.click()} disabled={busy || !ready}>
+            <Upload size={17} /> Import EPUB
+          </Button>
+        </div>
       </div>
+      <PasteTextDialog
+        open={pasteOpen}
+        onOpenChange={setPasteOpen}
+        returnFocusRef={pasteButton}
+        onImport={onPaste}
+      />
       <input
         className="sr-only"
         tabIndex={-1}

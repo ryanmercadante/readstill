@@ -24,7 +24,6 @@ for (const route of ["/", "/library", "/reader?sample=true"]) {
   });
 }
 for (const [trigger, title, returnButton] of [
-  ["Paste text", "Something worth reading.", "Read passage"],
   ["Keyboard shortcuts", "Keyboard shortcuts", "Keyboard shortcuts"],
 ]) {
   test(`${trigger} pauses playback, traps focus, blocks reader keys, and returns focus`, async ({
@@ -71,8 +70,8 @@ test("paste validation is associated with the field, and drafts reset on close",
   page,
   app,
 }) => {
-  await app.sample();
-  await app.headerAction("Paste text");
+  await app.emptyLibrary();
+  await app.button("Paste text").click();
   await app.button("Start reading").click();
   const text = page.getByLabel("Your text", { exact: true });
   await expect(text).toHaveAttribute("aria-invalid", "true");
@@ -81,8 +80,8 @@ test("paste validation is associated with the field, and drafts reset on close",
   await page.getByLabel("Title (optional)").fill("Discard this");
   await text.fill("Discard this text");
   await app.button("Close paste dialog").click();
-  await expect(app.button("Read passage")).toBeFocused();
-  await app.headerAction("Paste text");
+  await expect(app.button("Paste text")).toBeFocused();
+  await app.button("Paste text").click();
   await expect(text).toHaveValue("");
   await expect(page.getByLabel("Title (optional)")).toHaveValue("");
   await expect(page.getByRole("alert")).toHaveCount(0);
@@ -92,8 +91,8 @@ test("typing and another open dialog suppress the question-mark shortcut", async
   page,
   app,
 }) => {
-  await app.sample();
-  await app.headerAction("Paste text");
+  await app.emptyLibrary();
+  await app.button("Paste text").click();
   const text = page.getByLabel("Your text", { exact: true });
   await text.fill("Why");
   await text.press("End");
