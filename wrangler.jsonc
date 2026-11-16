@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  // Must match the Worker name in the Cloudflare dashboard for Workers Builds.
+  // Deployed from GitHub Actions (.github/workflows). Don't also connect
+  // Workers Builds in the dashboard, or every push deploys twice.
   "name": "readstill",
   "compatibility_date": "2026-11-15",
   "main": "@tanstack/react-start/server-entry",
