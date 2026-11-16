@@ -16,9 +16,16 @@ import type { ReaderView } from "../lib/reader-presentation";
 import { ContextView } from "../components/reader/ContextView";
 import { downloadOriginal } from "../lib/reading-download";
 import { Button } from "../components/ui/button";
+import { pageHead } from "../lib/page-head";
 
 export const Route = createFileRoute("/reader")({
-  head: () => ({ meta: [{ title: "Reader — Still" }] }),
+  head: () =>
+    pageHead({
+      path: "/reader",
+      title: "Reader | Still",
+      description:
+        "Read in Article, Guided, or Focus, with one shared place in the text. Try the sample or paste your own.",
+    }),
   validateSearch: (search: Record<string, unknown>): { sample?: boolean } =>
     search.sample === true ? { sample: true } : {},
   component: ReaderPage,

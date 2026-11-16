@@ -3,8 +3,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { SiteHeader } from "../components/SiteHeader";
 import { SkipLink } from "../components/SkipLink";
+import { pageHead } from "../lib/page-head";
+import { siteDescription, siteTitle } from "../lib/site";
 
 export const Route = createFileRoute("/")({
+  head: () => pageHead({ path: "/", title: siteTitle, description: siteDescription }),
   component: LandingPage,
 });
 

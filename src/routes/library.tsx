@@ -3,9 +3,18 @@ import { useReader } from "../hooks/useReader";
 import { SkipLink } from "../components/SkipLink";
 import { SiteHeader } from "../components/SiteHeader";
 import { LibraryPanel } from "../components/reader/LibraryPanel";
+import { pageHead } from "../lib/page-head";
 
 export const Route = createFileRoute("/library")({
-  head: () => ({ meta: [{ title: "Library — Still" }] }),
+  head: () =>
+    pageHead({
+      path: "/library",
+      title: "Library | Still",
+      description:
+        "Your saved readings, EPUB imports, and backups. Everything stays in this browser.",
+      // Crawlers only ever see an empty library.
+      noindex: true,
+    }),
   component: LibraryPage,
 });
 

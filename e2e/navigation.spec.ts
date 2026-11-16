@@ -33,7 +33,7 @@ test("landing CTA opens the demo with client navigation", async ({ page, app }) 
   await page.keyboard.press("Enter");
   await app.readerReady();
   await expect(page).toHaveURL(/\/reader\?sample=true$/);
-  await expect(page).toHaveTitle("Reader — Still");
+  await expect(page).toHaveTitle("Reader | Still");
   await expect(page.locator("html")).toHaveAttribute("data-navigation-marker", "same-document");
 });
 test("an empty reader opens the library, and the sample never creates a saved reading", async ({
@@ -85,7 +85,7 @@ test("history and reload preserve a saved reading; trying the demo does not repl
   await app.saved();
   await app.library();
   await page.reload();
-  await expect(page).toHaveTitle("Library — Still");
+  await expect(page).toHaveTitle("Library | Still");
   await page.goBack();
   await app.readerReady();
   await expect(app.activeWord).toHaveAttribute("data-word", "4");
@@ -119,7 +119,7 @@ test("About is a page in the header and menu, and leaving the reader keeps your 
       : page.getByRole("link", { name: "About", exact: true })
   ).click();
   await expect(page).toHaveURL(/\/about$/);
-  await expect(page).toHaveTitle("About — Still");
+  await expect(page).toHaveTitle("About | Still");
   await expect(page.getByRole("heading", { level: 1, name: "About Still" })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.goBack();

@@ -4,18 +4,16 @@ import type { ReactNode } from "react";
 import { buttonVariants } from "../components/ui/button";
 import { SiteHeader } from "../components/SiteHeader";
 import { SkipLink } from "../components/SkipLink";
+import { pageHead } from "../lib/page-head";
 
 export const Route = createFileRoute("/about")({
-  head: () => ({
-    meta: [
-      { title: "About — Still" },
-      {
-        name: "description",
-        content:
-          "How Still works: three ways to read, an honest note on one-word-at-a-time reading, and a library that stays in your browser.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      path: "/about",
+      title: "About | Still",
+      description:
+        "How Still works: three ways to read, an honest note on one-word-at-a-time reading, and a library that stays in your browser.",
+    }),
   component: AboutPage,
 });
 
