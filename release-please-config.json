@@ -5,7 +5,7 @@
   "bump-minor-pre-major": true,
   "packages": {
     ".": {
-      "package-name": "still-reader",
+      "package-name": "readstill",
       "changelog-path": "CHANGELOG.md"
     }
   }
