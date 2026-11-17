@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/ryanmercadante/readstill/compare/v0.1.0...v0.2.0) (2026-11-17)
+
+
+### Features
+
+* add link previews with a share image ([2a48928](https://github.com/ryanmercadante/readstill/commit/2a48928bb81b976aa79f6c7af4d4ef1e3b708cca))
+* ask the browser to keep the saved library ([9538e26](https://github.com/ryanmercadante/readstill/commit/9538e268eeca2f62b05b420c7f5d76dccd9cf148))
+* give each page a canonical URL in link previews ([75cabb8](https://github.com/ryanmercadante/readstill/commit/75cabb83bf27fb297d7ca7cdda91e4500d0f6bde))
+* give each page its own title, description and link preview ([828c694](https://github.com/ryanmercadante/readstill/commit/828c694e26fcbc3e6be149e5556d8b8e23ecce8a))
+* play the Guided and Focus previews on hover on desktop ([45d2916](https://github.com/ryanmercadante/readstill/commit/45d291658dd6921ca269c4ada9f57292a330840e))
+* snap the landing page into full-screen sheets on phones ([6a8ab39](https://github.com/ryanmercadante/readstill/commit/6a8ab3910567ad5c75d53e5e69203dc567278858))
+
 ## 0.1.0 (2026-11-16)
 
 
