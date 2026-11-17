@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { cn } from "cn";
 import {
   motion,
   useMotionTemplate,
@@ -12,12 +11,8 @@ import {
   type MotionValue,
 } from "motion/react";
 import { anchorParts } from "../../lib/reader";
+import { GuidedPassage, PASSAGE, START, WORDS, useFocusPlayback, useGuidedPlayback } from "./demos";
 import { buttonVariants } from "../ui/button";
-
-const PASSAGE =
-  "There is a small bookshop on a quiet street, the kind of place you might walk past if you were in a hurry.";
-const WORDS = PASSAGE.split(" ");
-const START = WORDS.indexOf("bookshop");
 
 /**
  * Scroll progress for one full-screen sheet: `enter` runs 0 → 1 as it rises into
@@ -215,49 +210,20 @@ function SettlingWord({
  * settles, it paces through the passage on its own and loops.
  */
 function GuidedDemo({ enter, settled, still }: DemoProps) {
-  const [index, setIndex] = useState(START);
   const playing = settled && !still;
+  const [index, setIndex] = useGuidedPlayback(playing);
 
   useMotionValueEvent(enter, "change", (progress) => {
     if (!playing && !still) setIndex(Math.round(Math.min(1, progress / 0.9) * START));
   });
 
-  useEffect(() => {
-    if (!playing) return;
-    // A few empty beats after the last word let the passage rest before it loops.
-    const id = setInterval(() => setIndex((i) => (i + 1) % (WORDS.length + 4)), 300);
-    return () => clearInterval(id);
-  }, [playing]);
-
   return (
-    <>
-      <p className="sr-only">{PASSAGE} The word “bookshop” is highlighted.</p>
-      {/* One stacking layer for the whole passage, so the gliding highlight stays
-          behind every word, including the one it just left. */}
-      <p aria-hidden="true" className="relative isolate m-0 font-serif text-[23px] leading-[1.7]">
-        {WORDS.map((word, i) => (
-          <Fragment key={i}>
-            <span
-              className={cn(
-                "relative transition-colors duration-200",
-                i === index && "text-highlight-foreground",
-              )}
-            >
-              {i === index && (
-                <motion.span
-                  layoutId="guided-highlight"
-                  className="absolute inset-y-0 -right-[3px] -left-[3px] -z-10 rounded-[3px] bg-highlight"
-                  transition={
-                    still ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 42 }
-                  }
-                />
-              )}
-              {word}
-            </span>{" "}
-          </Fragment>
-        ))}
-      </p>
-    </>
+    <GuidedPassage
+      index={index}
+      still={still}
+      layoutId="guided-highlight"
+      className="text-[23px] leading-[1.7]"
+    />
   );
 }
 
@@ -267,17 +233,7 @@ function GuidedDemo({ enter, settled, still }: DemoProps) {
  * reads on one word at a time.
  */
 function FocusDemo({ enter, settled, still }: DemoProps) {
-  const [index, setIndex] = useState(START);
-  const playing = settled && !still;
-
-  useEffect(() => {
-    if (!playing) return;
-    const word = WORDS[index];
-    const last = index === WORDS.length - 1;
-    const delay = last ? 1600 : /[.,]$/.test(word) ? 620 : 300;
-    const id = setTimeout(() => setIndex((i) => (i + 1) % WORDS.length), delay);
-    return () => clearTimeout(id);
-  }, [playing, index]);
+  const [index] = useFocusPlayback(settled && !still);
 
   const scale = useTransform(enter, [0.15, 0.9], [0.5, 1]);
   const contextOpacity = useTransform(enter, [0.25, 0.8], [1, 0]);
