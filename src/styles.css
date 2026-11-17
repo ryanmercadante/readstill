@@ -205,3 +205,24 @@
     }
   }
 }
+
+/* Landing page on phones: each screen fills the viewport and snaps into place. */
+@layer components {
+  @media (max-width: 800px) {
+    html:has(.landing-screens) {
+      scroll-snap-type: y mandatory;
+      /* Tuck each screen's top border under the header's own. */
+      scroll-padding-top: calc(var(--landing-header, 0px) - 1px);
+    }
+    .landing-screen {
+      min-height: calc(100svh - var(--landing-header, 0px));
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+  }
+  @media (max-width: 800px) and (prefers-reduced-motion: reduce) {
+    html:has(.landing-screens) {
+      scroll-snap-type: y proximity;
+    }
+  }
+}
