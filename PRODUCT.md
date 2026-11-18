@@ -20,14 +20,14 @@ Test whether a reader can comfortably understand prose while switching between a
 
 ## Capabilities and Constraints
 
-The user approved the original reader, a local library with EPUB import and backup/restore, and a rich-content extension for tables, SVG illustrations, import reports, and original-file preservation. The landing page’s Try it button opens a temporary sample demo outside the saved library. The reader retains pasted text, Article, Guided, and Focus modes, word transition, adjustable pace, sentence replay, and saved positions. All three modes share chapter/block/word locations. Guided plays through the full article with a word highlight and keeps the current word visible. Tables and illustrations remain visible in Article view; Guided and Focus modes pause at them and resumes after an explicit continuation. Remaining unsupported sections have visible placeholders and import notes, with original EPUB downloads for newly imported books. Fixed-layout and encrypted books remain unsupported. Readers can also open an article from a link: Still's server fetches the page and the browser extracts its text, without images for now. Existing readings and older backups migrate without changing the selected word. See README for format and size limits. Accounts, cloud sync, quizzes, adaptive pacing, and dashboards remain deferred.
+The user approved the original reader, a local library with EPUB import and backup/restore, and a rich-content extension for tables, SVG illustrations, import reports, and original-file preservation. The landing page’s Try it button opens a temporary sample demo outside the saved library. The reader retains pasted text, Article, Guided, and Focus modes, word transition, adjustable pace, sentence replay, and saved positions. All three modes share chapter/block/word locations. Guided plays through the full article with a word highlight and keeps the current word visible. Tables and illustrations remain visible in Article view; Guided and Focus modes pause at them and resumes after an explicit continuation. Remaining unsupported sections have visible placeholders and import notes, with original EPUB downloads for newly imported books. Fixed-layout and encrypted books remain unsupported. Readers can also open an article from a link: Still's server fetches the page and its images, and the browser extracts the article with up to 30 images. Existing readings and older backups migrate without changing the selected word. See README for format and size limits. Accounts, cloud sync, quizzes, adaptive pacing, and dashboards remain deferred.
 
 ## Product Principles
 
 - Preserve context and make rereading effortless.
 - Do not imply that display speed measures comprehension or that suppressing inner speech improves reading.
 - Keep all reading modes on a single document and word position.
-- Reading text stays on the device. Link imports pass one page through Still's server, which keeps neither the address nor the page.
+- Reading text stays on the device. Link imports pass one page and its images through Still's server, which keeps none of them.
 
 ## Evidence on Hand
 

@@ -1,6 +1,8 @@
 import { siteUrl } from "../lib/site";
 
 export const MAX_PAGE_BYTES = 5_000_000;
+export const MAX_IMAGE_BYTES = 8_000_000;
+const IMAGE_TYPES = /^image\/(?:png|jpeg|gif|webp|avif)\s*(?:;|$)/i;
 const MAX_REDIRECTS = 5;
 const TIMEOUT_MS = 10_000;
 
@@ -53,9 +55,13 @@ function charset(contentType: string, head: Uint8Array): string {
   return /<meta[^>]+charset=["']?([\w-]+)/i.exec(prefix)?.[1] ?? "utf-8";
 }
 
-async function readCapped(response: Response): Promise<Uint8Array> {
+async function readCapped(
+  response: Response,
+  maxBytes: number,
+  tooLarge: string,
+): Promise<Uint8Array<ArrayBuffer>> {
   const length = Number(response.headers.get("content-length"));
-  if (length > MAX_PAGE_BYTES) throw new PageFetchError("This page is too large to import.", 413);
+  if (length > maxBytes) throw new PageFetchError(tooLarge, 413);
   if (!response.body) return new Uint8Array();
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
@@ -64,9 +70,9 @@ async function readCapped(response: Response): Promise<Uint8Array> {
     const { done, value } = await reader.read();
     if (done) break;
     total += value.byteLength;
-    if (total > MAX_PAGE_BYTES) {
+    if (total > maxBytes) {
       await reader.cancel();
-      throw new PageFetchError("This page is too large to import.", 413);
+      throw new PageFetchError(tooLarge, 413);
     }
     chunks.push(value);
   }
@@ -79,14 +85,24 @@ async function readCapped(response: Response): Promise<Uint8Array> {
   return bytes;
 }
 
+type FetchOptions = {
+  accept: string;
+  /** Content types to accept, checked against the response's content-type. */
+  types: RegExp;
+  wrongType: string;
+  maxBytes: number;
+  tooLarge: string;
+};
+
 /**
- * Fetch a public web page's HTML for import. Redirects are followed by hand so each
- * hop is checked like the original address. Nothing is stored or logged.
+ * Fetch a public address. Redirects are followed by hand so each hop is checked
+ * like the original address. Nothing is stored or logged.
  */
-export async function fetchPage(
+async function fetchPublic(
   raw: string,
-  fetcher: typeof fetch = fetch,
-): Promise<{ url: string; html: string }> {
+  options: FetchOptions,
+  fetcher: typeof fetch,
+): Promise<{ url: URL; type: string; bytes: Uint8Array<ArrayBuffer> }> {
   let url = publicPageUrl(raw);
   const signal = AbortSignal.timeout(TIMEOUT_MS);
   try {
@@ -95,7 +111,7 @@ export async function fetchPage(
         redirect: "manual",
         signal,
         headers: {
-          accept: "text/html,application/xhtml+xml;q=0.9",
+          accept: options.accept,
           "user-agent": `Mozilla/5.0 (compatible; StillReader/1.0; +${siteUrl}/about)`,
         },
       });
@@ -119,21 +135,11 @@ export async function fetchPage(
         );
       }
       const type = response.headers.get("content-type") ?? "";
-      if (!/^(?:text\/html|application\/xhtml\+xml)\b/i.test(type)) {
+      if (!options.types.test(type)) {
         await response.body?.cancel();
-        throw new PageFetchError(
-          "This link isn't a web page. Still can import articles, not files or feeds.",
-          415,
-        );
+        throw new PageFetchError(options.wrongType, 415);
       }
-      const bytes = await readCapped(response);
-      let decoder: TextDecoder;
-      try {
-        decoder = new TextDecoder(charset(type, bytes));
-      } catch {
-        decoder = new TextDecoder();
-      }
-      return { url: url.href, html: decoder.decode(bytes) };
+      return { url, type, bytes: await readCapped(response, options.maxBytes, options.tooLarge) };
     }
   } catch (error) {
     if (error instanceof PageFetchError) throw error;
@@ -141,4 +147,48 @@ export async function fetchPage(
       throw new PageFetchError("The site took too long to respond. Try again later.", 504);
     throw new PageFetchError("Still couldn't reach this site. Check the address.", 502);
   }
+}
+
+/** Fetch a public web page's HTML for import. */
+export async function fetchPage(
+  raw: string,
+  fetcher: typeof fetch = fetch,
+): Promise<{ url: string; html: string }> {
+  const { url, type, bytes } = await fetchPublic(
+    raw,
+    {
+      accept: "text/html,application/xhtml+xml;q=0.9",
+      types: /^(?:text\/html|application\/xhtml\+xml)\b/i,
+      wrongType: "This link isn't a web page. Still can import articles, not files or feeds.",
+      maxBytes: MAX_PAGE_BYTES,
+      tooLarge: "This page is too large to import.",
+    },
+    fetcher,
+  );
+  let decoder: TextDecoder;
+  try {
+    decoder = new TextDecoder(charset(type, bytes));
+  } catch {
+    decoder = new TextDecoder();
+  }
+  return { url: url.href, html: decoder.decode(bytes) };
+}
+
+/** Fetch one of an article's images. SVG is refused: it can carry scripts. */
+export async function fetchImage(
+  raw: string,
+  fetcher: typeof fetch = fetch,
+): Promise<{ type: string; bytes: Uint8Array<ArrayBuffer> }> {
+  const { type, bytes } = await fetchPublic(
+    raw,
+    {
+      accept: "image/avif,image/webp,image/png,image/jpeg,image/gif;q=0.9",
+      types: IMAGE_TYPES,
+      wrongType: "This image uses a format Still can't import.",
+      maxBytes: MAX_IMAGE_BYTES,
+      tooLarge: "This image is too large to import.",
+    },
+    fetcher,
+  );
+  return { type: type.split(";")[0].trim().toLowerCase(), bytes };
 }

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as ReaderRouteImport } from './routes/reader'
+import { Route as ApiImageRouteImport } from './routes/api/image'
 import { Route as ApiPageRouteImport } from './routes/api/page'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const ReaderRoute = ReaderRouteImport.update({
   path: '/reader',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiImageRoute = ApiImageRouteImport.update({
+  id: '/api/image',
+  path: '/api/image',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPageRoute = ApiPageRouteImport.update({
   id: '/api/page',
   path: '/api/page',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/library': typeof LibraryRoute
   '/reader': typeof ReaderRoute
+  '/api/image': typeof ApiImageRoute
   '/api/page': typeof ApiPageRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/library': typeof LibraryRoute
   '/reader': typeof ReaderRoute
+  '/api/image': typeof ApiImageRoute
   '/api/page': typeof ApiPageRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,23 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/library': typeof LibraryRoute
   '/reader': typeof ReaderRoute
+  '/api/image': typeof ApiImageRoute
   '/api/page': typeof ApiPageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/library' | '/reader' | '/api/page'
+  fullPaths:
+    '/' | '/about' | '/library' | '/reader' | '/api/image' | '/api/page'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/library' | '/reader' | '/api/page'
-  id: '__root__' | '/' | '/about' | '/library' | '/reader' | '/api/page'
+  to: '/' | '/about' | '/library' | '/reader' | '/api/image' | '/api/page'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/library'
+    | '/reader'
+    | '/api/image'
+    | '/api/page'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +93,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   LibraryRoute: typeof LibraryRoute
   ReaderRoute: typeof ReaderRoute
+  ApiImageRoute: typeof ApiImageRoute
   ApiPageRoute: typeof ApiPageRoute
 }
 
@@ -109,6 +127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReaderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/image': {
+      id: '/api/image'
+      path: '/api/image'
+      fullPath: '/api/image'
+      preLoaderRoute: typeof ApiImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/page': {
       id: '/api/page'
       path: '/api/page'
@@ -124,6 +149,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   LibraryRoute: LibraryRoute,
   ReaderRoute: ReaderRoute,
+  ApiImageRoute: ApiImageRoute,
   ApiPageRoute: ApiPageRoute,
 }
 export const routeTree = rootRouteImport

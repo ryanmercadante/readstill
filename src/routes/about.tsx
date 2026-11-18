@@ -88,9 +88,9 @@ function AboutPage() {
             </p>
             <p>
               Browsers can’t fetch other sites’ pages directly, so when you open an article from a
-              link, Still’s server fetches that one page and hands it straight back. It doesn’t keep
-              the address or the page. The article is pulled out of the page in your browser, and
-              only its text is saved.
+              link, Still’s server fetches that page and its images and hands them straight back. It
+              doesn’t keep the address, the page, or the images. The article is pulled out of the
+              page in your browser, and only the article is saved.
             </p>
             <p>
               Clearing this site’s data removes your library, and some browsers clear data for sites

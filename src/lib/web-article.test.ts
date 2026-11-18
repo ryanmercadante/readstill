@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { articleTitle, importWebPage, normalizeAddress, webReading } from "./web-article";
 import { validReading } from "./library";
+import { SkippedImage } from "./web-images";
 import { chapterText } from "./reader-document";
 
 const prose = (n: number) =>
@@ -61,6 +62,64 @@ describe("web article import", () => {
         ],
       ],
     });
+  });
+  it("adds images in reading order with their alt text", async () => {
+    const loaded: string[] = [];
+    const reading = await webReading(
+      page(
+        `${prose(2)}<figure><img src="/one.jpg" alt="A reading chair"><figcaption>The chair.</figcaption></figure>${prose(2)}<img src="/two.png">${prose(2)}`,
+      ),
+      "https://quiet.example/essays/slow",
+      {
+        // Resolve out of order to prove placement doesn't depend on download order.
+        loadImage: async (address) => {
+          loaded.push(address);
+          await new Promise((r) => setTimeout(r, address.endsWith("one.jpg") ? 20 : 0));
+          return `data:image/png;base64,${btoa(address)}`;
+        },
+      },
+    );
+    expect(loaded.sort()).toEqual([
+      "https://quiet.example/one.jpg",
+      "https://quiet.example/two.png",
+    ]);
+    const images = reading.chapters[0].blocks.filter((b) => b.type === "image");
+    expect(images).toEqual([
+      expect.objectContaining({
+        alt: "A reading chair",
+        src: `data:image/png;base64,${btoa("https://quiet.example/one.jpg")}`,
+      }),
+      expect.objectContaining({
+        alt: "Illustration",
+        src: `data:image/png;base64,${btoa("https://quiet.example/two.png")}`,
+      }),
+    ]);
+    const blocks = reading.chapters[0].blocks;
+    expect(blocks.indexOf(images[0])).toBeLessThan(
+      blocks.findIndex((b) => b.type === "text" && b.text === "The chair."),
+    );
+    expect(reading.importIssues).toBeUndefined();
+    expect(validReading(reading)).toBe(true);
+  });
+  it("notes failed images, skips icons quietly, and keeps at most 30", async () => {
+    const tags = Array.from(
+      { length: 45 },
+      (_, i) => `<p>Photo ${i}.</p><img src="/p${i}.jpg">`,
+    ).join("");
+    const reading = await webReading(page(`${prose(3)}${tags}`), "https://quiet.example/a", {
+      loadImage: async (address) => {
+        const n = Number(/p(\d+)\.jpg$/.exec(address)![1]);
+        if (n === 1) throw new SkippedImage();
+        if (n === 2) throw new Error("status 404");
+        return "data:image/png;base64,YQ==";
+      },
+    });
+    expect(reading.chapters[0].blocks.filter((b) => b.type === "image")).toHaveLength(30);
+    expect(reading.importIssues?.map((i) => i.message)).toEqual([
+      "1 image couldn't be imported. Open the original page to see it.",
+      "Still kept the first 30 images. Open the original page to see the rest.",
+    ]);
+    expect(validReading(reading)).toBe(true);
   });
   it("marks embedded media and notes it", async () => {
     const reading = await webReading(

@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { fetchPage, MAX_PAGE_BYTES, publicPageUrl } from "./fetch-page";
+import {
+  fetchImage,
+  fetchPage,
+  MAX_IMAGE_BYTES,
+  MAX_PAGE_BYTES,
+  publicPageUrl,
+} from "./fetch-page";
 
 const html = (body: string, headers: Record<string, string> = {}) =>
   new Response(body, { headers: { "content-type": "text/html; charset=utf-8", ...headers } });
@@ -95,5 +101,30 @@ describe("fetchPage", () => {
       throw new TypeError("network");
     };
     await expect(fetchPage("https://example.com/", offline)).rejects.toThrow("couldn't reach");
+  });
+});
+
+describe("fetchImage", () => {
+  const image = (type: string, body: BodyInit = new Uint8Array([1, 2, 3])) =>
+    new Response(body, { headers: { "content-type": type } });
+  it("returns raster image bytes with a clean type", async () => {
+    await expect(
+      fetchImage("https://cdn.example/a.jpg", async () => image("image/JPEG; charset=binary")),
+    ).resolves.toEqual({ type: "image/jpeg", bytes: new Uint8Array([1, 2, 3]) });
+    for (const type of ["image/png", "image/gif", "image/webp", "image/avif"])
+      await expect(
+        fetchImage("https://cdn.example/a", async () => image(type)),
+      ).resolves.toMatchObject({ type });
+  });
+  it("refuses SVG, HTML, oversized and private images", async () => {
+    for (const type of ["image/svg+xml", "text/html", "image/pngx", "application/octet-stream"])
+      await expect(fetchImage("https://cdn.example/a", async () => image(type))).rejects.toThrow(
+        "format",
+      );
+    const huge = async () => image("image/png", new Uint8Array(MAX_IMAGE_BYTES + 1));
+    await expect(fetchImage("https://cdn.example/a", huge)).rejects.toThrow("too large");
+    const never = vi.fn();
+    await expect(fetchImage("http://10.0.0.1/a.png", never)).rejects.toThrow();
+    expect(never).not.toHaveBeenCalled();
   });
 });

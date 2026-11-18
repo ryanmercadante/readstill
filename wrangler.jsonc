@@ -11,12 +11,18 @@
   "observability": {
     "enabled": true,
   },
-  // Caps URL imports per visitor IP so /api/page can't serve as an open proxy.
+  // Caps link imports per visitor IP so /api/page and /api/image can't serve as open proxies.
   "ratelimits": [
     {
       "name": "PAGE_IMPORT_LIMITER",
       "namespace_id": "1001",
       "simple": { "limit": 20, "period": 60 },
+    },
+    // One article can carry many images; each import fetches up to 30.
+    {
+      "name": "IMAGE_IMPORT_LIMITER",
+      "namespace_id": "1002",
+      "simple": { "limit": 150, "period": 60 },
     },
   ],
 }

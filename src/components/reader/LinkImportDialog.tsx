@@ -38,8 +38,8 @@ export function LinkImportDialog({
           </DialogClose>
         </DialogHeader>
         <DialogDescription>
-          Paste a link to an article. Still fetches the page once and keeps only the text, in this
-          browser.
+          Paste a link to an article. Still fetches the page once and keeps its text and images in
+          this browser.
         </DialogDescription>
         <LinkImportForm onImport={onImport} />
       </DialogContent>
@@ -52,6 +52,7 @@ function LinkImportForm({ onImport }: Pick<LinkImportDialogProps, "onImport">) {
   const [address, setAddress] = useState("");
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
+  const [progress, setProgress] = useState("");
 
   return (
     <form
@@ -66,9 +67,10 @@ function LinkImportForm({ onImport }: Pick<LinkImportDialogProps, "onImport">) {
         }
         setBusy(true);
         setFormError("");
+        setProgress("Opening the page…");
         try {
           const { importWebPage } = await import("../../lib/web-article");
-          onImport(await importWebPage(address));
+          onImport(await importWebPage(address, fetch, setProgress));
         } catch (error) {
           setFormError(error instanceof Error ? error.message : "This page couldn't be added.");
           setBusy(false);
@@ -98,10 +100,16 @@ function LinkImportForm({ onImport }: Pick<LinkImportDialogProps, "onImport">) {
         aria-describedby={formError ? "link-limit link-error" : "link-limit"}
       />
       <p id="link-limit" className="text-[10px] leading-[1.8] text-muted-foreground">
-        Adds to your library. Public pages only; images aren’t imported yet.
+        Adds to your library. Public pages only, with up to 30 images.
       </p>
+      {busy && (
+        // The counter updates per image, so it's shown, not announced.
+        <p aria-hidden="true" className="text-[12px] leading-[1.8] text-muted-foreground">
+          {progress}
+        </p>
+      )}
       <p role="status" className="sr-only">
-        {busy ? "Opening the page…" : ""}
+        {busy ? "Importing the article…" : ""}
       </p>
       {formError && (
         <p id="link-error" className="text-[12px] leading-[1.8] text-destructive" role="alert">

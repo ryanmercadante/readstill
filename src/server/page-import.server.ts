@@ -1,21 +1,22 @@
 import { env } from "cloudflare:workers";
-import { fetchPage, PageFetchError } from "./fetch-page";
+import { fetchImage, fetchPage, PageFetchError } from "./fetch-page";
 
-const json = (body: unknown, status = 200) =>
-  Response.json(body, {
-    status,
-    headers: { "cache-control": "no-store", "x-content-type-options": "nosniff" },
-  });
+type Limiter = { limit(options: { key: string }): Promise<{ success: boolean }> };
+
+const headers = { "cache-control": "no-store", "x-content-type-options": "nosniff" };
+const json = (body: unknown, status = 200) => Response.json(body, { status, headers });
 
 /**
- * POST { url } → { url, html }. The address travels in the body, not the query
- * string, so it never appears in request logs.
+ * Shared checks for the import endpoints. The address travels in a JSON body, not
+ * the query string, so it never appears in request logs.
  */
-export async function handlePageImport(request: Request): Promise<Response> {
-  // Browsers mark cross-site calls; only Still's own pages may use this endpoint.
+async function importRequest(
+  request: Request,
+  limiter: Limiter | undefined,
+): Promise<{ url: string } | Response> {
+  // Browsers mark cross-site calls; only Still's own pages may use these endpoints.
   const site = request.headers.get("sec-fetch-site");
   if (site && site !== "same-origin") return json({ error: "Not allowed." }, 403);
-  const limiter = env.PAGE_IMPORT_LIMITER;
   if (limiter) {
     const key = request.headers.get("cf-connecting-ip") ?? "unknown";
     if (!(await limiter.limit({ key })).success)
@@ -27,11 +28,39 @@ export async function handlePageImport(request: Request): Promise<Response> {
   } catch {
     url = undefined;
   }
-  if (typeof url !== "string") return json({ error: "Enter a web address." }, 400);
+  return typeof url === "string" ? { url } : json({ error: "Enter a web address." }, 400);
+}
+
+function failure(error: unknown): Response {
+  if (error instanceof PageFetchError) return json({ error: error.message }, error.status);
+  return json({ error: "Still couldn't open this page." }, 500);
+}
+
+/** POST { url } → { url, html } */
+export async function handlePageImport(request: Request): Promise<Response> {
+  const input = await importRequest(request, env.PAGE_IMPORT_LIMITER);
+  if (input instanceof Response) return input;
   try {
-    return json(await fetchPage(url));
+    return json(await fetchPage(input.url));
   } catch (error) {
-    if (error instanceof PageFetchError) return json({ error: error.message }, error.status);
-    return json({ error: "Still couldn't open this page." }, 500);
+    return failure(error);
+  }
+}
+
+/** POST { url } → the image bytes, for one image in an imported article. */
+export async function handleImageImport(request: Request): Promise<Response> {
+  const input = await importRequest(request, env.IMAGE_IMPORT_LIMITER);
+  if (input instanceof Response) return input;
+  try {
+    const { type, bytes } = await fetchImage(input.url);
+    return new Response(bytes, {
+      headers: {
+        ...headers,
+        "content-type": type,
+        "content-security-policy": "default-src 'none'; sandbox",
+      },
+    });
+  } catch (error) {
+    return failure(error);
   }
 }
