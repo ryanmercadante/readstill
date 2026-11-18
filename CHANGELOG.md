@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0](https://github.com/ryanmercadante/readstill/compare/v0.2.0...v0.3.0) (2026-11-18)
+
+
+### Features
+
+* accept EPUBs up to 50 MB ([ff08103](https://github.com/ryanmercadante/readstill/commit/ff0810372911f89cf615795373da71da2c76ecb7))
+* import article images from a link ([ddebeec](https://github.com/ryanmercadante/readstill/commit/ddebeec8ce1f2a9099f5812abd4f775e156b7469))
+* import articles from a link ([696ae13](https://github.com/ryanmercadante/readstill/commit/696ae132275b937129c67fa2421d2cf68294a545))
+* label the mobile menu theme item Light or Dark to match its icon ([e162af8](https://github.com/ryanmercadante/readstill/commit/e162af82e1f6fe4418238d9f76342f55bd9045b1))
+
 ## [0.2.0](https://github.com/ryanmercadante/readstill/compare/v0.1.0...v0.2.0) (2026-11-17)
 
 
