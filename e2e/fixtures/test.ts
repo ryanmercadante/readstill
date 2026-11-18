@@ -38,7 +38,10 @@ export class StillApp {
     await this.openMenu(advanceClock);
     if (this.mobileNavigation) {
       await this.page
-        .getByRole("menuitem", { name: name === "Dark mode" ? "Toggle theme" : name, exact: true })
+        .getByRole("menuitem", {
+          name: name === "Dark mode" ? /^(Light|Dark)$/ : name,
+          exact: true,
+        })
         .click();
     } else {
       await this.button(name).click();

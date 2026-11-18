@@ -141,7 +141,7 @@ export function SiteHeader({ onOverlayOpen }: { onOverlayOpen?: () => void }) {
           </DropdownMenuItem>
           <DropdownMenuItem closeOnClick={false} onClick={toggleTheme}>
             {theme === "dark" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-            Toggle theme
+            {theme === "dark" ? "Light" : "Dark"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

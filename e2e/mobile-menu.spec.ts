@@ -15,7 +15,12 @@ for (const theme of ["light", "dark"]) {
     const menu = page.getByRole("menu", { name: "Menu", exact: true });
     await expect(menu).toBeVisible();
     await audit();
-    for (const name of ["Library", "About", "Keyboard shortcuts", "Toggle theme"]) {
+    for (const name of [
+      "Library",
+      "About",
+      "Keyboard shortcuts",
+      theme === "dark" ? "Light" : "Dark",
+    ]) {
       const item = menu.getByRole("menuitem", {
         name,
         exact: true,
@@ -25,7 +30,7 @@ for (const theme of ["light", "dark"]) {
       expect(box!.height).toBeGreaterThanOrEqual(44);
       expect(box!.width).toBeGreaterThanOrEqual(44);
     }
-    const themeItem = menu.getByRole("menuitem", { name: "Toggle theme", exact: true });
+    const themeItem = menu.getByRole("menuitem", { name: /^(Light|Dark)$/ });
     await expect(themeItem.locator("svg")).toHaveClass(
       theme === "dark" ? /lucide-sun/ : /lucide-moon/,
     );
@@ -54,7 +59,7 @@ for (const theme of ["light", "dark"]) {
     ).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(app.button("Menu")).toBeFocused();
-    await app.headerAction("Toggle theme");
+    await app.headerAction("Dark mode");
     await expect(page.locator("html")).toHaveAttribute(
       "data-theme",
       theme === "light" ? "dark" : "light",
@@ -63,13 +68,14 @@ for (const theme of ["light", "dark"]) {
     await expect(themeItem.locator("svg")).toHaveClass(
       theme === "light" ? /lucide-sun/ : /lucide-moon/,
     );
-    await expect(themeItem).toHaveText("Toggle theme");
+    await expect(themeItem).toHaveText(theme === "light" ? "Light" : "Dark");
     await themeItem.click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     await expect(menu).toBeVisible();
     await expect(themeItem.locator("svg")).toHaveClass(
       theme === "dark" ? /lucide-sun/ : /lucide-moon/,
     );
+    await expect(themeItem).toHaveText(theme === "dark" ? "Light" : "Dark");
     await page.setViewportSize({ width: 1024, height: 800 });
     await expect(menu).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Library", exact: true })).toBeFocused();
