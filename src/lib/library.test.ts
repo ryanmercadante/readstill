@@ -197,6 +197,15 @@ describe("library and backups", () => {
       mergeLibrary({ readings: [], positions: {}, activeId: null, wpm: 250 }, current),
     ).toEqual(current);
   });
+  it("round trips web readings with their source page", () => {
+    const value = library();
+    value.readings[0] = {
+      ...value.readings[0],
+      kind: "web",
+      source: { url: "https://quiet.example/essays/slow?ref=a", siteName: "The Quiet Review" },
+    };
+    expect(parseBackup(serializeBackup(value))).toEqual(value);
+  });
   it("uses sentence tokenization for saved positions", () => {
     const value = library();
     value.readings[0].chapters[0].blocks = proseBlocks("你好。世界。");
@@ -217,6 +226,12 @@ describe("library and backups", () => {
       },
       (v: Library) => {
         v.readings[0].id = "__proto__";
+      },
+      (v: Library) => {
+        v.readings[0].source = { url: "javascript:alert(1)", siteName: "Example" };
+      },
+      (v: Library) => {
+        v.readings[0].source = { url: "https://example.com/a b", siteName: "Example" };
       },
       (v: Library) => {
         v.readings[0].chapters[0].blocks.push({

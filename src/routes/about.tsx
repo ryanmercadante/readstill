@@ -75,9 +75,9 @@ function AboutPage() {
 
           <Section title="What you can read">
             <p>
-              Paste any text, or import DRM-free, reflowable EPUB books up to 50 MB. Your library
-              holds up to 100 readings. Each one keeps its own chapter and place; your pace setting
-              is shared.
+              Paste any text, open an article from a link, or import DRM-free, reflowable EPUB books
+              up to 50 MB. Your library holds up to 100 readings. Each one keeps its own chapter and
+              place; your pace setting is shared.
             </p>
           </Section>
 
@@ -85,6 +85,12 @@ function AboutPage() {
             <p>
               Everything you add stays in this browser. There are no accounts and no uploads, and
               your readings are never sent to a server. Your place is saved when you pause or leave.
+            </p>
+            <p>
+              Browsers can’t fetch other sites’ pages directly, so when you open an article from a
+              link, Still’s server fetches that one page and hands it straight back. It doesn’t keep
+              the address or the page. The article is pulled out of the page in your browser, and
+              only its text is saved.
             </p>
             <p>
               Clearing this site’s data removes your library, and some browsers clear data for sites

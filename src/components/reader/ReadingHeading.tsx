@@ -1,11 +1,13 @@
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { AlignLeft, Focus, Highlighter } from "lucide-react";
+import { AlignLeft, ArrowUpRight, Focus, Highlighter } from "lucide-react";
 
 import type { ReaderView } from "../../lib/reader-presentation";
 
 type ReadingHeadingProps = {
   title: string;
   sourceIsSample: boolean;
+  /** The page a web reading came from. */
+  source?: { url: string; siteName: string };
   wordCount: number;
   view: ReaderView;
   disabled: boolean;
@@ -15,6 +17,7 @@ type ReadingHeadingProps = {
 export function ReadingHeading({
   title,
   sourceIsSample,
+  source,
   wordCount,
   view,
   disabled,
@@ -32,6 +35,21 @@ export function ReadingHeading({
         <p className="m-0 flex gap-2.5 text-[11px] text-muted-foreground max-[520px]:text-[10px] compact-reader:group-data-[view=focus]/reader:hidden">
           {sourceIsSample ? "An original sample" : "Your reading"}
           <span aria-hidden="true">·</span>
+          {source && (
+            <>
+              <a
+                href={source.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-w-0 items-center gap-0.5 text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                <span className="truncate">{source.siteName}</span>
+                <ArrowUpRight size={11} aria-hidden="true" />
+                <span className="sr-only">(original page, opens in a new tab)</span>
+              </a>
+              <span aria-hidden="true">·</span>
+            </>
+          )}
           {wordCount.toLocaleString()} words
         </p>
       </div>

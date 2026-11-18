@@ -26,6 +26,7 @@ The first visit migrates the previous single reading or version-1 library into t
 - Automatic pause when the page is hidden. Resuming gives the current word a full presentation interval; missed frames never skip words.
 - A local library of pasted passages and EPUB books, with a separate chapter/word position for each reading and a shared pace setting. Positions are written when playback stops (pause, finish, leaving the reader, or the page hiding). Successful saves are silent; the dock only speaks up when a save fails or when reading the sample, which is never saved.
 - Browser-local EPUB import with a review before adding the book, chapter navigation, semantic tables, and raster/SVG illustrations in article view. Playback pauses at tables, illustrations, unavailable sections, and chapter endings.
+- Article import from a link in Library. Still's Worker fetches the page (`POST /api/page`), and the browser extracts the article with Mozilla Readability, keeping prose and tables. Images are left out for now, embedded media is marked in place, and the reader links back to the original page.
 - Original EPUB downloads for newly imported books. Remaining unsupported content is marked in place and disclosed in the import report.
 - Export the entire library or an individual reading as a Still JSON backup; restore adds readings and preserves existing progress. Removal asks for confirmation.
 - Open the keyboard legend from the keyboard icon beside the theme toggle, or press **?** outside text fields. It lists reading shortcuts and keyboard controls for navigation, modes, pace, and chapters. Opening it pauses reading.
@@ -46,6 +47,8 @@ Tables containing nested tables or media, formulas, audio/video, embedded docume
 SVGs are sanitized with DOMPurify after removing scripts, foreign HTML, external references, and unsupported styling. Referenced local raster resources are embedded. The result is decoded as an image and rasterized to a PNG with a maximum 1,600px edge; raw SVG/HTML never enters the reader DOM or backup image fields. Simplified or unrenderable SVGs are disclosed in the import notes. PNG conversion can lose vector scalability, source fonts, and unsupported effects; the original stays available.
 
 EPUB files must be at most 50 MB. Extraction allows at most 3,000 archive entries, 80 MB of selected expanded resources, and 5 MB per resource. A book may contain up to 500 chapters, 40,000 blocks and 100 illustrations per chapter, 100,000 prose/table characters per chapter, and 2 million text characters overall. Tables allow up to 200 rows, 50 cells per row, 5,000 cells total, and spans up to 100. The local library holds up to 100 readings. Backups now allow up to 250 MB to include original EPUB bytes and rendered illustrations; browser storage may impose a smaller limit. A small allowance is reserved for future progress changes.
+
+Link imports accept public `http(s)` pages on default ports only: no credentials, IP addresses, or local/internal host names, checked again at every redirect (up to 5). Pages must be HTML, at most 5 MB, and respond within 10 seconds. The endpoint answers only same-origin browser requests and is rate-limited to 20 imports per minute per IP with the `PAGE_IMPORT_LIMITER` binding in `wrangler.jsonc`. The address travels in the request body so it stays out of request logs; nothing is stored. The extracted article must fit the 100,000-character passage limit. Pages that build their text with JavaScript, or sit behind a sign-in or paywall, can't be imported; copy and paste their text instead.
 
 Imported markup is parsed as inert XML and normalized into ordered text, image, table, and unavailable-content blocks. Scripts, source styles, and event handlers never enter the rendered document. Import and restore validate the complete result before adding it. Version-2 backups include rich blocks, original EPUBs when available, import notes, and chapter/block/word positions. Version-1 backups are migrated on restore. Existing readings and positions win during restore; a conflicting identifier with different content becomes a separate reading. Restoring into an empty library also restores the saved pace and active reading. Older imported books have no original EPUB stored; reimport the source file to retain it.
 
@@ -85,7 +88,10 @@ Production deploys come from Workers Builds, connected to this GitHub repository
 - `src/lib/library-v1.ts`: frozen legacy schema validation for migration.
 - `src/lib/reader-document.ts`: shared block/word locations and playback sequences with context stops.
 - `src/lib/library-storage.ts`: atomic IndexedDB saves, separate content/position records, and revision checks.
-- `src/lib/epub.ts`: bounded ZIP extraction and inert XHTML-to-reading normalization, loaded only when importing.
+- `src/lib/epub.ts`: bounded ZIP extraction and EPUB structure, loaded only when importing.
+- `src/lib/html-blocks.ts`: inert HTML/XHTML-to-block conversion (prose, tables, placeholders) shared by EPUB and link imports.
+- `src/lib/web-article.ts`: link import in the browser: requests the page, extracts the article, and builds the reading.
+- `src/server/fetch-page.ts` and `src/routes/api/page.ts`: the Worker endpoint that fetches a public page for link import.
 - `src/lib/epub-svg.ts`: self-contained SVG sanitization and bounded PNG conversion.
 - `src/lib/reading-download.ts`: original-file encoding and downloads.
 - `src/lib/playback-machine.ts`: XState playback, cursor, and timer lifecycle.
@@ -101,7 +107,7 @@ Production deploys come from Workers Builds, connected to this GitHub repository
 - `src/styles.css`: Tailwind theme tokens, document defaults, and the compact reader media variant. Responsive layouts and component styling live in Tailwind utilities alongside their markup.
 - `e2e/` and `playwright.config.ts`: isolated browser tests, shared fixtures, projects, and managed test server.
 
-React and TypeScript run in TanStack Start with Vite, following the [official setup](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch). Both routes render on the server and hydrate in the browser. IndexedDB access, playback, and layout measurements stay in browser effects; saved text is never sent to the server. Motion animates the view transition; shadcn's Base UI components provide the interactive controls and dialogs. Fonts are self-hosted. There is no telemetry, upload endpoint, or server-side reading storage.
+React and TypeScript run in TanStack Start with Vite, following the [official setup](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch). Both routes render on the server and hydrate in the browser. IndexedDB access, playback, and layout measurements stay in browser effects; saved text is never sent to the server. The only server endpoint fetches pages for link import and stores nothing. Motion animates the view transition; shadcn's Base UI components provide the interactive controls and dialogs. Fonts are self-hosted. There is no telemetry, upload endpoint, or server-side reading storage.
 
 The build emits `dist/client` assets and `dist/server/server.js`. `pnpm preview` serves them locally; production hosting still needs a deployment adapter or server appropriate to the chosen host.
 
@@ -111,7 +117,7 @@ This MVP tests usability and comfort. It does not establish a reading-speed or c
 
 Context: [Rayner et al., 2016, “So Much to Read, So Little Time”](https://journals.sagepub.com/doi/10.1177/1529100615623267).
 
-Browser storage can be cleared or evicted and is not a backup. Export a library backup before clearing browser data or changing devices. Article URLs, accounts, cloud sync, and quizzes remain outside this build.
+Browser storage can be cleared or evicted and is not a backup. Export a library backup before clearing browser data or changing devices. Accounts, cloud sync, and quizzes remain outside this build.
 
 Browser automation verifies a Chromium desktop and a narrow viewport, not a physical phone or Safari. Browser timing follows the display refresh cycle and is not laboratory-grade stimulus timing.
 

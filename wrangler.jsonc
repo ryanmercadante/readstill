@@ -11,4 +11,12 @@
   "observability": {
     "enabled": true,
   },
+  // Caps URL imports per visitor IP so /api/page can't serve as an open proxy.
+  "ratelimits": [
+    {
+      "name": "PAGE_IMPORT_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 20, "period": 60 },
+    },
+  ],
 }

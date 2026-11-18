@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ArrowRight, BookOpen, Download, Plus, Upload, X } from "lucide-react";
+import { ArrowRight, BookOpen, Download, Link2, Plus, Upload, X } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   initialPosition,
@@ -12,6 +12,7 @@ import {
 import { downloadOriginal } from "../../lib/reading-download";
 import { ImportReport, ImportNotes } from "./ImportReport";
 import { PasteTextDialog } from "./PasteTextDialog";
+import { LinkImportDialog } from "./LinkImportDialog";
 import type { Library, Reading } from "../../lib/library";
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
   onRemove: (id: string) => void;
   onRestore: (library: Library) => number;
   onPaste: (text: string, title: string) => void;
+  onLink: (reading: Reading) => void;
 };
 
 function download(library: Library) {
@@ -47,10 +49,13 @@ export function LibraryPanel({
   onRemove,
   onRestore,
   onPaste,
+  onLink,
 }: Props) {
   const epubInput = useRef<HTMLInputElement>(null);
   const pasteButton = useRef<HTMLButtonElement>(null);
   const [pasteOpen, setPasteOpen] = useState(false);
+  const linkButton = useRef<HTMLButtonElement>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
   const backupInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -132,6 +137,14 @@ export function LibraryPanel({
           >
             <Plus size={17} /> Paste text
           </Button>
+          <Button
+            variant="outline"
+            ref={linkButton}
+            onClick={() => setLinkOpen(true)}
+            disabled={busy || !ready}
+          >
+            <Link2 size={17} /> From a link
+          </Button>
           <Button onClick={() => epubInput.current?.click()} disabled={busy || !ready}>
             <Upload size={17} /> Import EPUB
           </Button>
@@ -142,6 +155,12 @@ export function LibraryPanel({
         onOpenChange={setPasteOpen}
         returnFocusRef={pasteButton}
         onImport={onPaste}
+      />
+      <LinkImportDialog
+        open={linkOpen}
+        onOpenChange={setLinkOpen}
+        returnFocusRef={linkButton}
+        onImport={onLink}
       />
       <input
         className="sr-only"
@@ -256,7 +275,9 @@ export function LibraryPanel({
                         <p className="mt-2 mb-0 text-xs leading-relaxed text-muted-foreground">
                           {reading.kind === "epub"
                             ? `${reading.chapters.length} chapters`
-                            : "Pasted reading"}
+                            : reading.source
+                              ? reading.source.siteName
+                              : "Pasted reading"}
                           {reading.author && ` · ${reading.author}`} ·{" "}
                           {readingProgress(reading, position)}% through
                         </p>
@@ -332,8 +353,8 @@ export function LibraryPanel({
             <div className="py-14">
               <h2 className="font-serif text-2xl">Make room for your first reading.</h2>
               <p className="max-w-lg text-sm leading-relaxed text-muted-foreground">
-                Import a book, paste a passage, or restore a Still backup. Your place will be here
-                when you come back.
+                Import a book, paste a passage, open an article from a link, or restore a Still
+                backup. Your place will be here when you come back.
               </p>
             </div>
           )}

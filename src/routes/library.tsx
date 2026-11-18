@@ -4,6 +4,7 @@ import { SkipLink } from "../components/SkipLink";
 import { SiteHeader } from "../components/SiteHeader";
 import { LibraryPanel } from "../components/reader/LibraryPanel";
 import { pageHead } from "../lib/page-head";
+import type { Reading } from "../lib/library";
 
 export const Route = createFileRoute("/library")({
   head: () =>
@@ -30,6 +31,10 @@ function LibraryPage() {
     reader.replace(text, title);
     void navigate({ to: "/reader" });
   };
+  const importLink = (reading: Reading) => {
+    reader.addReading(reading);
+    void navigate({ to: "/reader" });
+  };
 
   return (
     <>
@@ -45,6 +50,7 @@ function LibraryPage() {
         onRemove={reader.removeReading}
         onRestore={reader.restore}
         onPaste={importText}
+        onLink={importLink}
       />
     </>
   );

@@ -200,6 +200,7 @@ function ReaderPage() {
         <ReadingHeading
           title={reader.title}
           sourceIsSample={reader.isSample}
+          source={reader.reading.source}
           wordCount={reader.wordCount}
           view={view}
           disabled={transitioning || !reader.ready}

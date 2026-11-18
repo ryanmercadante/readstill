@@ -28,10 +28,12 @@ export type Reading = {
   id: string;
   title: string;
   author: string;
-  kind: "text" | "epub";
+  kind: "text" | "epub" | "web";
   chapters: Chapter[];
   addedAt: number;
   originalEpub?: { name: string; data: string };
+  /** The page a web reading was imported from. */
+  source?: { url: string; siteName: string };
   importIssues?: ImportIssue[];
 };
 export type Position = {
@@ -221,6 +223,19 @@ export function blockTextSize(block: ContentBlock): number {
       ? block.caption.length + block.rows.flat().reduce((size, c) => size + c.text.length, 0)
       : 0;
 }
+export const MAX_SOURCE_URL = 2048;
+export function webUrl(v: unknown): v is string {
+  if (!string(v, MAX_SOURCE_URL)) return false;
+  try {
+    const url = new URL(v);
+    return ["http:", "https:"].includes(url.protocol) && url.href === v;
+  } catch {
+    return false;
+  }
+}
+function validSource(v: unknown): v is NonNullable<Reading["source"]> {
+  return object(v) && webUrl(v.url) && string(v.siteName, 300);
+}
 export function validReading(v: unknown): v is Reading {
   if (
     !object(v) ||
@@ -228,7 +243,7 @@ export function validReading(v: unknown): v is Reading {
     !string(v.title, 300) ||
     !v.title.trim() ||
     !string(v.author, 300) ||
-    !["text", "epub"].includes(v.kind as string) ||
+    !["text", "epub", "web"].includes(v.kind as string) ||
     !timestamp(v.addedAt) ||
     !Array.isArray(v.chapters) ||
     !v.chapters.length ||
@@ -270,6 +285,7 @@ export function validReading(v: unknown): v is Reading {
       !base64(v.originalEpub.data, Math.ceil(MAX_FILE_BYTES / 3) * 4))
   )
     return false;
+  if (v.source !== undefined && !validSource(v.source)) return false;
   const chapters = v.chapters as Chapter[];
   if (
     v.importIssues !== undefined &&
@@ -383,6 +399,7 @@ export function parseBackup(raw: string): Library {
     ...(r.originalEpub
       ? { originalEpub: { name: r.originalEpub.name, data: r.originalEpub.data } }
       : {}),
+    ...(r.source ? { source: { url: r.source.url, siteName: r.source.siteName } } : {}),
     ...(r.importIssues
       ? {
           importIssues: r.importIssues.map((i) => ({

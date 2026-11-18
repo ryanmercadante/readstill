@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as ReaderRouteImport } from './routes/reader'
+import { Route as ApiPageRouteImport } from './routes/api/page'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const ReaderRoute = ReaderRouteImport.update({
   path: '/reader',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPageRoute = ApiPageRouteImport.update({
+  id: '/api/page',
+  path: '/api/page',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/library': typeof LibraryRoute
   '/reader': typeof ReaderRoute
+  '/api/page': typeof ApiPageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/library': typeof LibraryRoute
   '/reader': typeof ReaderRoute
+  '/api/page': typeof ApiPageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/library': typeof LibraryRoute
   '/reader': typeof ReaderRoute
+  '/api/page': typeof ApiPageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/library' | '/reader'
+  fullPaths: '/' | '/about' | '/library' | '/reader' | '/api/page'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/library' | '/reader'
-  id: '__root__' | '/' | '/about' | '/library' | '/reader'
+  to: '/' | '/about' | '/library' | '/reader' | '/api/page'
+  id: '__root__' | '/' | '/about' | '/library' | '/reader' | '/api/page'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   LibraryRoute: typeof LibraryRoute
   ReaderRoute: typeof ReaderRoute
+  ApiPageRoute: typeof ApiPageRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReaderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/page': {
+      id: '/api/page'
+      path: '/api/page'
+      fullPath: '/api/page'
+      preLoaderRoute: typeof ApiPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   LibraryRoute: LibraryRoute,
   ReaderRoute: ReaderRoute,
+  ApiPageRoute: ApiPageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

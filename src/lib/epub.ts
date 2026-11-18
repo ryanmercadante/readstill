@@ -1,17 +1,19 @@
 import { unzip, strFromU8 } from "fflate";
 import { MAX_BOOK_TEXT, MAX_FILE_BYTES, MAX_CHAPTER_BLOCKS } from "./library";
 import { blockTextSize, validReading } from "./library";
-import type { Chapter, ContentBlock, ImportIssue, Reading, TableCell } from "./library";
+import type { Chapter, ImportIssue, Reading } from "./library";
 import { toBase64 } from "./reading-download";
 import { prepareSvg, rasterizeSvg } from "./epub-svg";
 import { MAX_TEXT_LENGTH } from "./reader";
+import { blockWriter, content, elements, writeHtmlBlocks } from "./html-blocks";
 
 const MAX_EXPANDED_BYTES = 80_000_000;
 const MAX_ENTRY_BYTES = 5_000_000;
-const elements = (node: Document | Element, name: string) =>
-  Array.from(node.getElementsByTagNameNS("*", name));
-const content = (node: Document | Element, name: string) =>
-  elements(node, name)[0]?.textContent?.trim() ?? "";
+const EPUB_ORIGINAL = {
+  interactive: "use the original EPUB for interactive features.",
+  embedded: "This content is preserved in the original EPUB but can't be displayed in Still yet.",
+  table: "Download the original EPUB to view it.",
+};
 
 function xml(source: string): Document {
   if (/<!ENTITY/i.test(source)) throw new Error("This EPUB contains unsupported XML entities.");
@@ -181,9 +183,6 @@ export async function importEpub(
       return reference;
     return rasterFile(epubPath(base, reference));
   };
-  type NewBlock = {
-    [K in ContentBlock["type"]]: Omit<Extract<ContentBlock, { type: K }>, "id">;
-  }[ContentBlock["type"]];
   for (const ref of elements(opf, "itemref")) {
     if (ref.getAttribute("properties")?.split(/\s+/).includes("rendition:layout-pre-paginated"))
       throw new Error("This book contains fixed-layout sections. Choose a reflowable EPUB.");
@@ -207,24 +206,8 @@ export async function importEpub(
     seen.add(originalItem.path);
     const path = item.path;
     const chapterId = originalItem.path;
-    const blocks: ContentBlock[] = [];
-    const add = (block: NewBlock): ContentBlock => {
-      const value = { ...block, id: `b${blocks.length}` } as ContentBlock;
-      if (blocks.length >= MAX_CHAPTER_BLOCKS)
-        throw new Error("This chapter has too many separate sections for this version.");
-      blocks.push(value);
-      return value;
-    };
-    const report = (block: ContentBlock, message: string) =>
-      issues.push({ chapterId, blockId: block.id, message: message.slice(0, 1000) });
-    const unavailable = (label: string, reason: string) => {
-      const block = add({
-        type: "unsupported",
-        label: label.slice(0, 300),
-        reason: reason.slice(0, 1000),
-      });
-      report(block, `${label}: ${reason}`);
-    };
+    const writer = blockWriter(chapterId, issues);
+    const { blocks, add, report, unavailable } = writer;
     const addSvg = async (source: string, alt: string, base: string) => {
       try {
         const prepared = prepareSvg(source, (reference) => raster(base, reference));
@@ -271,106 +254,15 @@ export async function importEpub(
         content(body, "h2") ||
         content(document, "title") ||
         title;
-      let buffer = "";
-      const flush = () => {
-        const text = buffer.replace(/\s+/gu, " ").trim();
-        if (text) add({ type: "text", text });
-        buffer = "";
-      };
-      const visit = async (node: Node): Promise<void> => {
-        if (node.nodeType === Node.TEXT_NODE) {
-          buffer += node.textContent ?? "";
-          return;
-        }
-        if (node.nodeType !== Node.ELEMENT_NODE) return;
-        const element = node as Element;
-        const tag = element.localName;
-        if (tag === "style") return;
-        if (tag === "script") {
-          flush();
-          unavailable(
-            "Interactive content",
-            "Scripts are disabled. Any static text remains readable; use the original EPUB for interactive features.",
-          );
-          return;
-        }
-        if (["math", "audio", "video", "iframe", "object", "canvas", "embed"].includes(tag)) {
-          flush();
-          const label =
-            ({ math: "Formula", audio: "Audio", video: "Video" } as Record<string, string>)[tag] ??
-            "Embedded content";
-          unavailable(
-            label,
-            "This content is preserved in the original EPUB but can't be displayed in Still yet.",
-          );
-          return;
-        }
-        if (tag === "table") {
-          flush();
-          const rows = elements(element, "tr");
-          if (
-            !rows.length ||
-            rows.length > 200 ||
-            ["table", "img", "svg", "math", "audio", "video", "object", "iframe"].some(
-              (name) => elements(element, name).length,
-            )
-          ) {
-            unavailable(
-              "Table",
-              "This table contains nested tables or media, or exceeds the supported size. Download the original EPUB to view it.",
-            );
-            return;
-          }
-          let cells = 0;
-          const result: TableCell[][] = [];
-          for (const row of rows) {
-            const columns = Array.from(row.children).filter((c) =>
-              ["td", "th"].includes(c.localName),
-            );
-            if (!columns.length || columns.length > 50 || (cells += columns.length) > 5000) {
-              unavailable("Table", "This table's layout exceeds the supported size.");
-              return;
-            }
-            const values: TableCell[] = [];
-            for (const cell of columns) {
-              const rowSpan = Number(cell.getAttribute("rowspan") ?? "1");
-              const colSpan = Number(cell.getAttribute("colspan") ?? "1");
-              if (![rowSpan, colSpan].every((n) => Number.isInteger(n) && n >= 1 && n <= 100)) {
-                unavailable("Table", "This table uses an unsupported cell layout.");
-                return;
-              }
-              const scope = cell.getAttribute("scope");
-              const clone = cell.cloneNode(true) as Element;
-              for (const child of [...elements(clone, "script"), ...elements(clone, "style")])
-                child.remove();
-              for (const child of [...elements(clone, "br"), ...elements(clone, "p")])
-                child.appendChild(document.createTextNode(" "));
-              values.push({
-                text: (clone.textContent ?? "").replace(/\s+/gu, " ").trim(),
-                header: cell.localName === "th",
-                rowSpan,
-                colSpan,
-                ...(["row", "col", "rowgroup", "colgroup"].includes(scope ?? "")
-                  ? { scope: scope as TableCell["scope"] }
-                  : {}),
-              });
-            }
-            result.push(values);
-          }
-          add({ type: "table", caption: content(element, "caption").slice(0, 1000), rows: result });
-          return;
-        }
-        if (tag === "svg") {
-          flush();
-          await addSvg(
+      await writeHtmlBlocks(body, writer, {
+        original: EPUB_ORIGINAL,
+        svg: (element) =>
+          addSvg(
             new XMLSerializer().serializeToString(element),
             content(element, "title") || content(element, "desc") || "SVG illustration",
             path,
-          );
-          return;
-        }
-        if (tag === "img") {
-          flush();
+          ),
+        img: async (element) => {
           const reference = element.getAttribute("src") ?? "";
           const alt = (element.getAttribute("alt") || "Book illustration").slice(0, 1000);
           try {
@@ -384,18 +276,8 @@ export async function importEpub(
               error instanceof Error ? error.message : "This illustration couldn't be displayed.",
             );
           }
-          return;
-        }
-        const block =
-          /^(?:p|div|section|article|aside|blockquote|h[1-6]|li|ul|ol|dl|dt|dd|figure|figcaption|pre|br|hr)$/.test(
-            tag,
-          );
-        if (block) flush();
-        for (const child of element.childNodes) await visit(child);
-        if (block) flush();
-      };
-      await visit(body);
-      flush();
+        },
+      });
     }
     if (!blocks.length) continue;
     if (item !== originalItem)
