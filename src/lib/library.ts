@@ -8,8 +8,8 @@ export const MAX_READINGS = 100;
 export const MAX_BOOK_TEXT = 2_000_000;
 // A legacy 100,000-character passage can contain over 30,000 short paragraphs.
 export const MAX_CHAPTER_BLOCKS = 40_000;
-export const MAX_FILE_BYTES = 25_000_000;
-export const MAX_BACKUP_BYTES = 100_000_000;
+export const MAX_FILE_BYTES = 50_000_000;
+export const MAX_BACKUP_BYTES = 250_000_000;
 export type TextBlock = { id: string; type: "text"; text: string };
 export type ImageBlock = { id: string; type: "image"; src: string; alt: string };
 export type TableCell = {
@@ -327,7 +327,7 @@ function copyBlock(block: ContentBlock): ContentBlock {
 }
 export function parseBackup(raw: string): Library {
   if (new TextEncoder().encode(raw).length > MAX_BACKUP_BYTES)
-    throw new Error("Choose a Still backup smaller than 100 MB.");
+    throw new Error("Choose a Still backup smaller than 250 MB.");
   let data: unknown;
   try {
     data = JSON.parse(raw);
@@ -420,14 +420,14 @@ export function serializeBackup(library: Library): string {
   const raw = JSON.stringify(data);
   if (new TextEncoder().encode(raw).length > MAX_BACKUP_BYTES)
     throw new Error(
-      "The library exceeds the 100 MB backup limit. Export individual readings instead.",
+      "The library exceeds the 250 MB backup limit. Export individual readings instead.",
     );
   return raw;
 }
 export function assertLibraryCapacity(library: Library): void {
   if (new TextEncoder().encode(serializeBackup(library)).length > MAX_BACKUP_BYTES - 10_000)
     throw new Error(
-      "This would fill your library's 100 MB backup allowance. Export and remove a reading before importing more.",
+      "This would fill your library's 250 MB backup allowance. Export and remove a reading before importing more.",
     );
 }
 export function mergeLibrary(current: Library, incoming: Library): Library {

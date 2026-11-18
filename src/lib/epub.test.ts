@@ -136,8 +136,8 @@ describe("EPUB import", () => {
     await expect(
       importEpub(epubFixture({ "OPS/oversized.xhtml": "a".repeat(5_000_001) }), "fallback"),
     ).rejects.toThrow("expands beyond");
-    await expect(importEpub(new Uint8Array(25_000_001), "fallback")).rejects.toThrow(
-      "smaller than 25 MB",
+    await expect(importEpub(new Uint8Array(50_000_001), "fallback")).rejects.toThrow(
+      "smaller than 50 MB",
     );
   });
 });

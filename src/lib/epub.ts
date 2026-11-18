@@ -6,7 +6,7 @@ import { toBase64 } from "./reading-download";
 import { prepareSvg, rasterizeSvg } from "./epub-svg";
 import { MAX_TEXT_LENGTH } from "./reader";
 
-const MAX_EXPANDED_BYTES = 40_000_000;
+const MAX_EXPANDED_BYTES = 80_000_000;
 const MAX_ENTRY_BYTES = 5_000_000;
 const elements = (node: Document | Element, name: string) =>
   Array.from(node.getElementsByTagNameNS("*", name));
@@ -41,7 +41,7 @@ export function epubPath(base: string, reference: string): string {
 }
 
 async function unpack(bytes: Uint8Array): Promise<Record<string, Uint8Array>> {
-  if (bytes.length > MAX_FILE_BYTES) throw new Error("Choose an EPUB smaller than 25 MB.");
+  if (bytes.length > MAX_FILE_BYTES) throw new Error("Choose an EPUB smaller than 50 MB.");
   let expanded = 0;
   let count = 0;
   const names = new Set<string>();

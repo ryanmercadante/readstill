@@ -75,7 +75,7 @@ function AboutPage() {
 
           <Section title="What you can read">
             <p>
-              Paste any text, or import DRM-free, reflowable EPUB books up to 25 MB. Your library
+              Paste any text, or import DRM-free, reflowable EPUB books up to 50 MB. Your library
               holds up to 100 readings. Each one keeps its own chapter and place; your pace setting
               is shared.
             </p>

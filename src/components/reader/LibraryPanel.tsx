@@ -73,8 +73,8 @@ export function LibraryPanel({
       if (file.size > (kind === "epub" ? MAX_FILE_BYTES : MAX_BACKUP_BYTES))
         throw new Error(
           kind === "epub"
-            ? "Choose an EPUB smaller than 25 MB."
-            : "Choose a Still backup smaller than 100 MB.",
+            ? "Choose an EPUB smaller than 50 MB."
+            : "Choose a Still backup smaller than 250 MB.",
         );
       if (kind === "epub") {
         const { importEpub } = await import("../../lib/epub");
@@ -170,7 +170,7 @@ export function LibraryPanel({
         }}
       />
       <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-        DRM-free, reflowable prose EPUBs, up to 25 MB. Books stay on this device.
+        DRM-free, reflowable prose EPUBs, up to 50 MB. Books stay on this device.
       </p>
       <div role="status" className="text-sm leading-relaxed text-muted-foreground">
         {busy ? "Opening your file…" : message}
