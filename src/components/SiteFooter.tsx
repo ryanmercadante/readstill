@@ -3,6 +3,19 @@ import { Link } from "@tanstack/react-router";
 const repoUrl = "https://github.com/ryanmercadante/readstill";
 const linkClass = "no-underline hover:text-foreground hover:underline";
 
+// Releases link to their notes; staging builds add the commit and link to it.
+const version = __APP_COMMIT__
+  ? {
+      label: `v${__APP_VERSION__}+${__APP_COMMIT__}`,
+      href: `${repoUrl}/commit/${__APP_COMMIT__}`,
+      about: "commit",
+    }
+  : {
+      label: `v${__APP_VERSION__}`,
+      href: `${repoUrl}/releases/tag/v${__APP_VERSION__}`,
+      about: "release notes",
+    };
+
 export function SiteFooter() {
   return (
     // snap-end gives the landing page's mandatory scroll snapping on phones a stop here.
@@ -26,12 +39,12 @@ export function SiteFooter() {
         </a>
         <a
           className={`${linkClass} tabular-nums`}
-          href={`${repoUrl}/releases/tag/v${__APP_VERSION__}`}
+          href={version.href}
           target="_blank"
           rel="noreferrer"
-          aria-label={`v${__APP_VERSION__} release notes`}
+          aria-label={`${version.label} ${version.about}`}
         >
-          v{__APP_VERSION__}
+          {version.label}
         </a>
       </div>
     </footer>
