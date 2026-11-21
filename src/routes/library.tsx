@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useReader } from "../hooks/useReader";
 import { SkipLink } from "../components/SkipLink";
+import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
 import { LibraryPanel } from "../components/reader/LibraryPanel";
 import { pageHead } from "../lib/page-head";
@@ -52,6 +53,7 @@ function LibraryPage() {
         onPaste={importText}
         onLink={importLink}
       />
+      <SiteFooter />
     </>
   );
 }

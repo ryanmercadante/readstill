@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LandingHero } from "../components/landing/LandingHero";
 import { ModeScreens } from "../components/landing/ModeScreens";
 import { ModesFigure } from "../components/landing/ModesFigure";
+import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
 import { SkipLink } from "../components/SkipLink";
 import { useCompactViewport } from "../hooks/useCompactViewport";
@@ -27,6 +28,7 @@ function LandingPage() {
         <LandingHero compact={compact} />
         {compact ? <ModeScreens /> : <ModesFigure />}
       </main>
+      <SiteFooter />
     </>
   );
 }

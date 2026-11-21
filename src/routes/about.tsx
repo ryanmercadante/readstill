@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { buttonVariants } from "../components/ui/button";
+import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
 import { SkipLink } from "../components/SkipLink";
 import { pageHead } from "../lib/page-head";
@@ -81,7 +82,7 @@ function AboutPage() {
             </p>
           </Section>
 
-          <Section title="Your library stays with you">
+          <Section id="privacy" title="Your library stays with you">
             <p>
               Everything you add stays in this browser. There are no accounts and no uploads, and
               your readings are never sent to a server. Your place is saved when you pause or leave.
@@ -111,13 +112,17 @@ function AboutPage() {
           </div>
         </article>
       </main>
+      <SiteFooter />
     </>
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ id, title, children }: { id?: string; title: string; children: ReactNode }) {
   return (
-    <section className="mt-12 text-[14px] leading-[1.85] text-muted-foreground max-[600px]:mt-10 [&_p]:m-0 [&_p]:mt-4">
+    <section
+      id={id}
+      className="mt-12 scroll-mt-28 text-[14px] leading-[1.85] text-muted-foreground max-[600px]:mt-10 [&_p]:m-0 [&_p]:mt-4"
+    >
       <h2 className="m-0 mb-4 font-serif text-[26px] leading-[1.2] font-[450] tracking-[-.025em] text-foreground">
         {title}
       </h2>
