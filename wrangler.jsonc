@@ -5,9 +5,12 @@
   "name": "readstill",
   "compatibility_date": "2026-11-15",
   "main": "@tanstack/react-start/server-entry",
-  // Staging uploads from main get their own preview URL. Production traffic
-  // only moves on a release.
-  "preview_urls": true,
+  // readstill.app is the only way in. The zone handles the http-to-https and
+  // www-to-apex redirects before requests reach the Worker; workers.dev and
+  // version preview URLs would bypass the zone's settings, so they're off.
+  "routes": [{ "pattern": "readstill.app", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false,
   "observability": {
     "enabled": true,
   },
@@ -25,4 +28,30 @@
       "simple": { "limit": 150, "period": 60 },
     },
   ],
+  "env": {
+    // Every push to main deploys the readstill-staging Worker to
+    // staging.readstill.app. Select it at build time with CLOUDFLARE_ENV=staging;
+    // the Vite plugin writes the deploy config for that environment.
+    "staging": {
+      "routes": [{ "pattern": "staging.readstill.app", "custom_domain": true }],
+      // The custom domain is the only way in, so Cloudflare Access on it can't
+      // be bypassed through workers.dev or version preview URLs.
+      "workers_dev": false,
+      "preview_urls": false,
+      // Bindings aren't inherited. Separate namespaces keep staging traffic
+      // from counting against production's limits.
+      "ratelimits": [
+        {
+          "name": "PAGE_IMPORT_LIMITER",
+          "namespace_id": "1003",
+          "simple": { "limit": 20, "period": 60 },
+        },
+        {
+          "name": "IMAGE_IMPORT_LIMITER",
+          "namespace_id": "1004",
+          "simple": { "limit": 150, "period": 60 },
+        },
+      ],
+    },
+  },
 }

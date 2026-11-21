@@ -78,7 +78,7 @@ Run `pnpm lint:fix` to apply safe lint fixes and `pnpm format` to format files. 
 
 Still runs on Cloudflare Workers. `@cloudflare/vite-plugin` builds the TanStack Start server for the Workers runtime, so `pnpm dev`, `pnpm preview`, and the browser tests already run in workerd locally. `wrangler.jsonc` names the Worker `readstill`; that name must match the Worker in the Cloudflare dashboard.
 
-Production deploys come from Workers Builds, connected to this GitHub repository: pushes to `main` build with `pnpm build` and deploy with `npx wrangler deploy`, and other branches get preview URLs. The custom domain is `readstill.app`. `pnpm deploy` deploys from a local checkout and should only be used deliberately. Browser storage is per origin, so readings saved on a preview URL or `workers.dev` do not appear on `readstill.app`.
+Deploys run from GitHub Actions, not Workers Builds. After the tests pass, every push to `main` builds with `CLOUDFLARE_ENV=staging` and deploys the separate `readstill-staging` Worker to `staging.readstill.app`. Release Please keeps a release PR open; merging it tags the release and deploys that tag to production at `readstill.app`. `pnpm deploy` deploys to production from a local checkout and should only be used deliberately. Browser storage is per origin, so readings saved on `staging.readstill.app` do not appear on `readstill.app`.
 
 ## Implementation
 
