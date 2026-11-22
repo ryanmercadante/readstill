@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/ryanmercadante/readstill/compare/v0.4.0...v0.5.0) (2026-11-22)
+
+
+### Features
+
+* guide Chromium users through installing Still ([78549b5](https://github.com/ryanmercadante/readstill/commit/78549b50d77ce40aa9d1bc43da293113859f7c9a))
+* guide iPhone and iPad users through installing Still ([97d9749](https://github.com/ryanmercadante/readstill/commit/97d9749048ebb18bc64d1e0f5c28691fdb2a2622))
+* guide Safari readers through Dock installation and library backup ([9fe8129](https://github.com/ryanmercadante/readstill/commit/9fe812954ed3b69d195325858358b53f7fea9ffd))
+* launch the installed Still app into the library ([0a86369](https://github.com/ryanmercadante/readstill/commit/0a86369902553dcb888b7468ba1ec175785ac79f))
+* show install instructions in the library ([3604607](https://github.com/ryanmercadante/readstill/commit/360460715e5a456364ab13f16c6ec1890226f5bd))
+* show platform-specific install guidance for Firefox ([930f8c6](https://github.com/ryanmercadante/readstill/commit/930f8c6c261e0824a0b4b67c6cf3849b998d8e44))
+
 ## [0.4.0](https://github.com/ryanmercadante/readstill/compare/v0.3.0...v0.4.0) (2026-11-22)
 
 
