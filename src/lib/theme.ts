@@ -1,5 +1,6 @@
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
+import { readBrowserCookie, saveCookie } from "./cookies";
 
 export type Theme = "light" | "dark";
 const themeCookie = "still-theme";
@@ -12,25 +13,8 @@ function parseTheme(value: string | undefined): Theme {
 
 export const readTheme = createIsomorphicFn()
   .server(() => parseTheme(getCookie(themeCookie)))
-  .client(() => {
-    try {
-      return parseTheme(
-        document.cookie
-          .split(";")
-          .map((cookie) => cookie.trim())
-          .find((cookie) => cookie.startsWith(`${themeCookie}=`))
-          ?.slice(themeCookie.length + 1),
-      );
-    } catch {
-      return "light" as const;
-    }
-  });
+  .client(() => parseTheme(readBrowserCookie(themeCookie)));
 
 export function saveTheme(theme: Theme) {
-  try {
-    const secure = location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = `${themeCookie}=${theme}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
-  } catch {
-    // Keep the current page usable if the browser blocks cookies.
-  }
+  saveCookie(themeCookie, theme);
 }

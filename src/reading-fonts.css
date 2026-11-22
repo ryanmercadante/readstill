@@ -1,0 +1,9 @@
+/* Reading-font choices besides the default Source Serif 4. Browsers download a face
+   only when text uses it, so unused choices cost only these declarations. */
+@import "@fontsource-variable/literata/wght.css";
+@import "@fontsource-variable/newsreader/wght.css";
+@import "@fontsource/charis-sil/400.css";
+@import "@fontsource/charis-sil/700.css";
+@import "@fontsource-variable/merriweather/wght.css";
+@import "@fontsource-variable/atkinson-hyperlegible-next/wght.css";
+@import "@fontsource-variable/inter/wght.css";

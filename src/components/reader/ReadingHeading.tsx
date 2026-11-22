@@ -2,6 +2,7 @@ import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { AlignLeft, ArrowUpRight, Focus, Highlighter } from "lucide-react";
 
 import type { ReaderView } from "../../lib/reader-presentation";
+import { ReadingFontMenu } from "../ReadingFontMenu";
 
 type ReadingHeadingProps = {
   title: string;
@@ -12,6 +13,8 @@ type ReadingHeadingProps = {
   view: ReaderView;
   disabled: boolean;
   onViewChange: (view: ReaderView) => void;
+  /** Called when the font menu opens, so playback and transitions can stop. */
+  onFontMenuOpen?: () => void;
 };
 
 export function ReadingHeading({
@@ -22,6 +25,7 @@ export function ReadingHeading({
   view,
   disabled,
   onViewChange,
+  onFontMenuOpen,
 }: ReadingHeadingProps) {
   return (
     <section
@@ -29,7 +33,7 @@ export function ReadingHeading({
       aria-label="Reading details"
     >
       <div className="min-w-0 compact-reader:group-data-[view=focus]/reader:w-full">
-        <h1 className="compact-reader:group-data-[view=focus]/reader:mb-0 compact-reader:group-data-[view=focus]/reader:truncate compact-reader:group-data-[view=focus]/reader:text-[22px]">
+        <h1 className="font-reading compact-reader:group-data-[view=focus]/reader:mb-0 compact-reader:group-data-[view=focus]/reader:truncate compact-reader:group-data-[view=focus]/reader:text-[22px]">
           {title}
         </h1>
         <p className="m-0 flex gap-2.5 text-[11px] text-muted-foreground max-[520px]:text-[10px] compact-reader:group-data-[view=focus]/reader:hidden">
@@ -53,43 +57,46 @@ export function ReadingHeading({
           {wordCount.toLocaleString()} words
         </p>
       </div>
-      <ToggleGroup
-        className="view-switch mt-1 shrink-0 rounded-[8px] bg-secondary p-1 max-[800px]:m-0 max-[800px]:self-start max-[520px]:w-full"
-        aria-label="Reading view"
-        spacing={0}
-        multiple={false}
-        value={[view]}
-        disabled={disabled}
-        onValueChange={(values) => {
-          const next = values[0];
-          if (next === "article" || next === "guided" || next === "focus") onViewChange(next);
-        }}
-      >
-        <ToggleGroupItem
-          className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center max-[520px]:px-2"
-          value="article"
+      <div className="mt-1 flex shrink-0 items-center gap-2 max-[800px]:m-0 max-[800px]:self-start max-[520px]:w-full">
+        <ToggleGroup
+          className="view-switch shrink-0 rounded-[8px] bg-secondary p-1 max-[520px]:min-w-0 max-[520px]:flex-1"
+          aria-label="Reading view"
+          spacing={0}
+          multiple={false}
+          value={[view]}
           disabled={disabled}
+          onValueChange={(values) => {
+            const next = values[0];
+            if (next === "article" || next === "guided" || next === "focus") onViewChange(next);
+          }}
         >
-          <AlignLeft size={16} />
-          Article
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center max-[520px]:px-2"
-          value="guided"
-          disabled={disabled}
-        >
-          <Highlighter size={16} />
-          Guided
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center max-[520px]:px-2"
-          value="focus"
-          disabled={disabled}
-        >
-          <Focus size={16} />
-          Focus
-        </ToggleGroupItem>
-      </ToggleGroup>
+          <ToggleGroupItem
+            className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center max-[520px]:px-2"
+            value="article"
+            disabled={disabled}
+          >
+            <AlignLeft size={16} />
+            Article
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center max-[520px]:px-2"
+            value="guided"
+            disabled={disabled}
+          >
+            <Highlighter size={16} />
+            Guided
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            className="max-[520px]:min-h-[38px] max-[520px]:flex-1 max-[520px]:justify-center max-[520px]:px-2"
+            value="focus"
+            disabled={disabled}
+          >
+            <Focus size={16} />
+            Focus
+          </ToggleGroupItem>
+        </ToggleGroup>
+        <ReadingFontMenu onOpen={onFontMenuOpen} />
+      </div>
     </section>
   );
 }

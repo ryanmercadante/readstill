@@ -31,7 +31,7 @@ export function ContextView({
       <p role="status" className="text-sm text-muted-foreground">
         {finished ? "You reached the end of this chapter." : `Reading paused for this ${name}.`}
       </p>
-      <h2 className="my-5 font-serif text-2xl leading-snug font-normal wrap-anywhere compact-reader:my-3">
+      <h2 className="my-5 font-reading text-2xl leading-snug font-normal wrap-anywhere compact-reader:my-3">
         {blockLabel(block)}
       </h2>
       <p className="text-sm leading-relaxed text-muted-foreground wrap-anywhere compact-reader:my-2 compact-reader:text-xs">

@@ -45,6 +45,7 @@
   --radius-xl: 12px;
   --font-sans: "Manrope Variable", sans-serif;
   --font-serif: var(--serif);
+  --font-reading: var(--reading, var(--serif));
 }
 
 @layer base {

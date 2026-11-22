@@ -205,6 +205,7 @@ function ReaderPage() {
           view={view}
           disabled={transitioning || !reader.ready}
           onViewChange={changeView}
+          onFontMenuOpen={() => sendPresentation({ type: "INTERRUPT" })}
         />
         {reader.reading.kind === "epub" && view !== "focus" && (
           <nav aria-label="Chapters" className="mt-6 flex flex-wrap items-center gap-3">
@@ -310,7 +311,7 @@ function ReaderPage() {
       {flight && (
         <motion.div
           data-testid="word-flight"
-          className="pointer-events-none fixed top-0 left-0 z-20 font-serif leading-[1.4] whitespace-nowrap"
+          className="pointer-events-none fixed top-0 left-0 z-20 font-reading leading-[1.4] whitespace-nowrap"
           aria-hidden="true"
           initial={{ x: flight.left, y: flight.top, fontSize: flight.size }}
           animate={{

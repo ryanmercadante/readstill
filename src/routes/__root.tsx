@@ -1,17 +1,25 @@
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { createRootRoute, HeadContent, Link, Scripts } from "@tanstack/react-router";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import stylesUrl from "../styles.css?url";
 import manropeUrl from "@fontsource-variable/manrope/index.css?url";
 import sourceSerifUrl from "@fontsource-variable/source-serif-4/index.css?url";
+import readingFontsUrl from "../reading-fonts.css?url";
 import { readTheme, saveTheme, themeColors } from "../lib/theme";
 import { ReaderProvider } from "../hooks/useReader";
 import { ThemeContext } from "../hooks/useTheme";
+import { ReadingFontContext } from "../hooks/useReadingFont";
+import {
+  readingFontFamily,
+  readReadingFont,
+  saveReadingFont,
+  type ReadingFont,
+} from "../lib/reading-font";
 import { siteDescription, siteTitle, siteUrl } from "../lib/site";
 
 export const Route = createRootRoute({
-  beforeLoad: () => ({ theme: readTheme() }),
+  beforeLoad: () => ({ theme: readTheme(), readingFont: readReadingFont() }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -38,6 +46,7 @@ export const Route = createRootRoute({
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "stylesheet", href: manropeUrl },
       { rel: "stylesheet", href: sourceSerifUrl },
+      { rel: "stylesheet", href: readingFontsUrl },
       { rel: "stylesheet", href: stylesUrl },
     ],
   }),
@@ -60,16 +69,28 @@ function RootDocument({ children }: { children: ReactNode }) {
     saveTheme(next);
     setTheme(next);
   };
+  const [readingFont, setReadingFont] = useState(initial.readingFont);
+  const changeReadingFont = (next: ReadingFont) => {
+    saveReadingFont(next);
+    setReadingFont(next);
+  };
 
   return (
-    <html lang="en" data-theme={theme}>
+    <html
+      lang="en"
+      data-theme={theme}
+      data-font={readingFont}
+      style={{ "--reading": readingFontFamily(readingFont) } as CSSProperties}
+    >
       <head>
         <meta name="theme-color" content={themeColors[theme]} />
         <HeadContent />
       </head>
       <body>
         <ThemeContext value={{ theme, toggleTheme }}>
-          <ReaderProvider>{children}</ReaderProvider>
+          <ReadingFontContext value={{ font: readingFont, setFont: changeReadingFont }}>
+            <ReaderProvider>{children}</ReaderProvider>
+          </ReadingFontContext>
         </ThemeContext>
         <TanStackDevtools
           config={{ position: "bottom-left" }}

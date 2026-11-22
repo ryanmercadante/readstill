@@ -3,6 +3,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { ArrowDownLeft } from "lucide-react";
 import { AnchoredWord } from "./AnchoredWord";
+import { useReadingFont } from "../../hooks/useReadingFont";
 
 type FocusViewProps = {
   word: string;
@@ -26,6 +27,7 @@ export function FocusView({
   const [focusSize, setFocusSize] = useState(76);
   const [focusOffset, setFocusOffset] = useState(0);
   const focusStageRef = useRef<HTMLDivElement>(null);
+  const { font } = useReadingFont();
 
   // Fit the word in one step. Width scales with font size, so a single measurement
   // gives the fitting size. Re-fitting after each size change can oscillate forever
@@ -44,15 +46,24 @@ export function FocusView({
     };
     fit();
     window.addEventListener("resize", fit);
-    return () => window.removeEventListener("resize", fit);
-  }, [word, wordRef]);
+    // A newly chosen font arrives after the first measurement; fit again once it loads.
+    document.fonts.addEventListener("loadingdone", fit);
+    return () => {
+      window.removeEventListener("resize", fit);
+      document.fonts.removeEventListener("loadingdone", fit);
+    };
+  }, [word, wordRef, font]);
 
   // Center the anchor letter at the rendered size. This only moves the word, so it
   // cannot feed back into the size.
   useLayoutEffect(() => {
     const word = wordRef.current;
-    if (word) setFocusOffset(anchorSides(word).left);
-  }, [word, focusSize, wordRef]);
+    if (!word) return;
+    const center = () => setFocusOffset(anchorSides(word).left);
+    center();
+    document.fonts.addEventListener("loadingdone", center);
+    return () => document.fonts.removeEventListener("loadingdone", center);
+  }, [word, focusSize, wordRef, font]);
 
   return (
     <section
@@ -78,7 +89,7 @@ export function FocusView({
           aria-hidden="true"
         />
         <div
-          className="relative h-[1.4em] w-full font-serif leading-[1.4]"
+          className="relative h-[1.4em] w-full font-reading leading-[1.4]"
           style={{ fontSize: focusSize }}
         >
           <span
