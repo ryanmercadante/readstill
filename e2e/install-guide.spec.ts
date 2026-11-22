@@ -104,3 +104,39 @@ test("Android Chromium points to the browser menu", async ({ page, app }) => {
     "Add to Home screen",
   );
 });
+
+for (const [platform, agent, instruction] of [
+  ["Android", "Android 15; Mobile", "tap Install"],
+  ["Windows", "Windows NT 10.0", "pin Still to the taskbar"],
+  ["Mac", "Macintosh; Intel Mac OS X", "Share → Add to Dock"],
+  ["Linux", "X11; Linux x86_64", "bookmark your library"],
+]) {
+  test("Firefox on " + platform + " shows its platform instructions", async ({ page, app }) => {
+    await page.addInitScript(
+      (agent) =>
+        Object.defineProperty(navigator, "userAgent", {
+          value: "Mozilla/5.0 (" + agent + ") Gecko/20100101 Firefox/153.0",
+        }),
+      agent,
+    );
+    await app.emptyLibrary();
+    await page.getByText("How to install Still", { exact: true }).click();
+    await expect(
+      page.getByRole("region", { name: "Firefox on " + platform + " installation guide" }),
+    ).toContainText(instruction);
+  });
+}
+
+test("Firefox on iPhone uses its own Share instructions", async ({ page, app }) => {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, "userAgent", {
+      value: "Mozilla/5.0 (iPhone) AppleWebKit/605.1.15 FxiOS/153.0 Mobile Safari/605.1.15",
+    }),
+  );
+  await app.emptyLibrary();
+  await page.getByText("How to install Still", { exact: true }).click();
+  const guide = page.getByRole("region", { name: "Firefox on iOS installation walkthrough" });
+  await expect(guide).toContainText("In Firefox, tap Share");
+  await guide.getByRole("button", { name: "Next" }).click();
+  await expect(guide).toContainText("Add to Home Screen");
+});
