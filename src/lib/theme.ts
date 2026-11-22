@@ -3,6 +3,7 @@ import { getCookie } from "@tanstack/react-start/server";
 
 export type Theme = "light" | "dark";
 const themeCookie = "still-theme";
+// Hex equivalents of --paper in styles.css; theme-color meta support for oklch() is uneven.
 export const themeColors = { light: "#f7f5ef", dark: "#211f1b" };
 
 function parseTheme(value: string | undefined): Theme {

@@ -72,7 +72,7 @@ test.describe("before JavaScript", () => {
     await context.addCookies([{ name: "still-theme", value: "dark", url: baseURL! }]);
     await page.goto("/");
     await themeIs(page, "dark");
-    await expect(page.locator("html")).toHaveCSS("background-color", "rgb(33, 31, 27)");
+    await expect(page.locator("html")).toHaveCSS("background-color", "oklch(0.24 0.008 84.6)");
     await page.getByRole("link", { name: "Try it", exact: true }).click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
       "The pleasure of paying attention",
