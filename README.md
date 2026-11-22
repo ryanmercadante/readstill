@@ -9,13 +9,13 @@ pnpm install
 pnpm dev
 ```
 
-Open the local URL printed by Vite. `/` is the landing page; **Try it** opens `/reader`, and `/about` explains the reading modes, the research stance and local storage. The reader’s Still wordmark returns home. Node 22.18+ and pnpm 12.18.0 (pinned in `package.json`) are required. This build was checked with Node 26.
+Open the local URL printed by Vite. `/` is the landing page; **Try it** opens `/reader`, and `/about` explains the reading modes, the research stance and local storage. The reader’s Still wordmark returns home. Node 26+ (`engines` in `package.json`; `.nvmrc` names the version CI uses) and pnpm 12.18.0 (pinned in `package.json`) are required. This build was checked with Node 26.
 
 Commit dependency changes together with `pnpm-lock.yaml`. For a reproducible install, use `pnpm install --frozen-lockfile`.
 
 If an older pnpm launcher cannot switch to the pinned version, run commands through Corepack (for example, `corepack pnpm install`).
 
-The repository is a pnpm workspace. The web app is the `@still/web` package in `apps/web`; shared packages will go in `packages/`. Root scripts such as `pnpm dev`, `pnpm build`, and `pnpm test:e2e` run the web app's scripts, `pnpm test` and `pnpm typecheck` run in every package, and `pnpm lint` and `pnpm format` cover the whole repository. Shared lint and format configs live in `tooling/` (`@still/oxlint-config` and `@still/oxfmt-config`); the root `oxlint.config.ts` and `oxfmt.config.ts` re-export them. Node 22.18 is the minimum because both tools load these TypeScript configs with Node's built-in type stripping. `tooling/github/setup` is the shared CI step that installs Node, pnpm, and dependencies. To run anything else in the web app, use `pnpm --filter @still/web <command>` or run it from `apps/web`.
+The repository is a pnpm workspace. The web app is the `@still/web` package in `apps/web`; shared packages will go in `packages/`. Root scripts such as `pnpm dev`, `pnpm build`, and `pnpm test:e2e` run the web app's scripts, `pnpm test` and `pnpm typecheck` run in every package, and `pnpm lint` and `pnpm format` cover the whole repository. Shared lint and format configs live in `tooling/` (`@still/oxlint-config` and `@still/oxfmt-config`); the root `oxlint.config.ts` and `oxfmt.config.ts` re-export them. `tooling/github/setup` is the shared CI step that installs Node, pnpm, and dependencies. To run anything else in the web app, use `pnpm --filter @still/web <command>` or run it from `apps/web`.
 
 The first visit migrates the previous single reading or version-1 library into the current document format, preserving the selected word and pace. The original single-reading snapshot is retained. Library migrations are atomic: a failed migration leaves old records intact. Keep the same hostname and port to retain access to existing data; browser storage belongs to an origin, not a route. Export and restore a library backup to move between origins or devices.
 
