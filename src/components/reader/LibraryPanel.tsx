@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ArrowRight, BookOpen, Download, Link2, Plus, Upload, X } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronDown, Download, Link2, Plus, Upload, X } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   initialPosition,
@@ -127,6 +127,25 @@ export function LibraryPanel({
           <p className="m-0 text-sm leading-relaxed text-muted-foreground">
             A place for the reading you want to return to.
           </p>
+          <details className="group mt-2 max-w-sm text-sm [@media(display-mode:standalone)]:hidden">
+            <summary className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 text-primary hover:underline">
+              How to install Still
+              <ChevronDown size={15} aria-hidden="true" className="group-open:rotate-180" />
+            </summary>
+            <ul className="m-0 list-disc space-y-2 pl-5 leading-relaxed text-muted-foreground">
+              <li>
+                <strong>iPhone or iPad:</strong> In Safari, tap Share, then Add to Home Screen. If
+                shown, turn on Open as Web App.
+              </li>
+              <li>
+                <strong>Mac with Safari:</strong> Choose File → Add to Dock.
+              </li>
+              <li>
+                <strong>Chrome, Brave, or Edge:</strong> Look for the install icon in the address
+                bar or the install option in the browser menu.
+              </li>
+            </ul>
+          </details>
         </div>
         <div className="flex flex-wrap gap-3">
           <Button
