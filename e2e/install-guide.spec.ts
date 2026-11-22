@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { passage } from "./fixtures/books";
 import { test, expect } from "./fixtures/test";
 
 for (const device of ["iPhone", "iPad"] as const) {
@@ -31,7 +33,10 @@ for (const device of ["iPhone", "iPad"] as const) {
   });
 }
 
-test("Safari on Mac keeps the browser install instructions", async ({ page, app }) => {
+test("Mac Safari walks through Add to Dock and exports saved reading progress", async ({
+  page,
+  app,
+}) => {
   await page.addInitScript(() =>
     Object.defineProperty(navigator, "userAgent", {
       value: "Mozilla/5.0 (Macintosh; Intel Mac OS X) Version/18.0 Safari/605.1.15",
@@ -39,8 +44,29 @@ test("Safari on Mac keeps the browser install instructions", async ({ page, app 
   );
   await app.emptyLibrary();
   await page.getByText("How to install Still", { exact: true }).click();
-  await expect(page.getByText("Mac with Safari:")).toBeVisible();
-  await expect(page.getByRole("region", { name: /installation walkthrough/ })).toHaveCount(0);
+  const guide = page.getByRole("region", { name: "Mac Safari installation walkthrough" });
+  await expect(guide).toContainText("Step 1 of 2");
+  await expect(guide).toContainText(
+    "click Share in the top-right corner of the toolbar, then choose Add to Dock",
+  );
+  await expect(guide.getByRole("button", { name: "Export library" })).toHaveCount(0);
+  await guide.getByRole("button", { name: "Next" }).click();
+  await expect(guide).toContainText("Step 2 of 2");
+  await expect(guide.getByText("Add", { exact: true })).toBeVisible();
+  await guide.getByRole("button", { name: "Done" }).click();
+  await expect(guide).toBeHidden();
+  await app.paste(passage, "Dock reading");
+  await app.seek(4);
+  await app.saved();
+  await app.library();
+  await page.getByText("How to install Still", { exact: true }).click();
+  await expect(guide).toContainText("Restore backup");
+  const downloading = page.waitForEvent("download");
+  await guide.getByRole("button", { name: "Export library" }).click();
+  const file = await (await downloading).path();
+  const { library } = JSON.parse(await readFile(file!, "utf8"));
+  expect(library.readings[0].title).toBe("Dock reading");
+  expect(library.positions[library.activeId].index).toBe(4);
 });
 
 test("Chromium can install from a prompt captured before opening the library", async ({ page }) => {

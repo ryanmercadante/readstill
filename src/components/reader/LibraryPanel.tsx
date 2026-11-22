@@ -128,7 +128,12 @@ export function LibraryPanel({
           <p className="m-0 text-sm leading-relaxed text-muted-foreground">
             A place for the reading you want to return to.
           </p>
-          <InstallGuide />
+          <InstallGuide
+            busy={busy}
+            onExportLibrary={
+              ready && readings.length > 0 ? () => exportLibrary(library) : undefined
+            }
+          />
         </div>
         <div className="flex flex-wrap gap-3">
           <Button
