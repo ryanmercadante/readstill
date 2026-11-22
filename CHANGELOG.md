@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/ryanmercadante/readstill/compare/v0.3.0...v0.4.0) (2026-11-22)
+
+
+### Features
+
+* add a site footer with privacy, source, and version links ([7db56a2](https://github.com/ryanmercadante/readstill/commit/7db56a2aba602a1eac829724706eec2d1f45611d))
+* let readers choose from seven reading fonts ([80f2283](https://github.com/ryanmercadante/readstill/commit/80f2283603661db19ff022b7b83665ceb9c6661f))
+
 ## [0.3.0](https://github.com/ryanmercadante/readstill/compare/v0.2.0...v0.3.0) (2026-11-18)
 
 
