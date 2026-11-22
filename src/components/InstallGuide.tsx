@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Share, SquarePlus } from "lucide-react";
+import { ChevronDown, EllipsisVertical, MonitorDown, Share, SquarePlus } from "lucide-react";
+import { useInstallPromptContext } from "../hooks/useInstallPrompt";
 import { Button } from "./ui/button";
 
-type Device = "iPhone" | "iPad";
+type Device = "iPhone" | "iPad" | "Chromium" | "Android Chromium";
 
 function detectDevice(): Device | null {
   if (/iPhone/.test(navigator.userAgent)) return "iPhone";
@@ -12,11 +13,14 @@ function detectDevice(): Device | null {
     (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
   )
     return "iPad";
+  if (/Chrom(?:e|ium)\//.test(navigator.userAgent))
+    return /Android/.test(navigator.userAgent) ? "Android Chromium" : "Chromium";
   return null;
 }
 
 export function InstallGuide() {
   const [device, setDevice] = useState<Device | null>(null);
+  const { install, installed } = useInstallPromptContext();
   const [step, setStep] = useState(0);
   const details = useRef<HTMLDetailsElement>(null);
   const summary = useRef<HTMLElement>(null);
@@ -30,6 +34,9 @@ export function InstallGuide() {
       : "Scroll to Add to Home Screen. If it’s missing, use Edit Actions to add it.",
     "Leave Open as Web App on if it appears, then tap Add. You can now open Still from your Home Screen.",
   ];
+  if (installed) return null;
+  const apple = device === "iPhone" || device === "iPad";
+  const android = device === "Android Chromium";
   return (
     <details
       ref={details}
@@ -43,7 +50,7 @@ export function InstallGuide() {
         How to install Still
         <ChevronDown size={15} aria-hidden="true" className="group-open:rotate-180" />
       </summary>
-      {device ? (
+      {apple ? (
         <section
           aria-label={device + " installation walkthrough"}
           className="rounded-xl border border-border p-4"
@@ -107,6 +114,31 @@ export function InstallGuide() {
               {step < 2 ? "Next" : "Done"}
             </Button>
           </div>
+        </section>
+      ) : device || install ? (
+        <section
+          aria-label="Browser installation guide"
+          className="rounded-xl border border-border p-4"
+        >
+          <div
+            aria-hidden="true"
+            className="flex items-center gap-3 rounded-full bg-accent px-4 py-2"
+          >
+            <span className="flex-1 text-xs">readstill.app</span>
+            <span className="rounded-md bg-background p-1.5 text-brand">
+              {android ? <EllipsisVertical size={20} /> : <MonitorDown size={20} />}
+            </span>
+          </div>
+          <p className="my-3 leading-relaxed">
+            {android
+              ? "Open the browser menu beside the address bar and look for Install app or Add to Home screen."
+              : "Look for the install icon at the right end of the address bar. You can also look for Install in the browser menu."}
+          </p>
+          {install && (
+            <Button variant="outline" onClick={install}>
+              <MonitorDown size={17} /> Install Still
+            </Button>
+          )}
         </section>
       ) : (
         <ul className="m-0 list-disc space-y-2 pl-5 leading-relaxed text-muted-foreground">

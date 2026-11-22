@@ -7,6 +7,7 @@ import manropeUrl from "@fontsource-variable/manrope/index.css?url";
 import sourceSerifUrl from "@fontsource-variable/source-serif-4/index.css?url";
 import readingFontsUrl from "../reading-fonts.css?url";
 import { readTheme, saveTheme, themeColors } from "../lib/theme";
+import { InstallPromptProvider } from "../hooks/useInstallPrompt";
 import { ReaderProvider } from "../hooks/useReader";
 import { ThemeContext } from "../hooks/useTheme";
 import { ReadingFontContext } from "../hooks/useReadingFont";
@@ -91,7 +92,9 @@ function RootDocument({ children }: { children: ReactNode }) {
       <body>
         <ThemeContext value={{ theme, toggleTheme }}>
           <ReadingFontContext value={{ font: readingFont, setFont: changeReadingFont }}>
-            <ReaderProvider>{children}</ReaderProvider>
+            <InstallPromptProvider>
+              <ReaderProvider>{children}</ReaderProvider>
+            </InstallPromptProvider>
           </ReadingFontContext>
         </ThemeContext>
         <TanStackDevtools
