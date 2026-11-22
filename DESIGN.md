@@ -85,7 +85,7 @@ components:
 
 Still is a quiet, warm paper reading surface. Serif prose carries the attention; compact sans-serif controls support choosing a pace and returning to context. The article remains open and flat, with no stock imagery.
 
-This is an implementation record, not user-confirmed branding. The working name, metaphor, descriptive color names and visual direction are provisional. `src/styles.css` defines the shared theme and document defaults; Tailwind classes in `src/routes/` and `src/components/` define the layouts and component styling; `src/routes/reader.tsx` coordinates interaction and transitions, with reading surfaces and controls in `src/components/reader/`. Frontmatter records observed values, not a new token API or a promised global spacing scale.
+This is an implementation record, not user-confirmed branding. The working name, metaphor, descriptive color names and visual direction are provisional. `apps/web/src/styles.css` defines the shared theme and document defaults; Tailwind classes in `apps/web/src/routes/` and `apps/web/src/components/` define the layouts and component styling; `apps/web/src/routes/reader.tsx` coordinates interaction and transitions, with reading surfaces and controls in `apps/web/src/components/reader/`. Frontmatter records observed values, not a new token API or a promised global spacing scale.
 
 **Key Characteristics:**
 
@@ -109,7 +109,7 @@ The palette pairs warm neutrals with a restrained terracotta accent; exact value
 - **Stone gray** (`muted`): supporting labels; **paper seam** (`line`): dividers and progress track.
 - **Pale cream** (`control-surface`): fields and selected view; **warm inset** (`switch-track`): view switch track; **warm gray wash** (`ghost-hover`): icon hover.
 
-Error text uses the dedicated red (`error`). Shared semantic tokens in `src/styles.css` cover fields, hover states, selection, scrollbars, focus guides, borders, and elevation in both themes.
+Error text uses the dedicated red (`error`). Shared semantic tokens in `apps/web/src/styles.css` cover fields, hover states, selection, scrollbars, focus guides, borders, and elevation in both themes.
 
 ### Dark mode
 
@@ -176,7 +176,7 @@ The persistent dock holds the thin progress line, Base UI pace slider, replay/pl
 
 ### Component implementation
 
-Shared controls live in `src/components/ui/`, installed from shadcn’s Base UI registry and styled with Tailwind utilities mapped to Still’s existing tokens. Dialogs retain their focus traps and explicit return-to-play focus; form errors are linked to invalid inputs. The play action’s accessible name is “Read passage” so it contains the visible “Read” label. The landing CTA remains a native link styled with the shared button variants. Geometry, typography, and the reader transition are preserved. See `src/components/ui/README.md` for the local adaptations.
+Shared controls live in `apps/web/src/components/ui/`, installed from shadcn’s Base UI registry and styled with Tailwind utilities mapped to Still’s existing tokens. Dialogs retain their focus traps and explicit return-to-play focus; form errors are linked to invalid inputs. The play action’s accessible name is “Read passage” so it contains the visible “Read” label. The landing CTA remains a native link styled with the shared button variants. Geometry, typography, and the reader transition are preserved. See `apps/web/src/components/ui/README.md` for the local adaptations.
 
 ## Do's and Don'ts
 

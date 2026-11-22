@@ -1,4 +1,4 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": ["src/routeTree.gen.ts", "pnpm-lock.yaml", "CHANGELOG.md"]
+  "ignorePatterns": ["apps/web/src/routeTree.gen.ts", "pnpm-lock.yaml", "**/CHANGELOG.md"]
 }

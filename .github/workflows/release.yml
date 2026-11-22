@@ -57,6 +57,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - name: Deploy to production
+        working-directory: apps/web
         run: pnpm exec wrangler deploy --message "Release ${{ needs.release-please.outputs.tag_name }}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

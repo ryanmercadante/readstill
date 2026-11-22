@@ -15,6 +15,8 @@ Commit dependency changes together with `pnpm-lock.yaml`. For a reproducible ins
 
 If an older pnpm launcher cannot switch to the pinned version, run commands through Corepack (for example, `corepack pnpm install`).
 
+The repository is a pnpm workspace. The web app is the `@still/web` package in `apps/web`; shared packages will go in `packages/`. Root scripts such as `pnpm dev`, `pnpm build`, and `pnpm test:e2e` run the web app's scripts, `pnpm test` and `pnpm typecheck` run in every package, and `pnpm lint` and `pnpm format` cover the whole repository. To run anything else in the web app, use `pnpm --filter @still/web <command>` or run it from `apps/web`.
+
 The first visit migrates the previous single reading or version-1 library into the current document format, preserving the selected word and pace. The original single-reading snapshot is retained. Library migrations are atomic: a failed migration leaves old records intact. Keep the same hostname and port to retain access to existing data; browser storage belongs to an origin, not a route. Export and restore a library backup to move between origins or devices.
 
 ## Included
@@ -48,7 +50,7 @@ SVGs are sanitized with DOMPurify after removing scripts, foreign HTML, external
 
 EPUB files must be at most 50 MB. Extraction allows at most 3,000 archive entries, 80 MB of selected expanded resources, and 5 MB per resource. A book may contain up to 500 chapters, 40,000 blocks and 100 illustrations per chapter, 100,000 prose/table characters per chapter, and 2 million text characters overall. Tables allow up to 200 rows, 50 cells per row, 5,000 cells total, and spans up to 100. The local library holds up to 100 readings. Backups now allow up to 250 MB to include original EPUB bytes and rendered illustrations; browser storage may impose a smaller limit. A small allowance is reserved for future progress changes.
 
-Link imports accept public `http(s)` pages on default ports only: no credentials, IP addresses, or local/internal host names, checked again at every redirect (up to 5). Pages must be HTML, at most 5 MB, and respond within 10 seconds. The endpoint answers only same-origin browser requests and is rate-limited to 20 imports per minute per IP with the `PAGE_IMPORT_LIMITER` binding in `wrangler.jsonc`. The address travels in the request body so it stays out of request logs; nothing is stored. Images go through `/api/image` with the same address checks: PNG, JPEG, GIF, WebP, or AVIF only (no SVG), at most 8 MB each, rate-limited to 150 per minute per IP with `IMAGE_IMPORT_LIMITER`. The browser picks the `srcset` candidate nearest 1,600px and follows common lazy-loading attributes, downloads four at a time, skips images under 48px, keeps small originals as they are, and re-encodes larger ones to at most 1,600px (JPEG, or PNG when transparent). Failed images and images beyond the first 30 are listed in the import notes rather than marked in place, so playback doesn't stop for them. The extracted article must fit the 100,000-character passage limit. Pages that build their text with JavaScript, or sit behind a sign-in or paywall, can't be imported; copy and paste their text instead.
+Link imports accept public `http(s)` pages on default ports only: no credentials, IP addresses, or local/internal host names, checked again at every redirect (up to 5). Pages must be HTML, at most 5 MB, and respond within 10 seconds. The endpoint answers only same-origin browser requests and is rate-limited to 20 imports per minute per IP with the `PAGE_IMPORT_LIMITER` binding in `apps/web/wrangler.jsonc`. The address travels in the request body so it stays out of request logs; nothing is stored. Images go through `/api/image` with the same address checks: PNG, JPEG, GIF, WebP, or AVIF only (no SVG), at most 8 MB each, rate-limited to 150 per minute per IP with `IMAGE_IMPORT_LIMITER`. The browser picks the `srcset` candidate nearest 1,600px and follows common lazy-loading attributes, downloads four at a time, skips images under 48px, keeps small originals as they are, and re-encodes larger ones to at most 1,600px (JPEG, or PNG when transparent). Failed images and images beyond the first 30 are listed in the import notes rather than marked in place, so playback doesn't stop for them. The extracted article must fit the 100,000-character passage limit. Pages that build their text with JavaScript, or sit behind a sign-in or paywall, can't be imported; copy and paste their text instead.
 
 Imported markup is parsed as inert XML and normalized into ordered text, image, table, and unavailable-content blocks. Scripts, source styles, and event handlers never enter the rendered document. Import and restore validate the complete result before adding it. Version-2 backups include rich blocks, original EPUBs when available, import notes, and chapter/block/word positions. Version-1 backups are migrated on restore. Existing readings and positions win during restore; a conflicting identifier with different content becomes a separate reading. Restoring into an empty library also restores the saved pace and active reading. Older imported books have no original EPUB stored; reimport the source file to retain it.
 
@@ -60,15 +62,15 @@ Book contents and progress use separate IndexedDB records. Saves are atomic and 
 pnpm lint
 pnpm format:check
 pnpm test
-pnpm exec playwright install chromium # once, and after Playwright upgrades
+pnpm --filter @still/web exec playwright install chromium # once, and after Playwright upgrades
 pnpm test:e2e
 ```
 
-`pnpm test` runs the Vitest unit tests. `pnpm test:e2e` runs the Playwright Test suite in `e2e/`: it builds and typechecks the current checkout, starts an isolated production preview on port 4173, runs desktop and mobile Chromium projects, and stops the server. No manually started server is needed. Each test has fresh browser storage, separate from your own browser.
+`pnpm test` runs the Vitest unit tests. `pnpm test:e2e` runs the Playwright Test suite in `apps/web/e2e/`: it builds and typechecks the current checkout, starts an isolated production preview on port 4173, runs desktop and mobile Chromium projects, and stops the server. No manually started server is needed. Each test has fresh browser storage, separate from your own browser.
 
-For a focused run, use `pnpm test:e2e reader.spec.ts --project=chromium` or `pnpm test:e2e --grep "pending autoplay"`. Use `pnpm test:e2e:ui` to explore tests, `pnpm exec playwright test --debug` to debug, and `pnpm exec playwright show-report` to inspect the HTML report and failure traces/screenshots. To explicitly use an existing server, set `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5173 pnpm test:e2e`; positional URLs are no longer supported.
+For a focused run, use `pnpm test:e2e reader.spec.ts --project=chromium` or `pnpm test:e2e --grep "pending autoplay"`. Use `pnpm test:e2e:ui` to explore tests, `pnpm --filter @still/web exec playwright test --debug` to debug, and `pnpm --filter @still/web exec playwright show-report` to inspect the HTML report and failure traces/screenshots. To explicitly use an existing server, set `PLAYWRIGHT_BASE_URL=http://127.0.0.1:5173 pnpm test:e2e`; positional URLs are no longer supported.
 
-The suite covers routing and SSR, all three reading modes, playback and interruptions, keyboard shortcuts and modal focus, local persistence and storage failures, EPUB import and context stops, backups, themes, responsive layout, and automated accessibility checks. Vitest retains detailed parser, migration, validation, and storage transaction coverage. See [the browser testing guide](e2e/README.md) for the coverage map and conventions. Chromium emulation and axe checks do not replace physical-device, Safari, or screen-reader testing.
+The suite covers routing and SSR, all three reading modes, playback and interruptions, keyboard shortcuts and modal focus, local persistence and storage failures, EPUB import and context stops, backups, themes, responsive layout, and automated accessibility checks. Vitest retains detailed parser, migration, validation, and storage transaction coverage. See [the browser testing guide](apps/web/e2e/README.md) for the coverage map and conventions. Chromium emulation and axe checks do not replace physical-device, Safari, or screen-reader testing.
 
 GitHub Actions runs lint, formatting, unit tests, and the browser suite on pull requests and pushes to `main`, and uploads the Playwright report and test artifacts. Browser retries are disabled so intermittent failures remain visible.
 
@@ -76,11 +78,13 @@ Run `pnpm lint:fix` to apply safe lint fixes and `pnpm format` to format files. 
 
 ## Deploy
 
-Still runs on Cloudflare Workers. `@cloudflare/vite-plugin` builds the TanStack Start server for the Workers runtime, so `pnpm dev`, `pnpm preview`, and the browser tests already run in workerd locally. `wrangler.jsonc` names the Worker `readstill`; that name must match the Worker in the Cloudflare dashboard.
+Still runs on Cloudflare Workers. `@cloudflare/vite-plugin` builds the TanStack Start server for the Workers runtime, so `pnpm dev`, `pnpm preview`, and the browser tests already run in workerd locally. `apps/web/wrangler.jsonc` names the Worker `readstill`; that name must match the Worker in the Cloudflare dashboard.
 
-Deploys run from GitHub Actions, not Workers Builds. After the tests pass, every push to `main` builds with `CLOUDFLARE_ENV=staging` and deploys the separate `readstill-staging` Worker to `staging.readstill.app`. Release Please keeps a release PR open; merging it tags the release and deploys that tag to production at `readstill.app`. `pnpm deploy` deploys to production from a local checkout and should only be used deliberately. Browser storage is per origin, so readings saved on `staging.readstill.app` do not appear on `readstill.app`.
+Deploys run from GitHub Actions, not Workers Builds. After the tests pass, every push to `main` builds with `CLOUDFLARE_ENV=staging` and deploys the separate `readstill-staging` Worker to `staging.readstill.app`. Release Please keeps a release PR open; merging it tags the release and deploys that tag to production at `readstill.app`. `pnpm run deploy` deploys to production from a local checkout and should only be used deliberately. Browser storage is per origin, so readings saved on `staging.readstill.app` do not appear on `readstill.app`.
 
 ## Implementation
+
+Paths in this section are relative to `apps/web`.
 
 - `src/lib/reader.ts`: token positions, sentence boundaries, anchor selection, pacing, and saved-data validation.
 - `src/lib/sample.ts` and `reader.test.ts`: sample prose and reader logic tests.
@@ -102,7 +106,7 @@ Deploys run from GitHub Actions, not Workers Builds. After the tests pass, every
 - `src/hooks/useReader.tsx`: React/router adapter composing library data and playback commands.
 - `src/routes/reader.tsx`: reader composition, DOM measurement, animation, focus, and keyboard event adapters. See the [state ownership notes](docs/READER_STATE.md).
 - `src/components/reader/`: library, article and focus views, reading controls, heading, anchored word, and the paste dialog. Focus layout measurements and paste-form state live with their components.
-- `src/components/ui/`: official shadcn Base UI components with Tailwind styles customized to Still's design; see the [component notes](src/components/ui/README.md).
+- `src/components/ui/`: official shadcn Base UI components with Tailwind styles customized to Still's design; see the [component notes](apps/web/src/components/ui/README.md).
 - `src/router.tsx` and `src/routes/`: TanStack Start router, shared HTML document, landing page, and reader route. `src/routeTree.gen.ts` is generated by the router plugin and committed for standalone typechecking.
 - `src/components/SiteHeader.tsx`, `SkipLink.tsx`, and `Wordmark.tsx`: shared navigation and branding.
 - `src/styles.css`: Tailwind theme tokens, document defaults, and the compact reader media variant. Responsive layouts and component styling live in Tailwind utilities alongside their markup.
@@ -110,7 +114,7 @@ Deploys run from GitHub Actions, not Workers Builds. After the tests pass, every
 
 React and TypeScript run in TanStack Start with Vite, following the [official setup](https://tanstack.com/start/latest/docs/framework/react/build-from-scratch). Both routes render on the server and hydrate in the browser. IndexedDB access, playback, and layout measurements stay in browser effects; saved text is never sent to the server. The only server endpoints fetch pages and images for link import and store nothing. Motion animates the view transition; shadcn's Base UI components provide the interactive controls and dialogs. Fonts are self-hosted. There is no telemetry, upload endpoint, or server-side reading storage.
 
-The build emits `dist/client` assets and `dist/server/server.js`. `pnpm preview` serves them locally; production hosting still needs a deployment adapter or server appropriate to the chosen host.
+The build emits `apps/web/dist/client` assets and `dist/server/server.js`. `pnpm preview` serves them locally; production hosting still needs a deployment adapter or server appropriate to the chosen host.
 
 ## Scope and evidence
 

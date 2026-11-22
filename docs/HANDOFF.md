@@ -15,7 +15,7 @@ Read these existing artifacts instead of treating this handoff as a replacement 
 - [README](../README.md): features, setup, checks, implementation map, and limitations.
 - [PRODUCT](../PRODUCT.md): approved MVP scope, principles, and open decisions.
 - [DESIGN](../DESIGN.md): current visual system and interaction design.
-- [package.json](../package.json): actual dependencies and commands; pnpm and `pnpm-lock.yaml` are the current package tooling.
+- [package.json](../package.json) and [apps/web/package.json](../apps/web/package.json): workspace and web app commands and dependencies; pnpm workspaces and `pnpm-lock.yaml` are the current package tooling.
 
 The previous dev server used `http://127.0.0.1:5174`. Check whether it is still running before starting another. The browser checks now use Playwright Test and manage their own preview server; see the current README for commands. IndexedDB is origin-specific, so changing hostname or port will appear to lose saved reading data even when the old origin still retains it.
 

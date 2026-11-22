@@ -5,7 +5,7 @@
   "bump-minor-pre-major": true,
   "initial-version": "0.1.0",
   "packages": {
-    ".": {
+    "apps/web": {
       "package-name": "readstill",
       "changelog-path": "CHANGELOG.md"
     }
