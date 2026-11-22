@@ -44,6 +44,8 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/still-180.png" },
+      { rel: "manifest", href: "/manifest.webmanifest", crossOrigin: "use-credentials" },
       { rel: "stylesheet", href: manropeUrl },
       { rel: "stylesheet", href: sourceSerifUrl },
       { rel: "stylesheet", href: readingFontsUrl },
