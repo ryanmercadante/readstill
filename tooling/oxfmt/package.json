@@ -1,0 +1,16 @@
+{
+  "name": "@still/oxfmt-config",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.78.0"
+  },
+  "peerDependencies": {
+    "oxfmt": "^0.78.0"
+  }
+}

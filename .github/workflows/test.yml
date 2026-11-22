@@ -18,20 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-      - uses: pnpm/action-setup@v6
-        with:
-          cache: true
-      - run: pnpm install --frozen-lockfile
+      - uses: actions/checkout@v7.0.1
+      - uses: ./tooling/github/setup
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm test
       - run: pnpm --filter @still/web exec playwright install --with-deps chromium
       - run: pnpm test:e2e
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7.0.2
         if: ${{ !cancelled() }}
         with:
           name: playwright-report
@@ -52,14 +46,8 @@ jobs:
       url: https://staging.readstill.app
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-      - uses: pnpm/action-setup@v6
-        with:
-          cache: true
-      - run: pnpm install --frozen-lockfile
+      - uses: actions/checkout@v7.0.1
+      - uses: ./tooling/github/setup
       # The Vite plugin selects the wrangler environment at build time.
       - run: pnpm build
         env:
