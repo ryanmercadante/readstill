@@ -20,3 +20,13 @@ minimumReleaseAgeExclude:
   - playwright@1.65.1
   - postcss@8.5.33
   - tapable@2.3.4
+permissions:
+  "@tanstack/devtools-vite":
+    skills: true
+  "@tanstack/react-router":
+    skills: [router-query, react-router]
+  "@tanstack/react-start":
+    skills: [react-start]
+skills:
+  dirs:
+    - .agents/skills
