@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: ./tooling/github/setup
+      - uses: $/tooling/github/setup
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm test
@@ -47,7 +47,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: ./tooling/github/setup
+      - uses: $/tooling/github/setup
       # The Vite plugin selects the wrangler environment at build time.
       - run: pnpm build
         env:

@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
-      - uses: ./tooling/github/setup
+      - uses: $/tooling/github/setup
       - run: pnpm build
       - name: Deploy to production
         working-directory: apps/web

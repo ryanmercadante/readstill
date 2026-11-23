@@ -1,9 +1,11 @@
 name: Set up and install
 description: Install Node and pnpm, then install workspace dependencies from the lockfile.
 
-# Local actions load from the checked-out tree, so run actions/checkout first:
+# Reference it as `$/` so it runs at the workflow's commit and the actions it
+# uses are covered by .github/workflows/actions.lock. It reads .nvmrc and the
+# pnpm lockfile from the workspace, so run actions/checkout first:
 #   - uses: actions/checkout@v7.0.1
-#   - uses: ./tooling/github/setup
+#   - uses: $/tooling/github/setup
 
 runs:
   using: composite
