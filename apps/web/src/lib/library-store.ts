@@ -1,13 +1,12 @@
+import { assertLibraryCapacity, MAX_READINGS, mergeLibrary, sampleReading } from "./library";
 import {
-  assertLibraryCapacity,
+  type Position,
+  positionAt,
   initialPosition,
-  MAX_READINGS,
-  mergeLibrary,
-  sampleReading,
   textReading,
-} from "./library";
-import { type Position, positionAt } from "@still/reader-core";
-import type { Library, Reading } from "./library";
+  type Reading,
+} from "@still/reader-core";
+import type { Library } from "./library";
 import { loadLibrary, saveLibrary } from "./library-storage";
 import type { StoredLibrary } from "./library-storage";
 import { requestPersistentStorage } from "./persistent-storage";
@@ -182,7 +181,8 @@ export function createLibraryStore(
       });
     },
     addReading,
-    replace: (text: string, title: string) => addReading(textReading(text, title)),
+    replace: (text: string, title: string) =>
+      addReading(textReading(text, title, crypto.randomUUID())),
     restore: (incoming: Library) => {
       const next = mergeLibrary(state.library, incoming);
       assertLibraryCapacity(next);

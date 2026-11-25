@@ -1,9 +1,9 @@
 import { expect, it, vi } from "vitest";
 import { createLibraryStore } from "./library-store";
-import { initialPosition, sampleReading, textReading } from "./library";
+import { sampleReading } from "./library";
 import type { Library } from "./library";
 import type { StoredLibrary } from "./library-storage";
-import { positionAt } from "@still/reader-core";
+import { positionAt, initialPosition, textReading } from "@still/reader-core";
 
 const book = textReading("One two three four five six.", "Reading", "reading");
 const libraryFor = (): Library => ({

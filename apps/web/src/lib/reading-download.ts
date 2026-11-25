@@ -1,4 +1,4 @@
-import type { Reading } from "./library";
+import { type Reading } from "@still/reader-core";
 
 export function toBase64(bytes: Uint8Array): string {
   let binary = "";

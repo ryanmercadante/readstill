@@ -1,7 +1,7 @@
 import { createStore, get, promisifyRequest } from "idb-keyval";
 import { migrateSnapshot, parseBackup } from "./library";
-import type { Position } from "@still/reader-core";
-import type { Library, Reading } from "./library";
+import type { Position, Reading } from "@still/reader-core";
+import type { Library } from "./library";
 
 // Lazy: IndexedDB is never touched by server rendering.
 let store: ReturnType<typeof createStore> | undefined;

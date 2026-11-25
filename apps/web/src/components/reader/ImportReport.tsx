@@ -1,5 +1,5 @@
-import type { Reading } from "../../lib/library";
 import { Button } from "../ui/button";
+import { type Reading } from "@still/reader-core";
 
 export function ImportNotes({ reading }: { reading: Reading }) {
   if (!reading.importIssues?.length) return null;

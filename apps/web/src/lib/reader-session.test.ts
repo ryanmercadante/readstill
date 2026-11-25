@@ -1,11 +1,11 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { createActor, fromCallback } from "xstate";
 import { createLibraryStore } from "./library-store";
-import { initialPosition, textReading } from "./library";
 import type { Library } from "./library";
 import type { StoredLibrary } from "./library-storage";
 import { playbackMachine, currentPlayback } from "./playback-machine";
 import { connectReaderSession } from "./reader-session";
+import { initialPosition, textReading } from "@still/reader-core";
 
 const cleanup: (() => void)[] = [];
 afterEach(() => cleanup.splice(0).forEach((stop) => stop()));

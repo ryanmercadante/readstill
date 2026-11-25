@@ -1,8 +1,7 @@
 import { unzip, strFromU8 } from "fflate";
 import { MAX_BOOK_TEXT, MAX_FILE_BYTES, MAX_CHAPTER_BLOCKS } from "./library";
 import { blockTextSize, validReading } from "./library";
-import { type Chapter, MAX_TEXT_LENGTH } from "@still/reader-core";
-import type { ImportIssue, Reading } from "./library";
+import { type Chapter, MAX_TEXT_LENGTH, type ImportIssue, type Reading } from "@still/reader-core";
 import { toBase64 } from "./reading-download";
 import { prepareSvg, rasterizeSvg } from "./epub-svg";
 import { blockWriter, content, elements, writeHtmlBlocks } from "./html-blocks";

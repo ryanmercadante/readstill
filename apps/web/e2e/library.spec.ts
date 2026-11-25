@@ -1,7 +1,8 @@
 import { test, expect, StillApp } from "./fixtures/test";
 import { passage } from "./fixtures/books";
 import { seedRecords } from "./fixtures/storage";
-import { sampleReading, initialPosition, textReading } from "../src/lib/library";
+import { initialPosition, textReading } from "@still/reader-core";
+import { sampleReading } from "../src/lib/library";
 
 test("legacy single-reading storage migrates once with its pace and position", async ({
   page,

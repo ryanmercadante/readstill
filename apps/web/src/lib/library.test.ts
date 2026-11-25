@@ -1,18 +1,23 @@
 import { describe, expect, it } from "vitest";
 import {
-  initialPosition,
   mergeLibrary,
   migrateSnapshot,
   parseBackup,
-  proseBlocks,
-  readingProgress,
   serializeBackup,
-  textReading,
   validReading,
   sampleReading,
 } from "./library";
 import type { Library } from "./library";
-import { chapterSequence, chapterText, positionAt, sequenceIndex } from "@still/reader-core";
+import {
+  chapterSequence,
+  chapterText,
+  positionAt,
+  sequenceIndex,
+  initialPosition,
+  proseBlocks,
+  readingProgress,
+  textReading,
+} from "@still/reader-core";
 const library = (): Library => {
   const reading = textReading("First sentence. Next one.", "An essay", "essay");
   return {
@@ -89,7 +94,7 @@ describe("library and backups", () => {
     ).toEqual({ readings: [], positions: {}, activeId: null, wpm: 300 });
   });
   it("keeps the previous text limit valid even for many short paragraphs", () => {
-    expect(validReading(textReading("x\n\n".repeat(30_000), "Many paragraphs"))).toBe(true);
+    expect(validReading(textReading("x\n\n".repeat(30_000), "Many paragraphs", "many"))).toBe(true);
   });
   it("migrates a single snapshot without losing text, pace, or position", () => {
     const result = migrateSnapshot({

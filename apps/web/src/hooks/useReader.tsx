@@ -9,10 +9,11 @@ import {
   useSyncExternalStore,
 } from "react";
 import type { ReactNode } from "react";
-import type { Library, Reading } from "../lib/library";
+import type { Library } from "../lib/library";
 import { createLibraryStore } from "../lib/library-store";
 import { currentPlayback, playbackMachine } from "../lib/playback-machine";
 import { connectReaderSession } from "../lib/reader-session";
+import { type Reading } from "@still/reader-core";
 
 function useReaderState() {
   const inReader = useRouterState({ select: (state) => state.location.pathname === "/reader" });

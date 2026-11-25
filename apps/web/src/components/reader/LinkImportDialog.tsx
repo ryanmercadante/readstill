@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from "../ui/dialog";
 import { ArrowRight, X } from "lucide-react";
-import type { Reading } from "../../lib/library";
+import { type Reading } from "@still/reader-core";
 
 type LinkImportDialogProps = {
   open: boolean;

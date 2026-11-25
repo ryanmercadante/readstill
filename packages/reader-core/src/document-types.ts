@@ -18,3 +18,16 @@ export type Position = {
   finished: boolean;
   updatedAt: number;
 };
+export type ImportIssue = { chapterId: string; blockId: string; message: string };
+export type Reading = {
+  id: string;
+  title: string;
+  author: string;
+  kind: "text" | "epub" | "web";
+  chapters: Chapter[];
+  addedAt: number;
+  originalEpub?: { name: string; data: string };
+  /** The page a web reading was imported from. */
+  source?: { url: string; siteName: string };
+  importIssues?: ImportIssue[];
+};

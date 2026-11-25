@@ -3,14 +3,16 @@ import {
   type Chapter,
   type ContentBlock,
   type Position,
-  type TextBlock,
+  type Reading,
   MAX_TEXT_LENGTH,
   MAX_WPM,
   MIN_WPM,
   chapterSequence,
   chapterText,
   positionAt,
-  sequenceIndex,
+  proseBlocks,
+  textReading,
+  validPosition,
 } from "@still/reader-core";
 import { SAMPLE_TEXT, SAMPLE_TITLE } from "./sample";
 import { validLegacyLibrary } from "./library-v1";
@@ -22,19 +24,6 @@ export const MAX_BOOK_TEXT = 2_000_000;
 export const MAX_CHAPTER_BLOCKS = 40_000;
 export const MAX_FILE_BYTES = 50_000_000;
 export const MAX_BACKUP_BYTES = 250_000_000;
-export type ImportIssue = { chapterId: string; blockId: string; message: string };
-export type Reading = {
-  id: string;
-  title: string;
-  author: string;
-  kind: "text" | "epub" | "web";
-  chapters: Chapter[];
-  addedAt: number;
-  originalEpub?: { name: string; data: string };
-  /** The page a web reading was imported from. */
-  source?: { url: string; siteName: string };
-  importIssues?: ImportIssue[];
-};
 export type Library = {
   readings: Reading[];
   positions: Record<string, Position>;
@@ -43,29 +32,6 @@ export type Library = {
 };
 export type Backup = { format: "still-library"; version: 2; library: Library };
 
-export function proseBlocks(text: string): TextBlock[] {
-  return text
-    .trim()
-    .split(/\n\s*\n/)
-    .filter((p) => p.trim())
-    .map((text, i) => ({ id: `p${i}`, type: "text", text }));
-}
-export function textReading(
-  text: string,
-  title: string,
-  id: string = crypto.randomUUID(),
-): Reading {
-  if (!text.trim() || text.length > MAX_TEXT_LENGTH)
-    throw new Error("Use 1–100,000 characters per passage.");
-  return {
-    id,
-    title: title.trim().slice(0, 100) || "Untitled reading",
-    author: "",
-    kind: "text",
-    chapters: [{ id: "text", title: "Passage", blocks: proseBlocks(text) }],
-    addedAt: Date.now(),
-  };
-}
 export const sampleReading: Reading = {
   id: "still-sample",
   title: SAMPLE_TITLE,
@@ -74,10 +40,6 @@ export const sampleReading: Reading = {
   addedAt: 0,
   chapters: [{ id: "text", title: "Passage", blocks: proseBlocks(SAMPLE_TEXT) }],
 };
-export function initialPosition(reading: Reading): Position {
-  return positionAt(reading.chapters[0], 0, false, 0);
-}
-
 /** Remove only the built-in passage, including copies added by the old sample shortcut. */
 export function withoutSample(library: Library): Library {
   const readings = library.readings.filter(
@@ -296,22 +258,6 @@ export function validReading(v: unknown): v is Reading {
     return false;
   return true;
 }
-export function validPosition(value: unknown, reading: Reading): value is Position {
-  if (
-    !object(value) ||
-    !identifier(value.blockId) ||
-    !Number.isInteger(value.index) ||
-    (value.index as number) < 0 ||
-    typeof value.finished !== "boolean" ||
-    !timestamp(value.updatedAt)
-  )
-    return false;
-  const chapter = reading.chapters.find((c) => c.id === value.chapterId);
-  if (!chapter) return false;
-  const index = sequenceIndex(chapter, value as Position);
-  return index >= 0 && (!value.finished || index === chapterSequence(chapter).length - 1);
-}
-
 function copyBlock(block: ContentBlock): ContentBlock {
   if (block.type === "text") return { id: block.id, type: "text", text: block.text };
   if (block.type === "image")
@@ -465,14 +411,4 @@ export function mergeLibrary(current: Library, incoming: Library): Library {
     activeId: current.activeId ?? incoming.activeId ?? readings[0]?.id ?? null,
     wpm: current.readings.length ? current.wpm : incoming.wpm,
   };
-}
-export function readingProgress(reading: Reading, position: Position): number {
-  const chapter = reading.chapters.findIndex((c) => c.id === position.chapterId);
-  const counts = reading.chapters.map((c) => chapterSequence(c).length);
-  const before = counts.slice(0, chapter).reduce((a, b) => a + b, 0);
-  return Math.floor(
-    (100 *
-      (before + sequenceIndex(reading.chapters[chapter], position) + (position.finished ? 1 : 0))) /
-      counts.reduce((a, b) => a + b, 0),
-  );
 }

@@ -2,7 +2,8 @@ import "fake-indexeddb/auto";
 import { get, set, clear, createStore } from "idb-keyval";
 import { beforeEach, expect, it, vi } from "vitest";
 import { loadLibrary, saveLibrary } from "./library-storage";
-import { initialPosition, textReading, sampleReading } from "./library";
+import { sampleReading } from "./library";
+import { initialPosition, textReading } from "@still/reader-core";
 
 beforeEach(async () => {
   await clear();

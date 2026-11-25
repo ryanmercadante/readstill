@@ -2,8 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createActor, fromCallback } from "xstate";
 import type { ActorRefFrom } from "xstate";
 import { currentPlayback, playbackMachine } from "./playback-machine";
-import { initialPosition, textReading } from "./library";
-import type { Reading } from "./library";
+import { initialPosition, textReading, type Reading } from "@still/reader-core";
 
 const actors = new Set<ActorRefFrom<typeof playbackMachine>>();
 afterEach(() => {

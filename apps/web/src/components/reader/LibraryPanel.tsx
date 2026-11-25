@@ -1,20 +1,14 @@
 import { useRef, useState } from "react";
 import { ArrowRight, BookOpen, Download, Link2, Plus, Upload, X } from "lucide-react";
 import { Button } from "../ui/button";
-import {
-  initialPosition,
-  MAX_FILE_BYTES,
-  MAX_BACKUP_BYTES,
-  parseBackup,
-  readingProgress,
-  serializeBackup,
-} from "../../lib/library";
+import { MAX_FILE_BYTES, MAX_BACKUP_BYTES, parseBackup, serializeBackup } from "../../lib/library";
 import { downloadOriginal } from "../../lib/reading-download";
 import { ImportReport, ImportNotes } from "./ImportReport";
 import { InstallGuide } from "../InstallGuide";
 import { PasteTextDialog } from "./PasteTextDialog";
 import { LinkImportDialog } from "./LinkImportDialog";
-import type { Library, Reading } from "../../lib/library";
+import type { Library } from "../../lib/library";
+import { initialPosition, readingProgress, type Reading } from "@still/reader-core";
 
 type Props = {
   library: Library;

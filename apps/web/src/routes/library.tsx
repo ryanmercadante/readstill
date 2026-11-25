@@ -5,7 +5,7 @@ import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
 import { LibraryPanel } from "../components/reader/LibraryPanel";
 import { pageHead } from "../lib/page-head";
-import type { Reading } from "../lib/library";
+import { type Reading } from "@still/reader-core";
 
 export const Route = createFileRoute("/library")({
   head: () =>
