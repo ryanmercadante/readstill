@@ -8,7 +8,11 @@
     "scheme": "still",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#f7f5ef",
+    "ios": {
+      "bundleIdentifier": "app.readstill"
+    },
     "android": {
+      "package": "app.readstill",
       "adaptiveIcon": {
         "backgroundColor": "#f7f5ef",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
