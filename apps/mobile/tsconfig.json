@@ -4,9 +4,13 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    // Keep Node's globals (from @types/node, used by tests) out of the app.
+    "types": [],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
+  // Replacing exclude drops the base list, so repeat it. Tests use tsconfig.test.json.
+  "exclude": ["node_modules", "android", "ios", "**/*.test.ts"]
 }

@@ -4,6 +4,7 @@ packages:
   - tooling/*
 
 allowBuilds:
+  better-sqlite3: true
   esbuild: true
   workerd: true
 # Preserve versions from the npm lockfile during the 2026-11-14 migration.
