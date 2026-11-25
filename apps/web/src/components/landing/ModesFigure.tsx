@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { cn } from "cn";
 import { MousePointer2 } from "lucide-react";
 import { useReducedMotion } from "motion/react";
-import { anchorParts } from "../../lib/reader";
+import { anchorParts } from "@still/reader-core";
 import { GuidedPassage, PASSAGE, START, WORDS, useFocusPlayback, useGuidedPlayback } from "./demos";
 
 /**

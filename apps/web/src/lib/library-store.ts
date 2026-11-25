@@ -6,8 +6,8 @@ import {
   sampleReading,
   textReading,
 } from "./library";
-import type { Library, Position, Reading } from "./library";
-import { positionAt } from "./reader-document";
+import { type Position, positionAt } from "@still/reader-core";
+import type { Library, Reading } from "./library";
 import { loadLibrary, saveLibrary } from "./library-storage";
 import type { StoredLibrary } from "./library-storage";
 import { requestPersistentStorage } from "./persistent-storage";

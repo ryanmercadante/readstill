@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { epubFixture, sampleEpubFiles } from "./__fixtures__/epub";
 import { epubPath, importEpub } from "./epub";
 import { validReading } from "./library";
-import { chapterSequence, chapterText } from "./reader-document";
+import { chapterSequence, chapterText } from "@still/reader-core";
 vi.mock("./epub-svg", async (original) => ({
   ...(await original<typeof import("./epub-svg")>()),
   rasterizeSvg: vi.fn(async () => "data:image/png;base64,YQ=="),

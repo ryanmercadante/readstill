@@ -1,8 +1,6 @@
 import { useEffect, useMemo } from "react";
 import type { RefObject } from "react";
-import type { Chapter } from "../../lib/library";
-import type { ReadingEntry } from "../../lib/reader-document";
-import { blockLabel } from "../../lib/reader-document";
+import { type Chapter, type ReadingEntry, blockLabel } from "@still/reader-core";
 import { Button } from "../ui/button";
 
 type Props = {

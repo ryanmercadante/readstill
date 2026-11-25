@@ -3,7 +3,7 @@ import { createLibraryStore } from "./library-store";
 import { initialPosition, sampleReading, textReading } from "./library";
 import type { Library } from "./library";
 import type { StoredLibrary } from "./library-storage";
-import { positionAt } from "./reader-document";
+import { positionAt } from "@still/reader-core";
 
 const book = textReading("One two three four five six.", "Reading", "reading");
 const libraryFor = (): Library => ({

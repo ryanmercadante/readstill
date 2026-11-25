@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { articleTitle, importWebPage, normalizeAddress, webReading } from "./web-article";
 import { validReading } from "./library";
 import { SkippedImage } from "./web-images";
-import { chapterText } from "./reader-document";
+import { chapterText } from "@still/reader-core";
 
 const prose = (n: number) =>
   Array.from(

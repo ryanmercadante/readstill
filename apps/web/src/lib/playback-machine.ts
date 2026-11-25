@@ -1,7 +1,12 @@
 import { assign, fromCallback, raise, setup } from "xstate";
-import type { Chapter, Position } from "./library";
-import { chapterSequence, positionAt, sequenceIndex } from "./reader-document";
-import { wordDuration } from "./reader";
+import {
+  type Chapter,
+  type Position,
+  chapterSequence,
+  positionAt,
+  sequenceIndex,
+  wordDuration,
+} from "@still/reader-core";
 
 export type PlaybackInput = {
   readingId: string | null;

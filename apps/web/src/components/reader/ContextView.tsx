@@ -1,6 +1,5 @@
 import { Button } from "../ui/button";
-import { blockLabel } from "../../lib/reader-document";
-import type { ContextBlock } from "../../lib/reader-document";
+import { blockLabel, type ContextBlock } from "@still/reader-core";
 import type { RefObject } from "react";
 
 type Props = {

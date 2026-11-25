@@ -2,7 +2,7 @@ import { Readability } from "@mozilla/readability";
 import { blockTextSize, validReading } from "./library";
 import type { ImportIssue, Reading } from "./library";
 import { blockWriter, writeHtmlBlocks } from "./html-blocks";
-import { MAX_TEXT_LENGTH } from "./reader";
+import { MAX_TEXT_LENGTH } from "@still/reader-core";
 import { browserImageLoader, imageAddress, MAX_ARTICLE_IMAGES, SkippedImage } from "./web-images";
 import type { ImageLoader } from "./web-images";
 

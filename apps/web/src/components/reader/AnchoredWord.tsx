@@ -1,4 +1,4 @@
-import { anchorParts } from "../../lib/reader";
+import { anchorParts } from "@still/reader-core";
 
 export function AnchoredWord({ word }: { word: string }) {
   const parts = anchorParts(word);

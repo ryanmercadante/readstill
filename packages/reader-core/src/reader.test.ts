@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { anchorParts, tokenize, validSnapshot, wordDuration } from "./reader";
+import { anchorParts, tokenize, wordDuration } from "./reader";
 
 describe("document positions", () => {
   it("keeps one index across paragraphs and meaningful sentence replay locations", () => {
@@ -37,19 +37,4 @@ describe("focus and timing", () => {
     expect(wordDuration(words[1], 300)).toBe(360);
     expect(wordDuration(words[3], 300)).toBe(480);
   });
-});
-
-it("rejects damaged or incompatible saved data", () => {
-  const saved = { version: 1, text: "Some words.", title: "Title", index: 0, wpm: 300 };
-  expect(validSnapshot(saved)).toBe(true);
-  for (const v of [
-    null,
-    {},
-    { ...saved, wpm: 0 },
-    { ...saved, index: -1 },
-    { ...saved, text: "" },
-    { ...saved, version: 2 },
-  ]) {
-    expect(validSnapshot(v)).toBe(false);
-  }
 });

@@ -15,7 +15,7 @@ Commit dependency changes together with `pnpm-lock.yaml`. For a reproducible ins
 
 If an older pnpm launcher cannot switch to the pinned version, run commands through Corepack (for example, `corepack pnpm install`).
 
-The repository is a pnpm workspace. The web app is the `@still/web` package in `apps/web`; shared packages will go in `packages/`. Root scripts such as `pnpm dev`, `pnpm build`, and `pnpm test:e2e` run the web app's scripts, `pnpm test` and `pnpm typecheck` run in every package, and `pnpm lint` and `pnpm format` cover the whole repository. Shared lint and format configs live in `tooling/` (`@still/oxlint-config` and `@still/oxfmt-config`); the root `oxlint.config.ts` and `oxfmt.config.ts` re-export them. `tooling/github/setup` is the shared CI step that installs Node, pnpm, and dependencies. To run anything else in the web app, use `pnpm --filter @still/web <command>` or run it from `apps/web`.
+The repository is a pnpm workspace. The web app in `apps/web` depends on `@still/reader-core` in `packages/reader-core`. Root scripts such as `pnpm dev`, `pnpm build`, and `pnpm test:e2e` run the web app's scripts, `pnpm test` and `pnpm typecheck` run in every package, and `pnpm lint` and `pnpm format` cover the whole repository. Shared lint and format configs live in `tooling/` (`@still/oxlint-config` and `@still/oxfmt-config`); the root `oxlint.config.ts` and `oxfmt.config.ts` re-export them. `tooling/github/setup` is the shared CI step that installs Node, pnpm, and dependencies. To run anything else in the web app, use `pnpm --filter @still/web <command>` or run it from `apps/web`.
 
 The first visit migrates the previous single reading or version-1 library into the current document format, preserving the selected word and pace. The original single-reading snapshot is retained. Library migrations are atomic: a failed migration leaves old records intact. Keep the same hostname and port to retain access to existing data; browser storage belongs to an origin, not a route. Export and restore a library backup to move between origins or devices.
 
@@ -84,13 +84,14 @@ Deploys run from GitHub Actions, not Workers Builds. After the tests pass, every
 
 ## Implementation
 
-Paths in this section are relative to `apps/web`.
+The shared reader package owns tokenization, focus-word anchoring, pacing, chapter playback sequences, and the mapping between words and saved positions. Its tests live alongside the code in `packages/reader-core/src`.
 
-- `src/lib/reader.ts`: token positions, sentence boundaries, anchor selection, pacing, and saved-data validation.
-- `src/lib/sample.ts` and `reader.test.ts`: sample prose and reader logic tests.
-- `src/lib/library.ts`: reading/chapter model, backup validation, migration, merge, and progress.
+The following paths are relative to `apps/web`.
+
+- `src/lib/legacy-snapshot.ts` validates the original single-passage save format.
+- `src/lib/sample.ts` contains the sample prose.
+- `src/lib/library.ts`: library and reading records, backup validation, migration, merge, and progress.
 - `src/lib/library-v1.ts`: frozen legacy schema validation for migration.
-- `src/lib/reader-document.ts`: shared block/word locations and playback sequences with context stops.
 - `src/lib/library-storage.ts`: atomic IndexedDB saves, separate content/position records, and revision checks.
 - `src/lib/epub.ts`: bounded ZIP extraction and EPUB structure, loaded only when importing.
 - `src/lib/html-blocks.ts`: inert HTML/XHTML-to-block conversion (prose, tables, placeholders) shared by EPUB and link imports.

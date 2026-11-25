@@ -1,6 +1,6 @@
 import { tokenize } from "./reader";
 import type { Token } from "./reader";
-import type { Chapter, ContentBlock, Position } from "./library";
+import type { Chapter, ContentBlock, Position } from "./document-types";
 
 export type ContextBlock = Exclude<ContentBlock, { type: "text" }>;
 export type ReadingEntry = Token & { blockId: string; offset: number; context?: ContextBlock };

@@ -12,7 +12,7 @@ import {
   sampleReading,
 } from "./library";
 import type { Library } from "./library";
-import { chapterSequence, chapterText, positionAt, sequenceIndex } from "./reader-document";
+import { chapterSequence, chapterText, positionAt, sequenceIndex } from "@still/reader-core";
 const library = (): Library => {
   const reading = textReading("First sentence. Next one.", "An essay", "essay");
   return {

@@ -1,4 +1,4 @@
-import { MAX_TEXT_LENGTH, tokenize } from "./reader";
+import { MAX_TEXT_LENGTH, tokenize } from "@still/reader-core";
 const MAX_BOOK_TEXT = 2_000_000;
 export type Illustration = { beforeParagraph: number; src: string; alt: string };
 export type Chapter = { id: string; title: string; text: string; images: Illustration[] };

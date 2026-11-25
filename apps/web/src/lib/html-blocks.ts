@@ -1,5 +1,6 @@
 import { MAX_CHAPTER_BLOCKS } from "./library";
-import type { ContentBlock, ImportIssue, TableCell } from "./library";
+import type { ContentBlock, TableCell } from "@still/reader-core";
+import type { ImportIssue } from "./library";
 
 export const elements = (node: Document | Element, name: string) =>
   Array.from(node.getElementsByTagNameNS("*", name));

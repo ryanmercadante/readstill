@@ -1,6 +1,18 @@
-import { MAX_TEXT_LENGTH, MAX_WPM, MIN_WPM, validSnapshot } from "./reader";
+import { validSnapshot } from "./legacy-snapshot";
+import {
+  type Chapter,
+  type ContentBlock,
+  type Position,
+  type TextBlock,
+  MAX_TEXT_LENGTH,
+  MAX_WPM,
+  MIN_WPM,
+  chapterSequence,
+  chapterText,
+  positionAt,
+  sequenceIndex,
+} from "@still/reader-core";
 import { SAMPLE_TEXT, SAMPLE_TITLE } from "./sample";
-import { chapterSequence, chapterText, positionAt, sequenceIndex } from "./reader-document";
 import { validLegacyLibrary } from "./library-v1";
 import type { Library as LegacyLibrary } from "./library-v1";
 
@@ -10,19 +22,6 @@ export const MAX_BOOK_TEXT = 2_000_000;
 export const MAX_CHAPTER_BLOCKS = 40_000;
 export const MAX_FILE_BYTES = 50_000_000;
 export const MAX_BACKUP_BYTES = 250_000_000;
-export type TextBlock = { id: string; type: "text"; text: string };
-export type ImageBlock = { id: string; type: "image"; src: string; alt: string };
-export type TableCell = {
-  text: string;
-  header: boolean;
-  rowSpan: number;
-  colSpan: number;
-  scope?: "row" | "col" | "rowgroup" | "colgroup";
-};
-export type TableBlock = { id: string; type: "table"; caption: string; rows: TableCell[][] };
-export type UnsupportedBlock = { id: string; type: "unsupported"; label: string; reason: string };
-export type ContentBlock = TextBlock | ImageBlock | TableBlock | UnsupportedBlock;
-export type Chapter = { id: string; title: string; blocks: ContentBlock[] };
 export type ImportIssue = { chapterId: string; blockId: string; message: string };
 export type Reading = {
   id: string;
@@ -35,13 +34,6 @@ export type Reading = {
   /** The page a web reading was imported from. */
   source?: { url: string; siteName: string };
   importIssues?: ImportIssue[];
-};
-export type Position = {
-  chapterId: string;
-  blockId: string;
-  index: number;
-  finished: boolean;
-  updatedAt: number;
 };
 export type Library = {
   readings: Reading[];

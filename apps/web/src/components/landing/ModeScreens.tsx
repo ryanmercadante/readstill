@@ -10,7 +10,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { anchorParts } from "../../lib/reader";
+import { anchorParts } from "@still/reader-core";
 import { GuidedPassage, PASSAGE, START, WORDS, useFocusPlayback, useGuidedPlayback } from "./demos";
 import { buttonVariants } from "../ui/button";
 
