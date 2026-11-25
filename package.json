@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm --filter @still/web run dev",
+    "dev:mobile": "pnpm --filter @still/mobile run start",
     "build": "pnpm --filter @still/web run build",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",

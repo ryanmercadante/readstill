@@ -1,0 +1,20 @@
+# Expo
+.expo/
+expo-env.d.ts
+.metro-health-check*
+
+# Generated native projects (Continuous Native Generation)
+/ios
+/android
+.kotlin/
+
+# Signing material
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Local env files
+.env*.local
