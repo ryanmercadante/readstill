@@ -19,7 +19,7 @@ export default function TabsLayout() {
       indicatorColor={colors.switchTrack}
       rippleColor={colors.ghostPressed}
     >
-      <NativeTabs.Trigger name="index">
+      <NativeTabs.Trigger name="(library)">
         <NativeTabs.Trigger.Label>Library</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: "books.vertical", selected: "books.vertical.fill" }}

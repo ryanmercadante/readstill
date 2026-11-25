@@ -6,9 +6,12 @@ import * as SystemUI from "expo-system-ui";
 import { useEffect } from "react";
 
 import { fontAssets, navigationThemes, useAppTheme } from "@/theme";
+import { applyStoredThemePreference } from "@/theme/preference";
 
 // Keep the splash screen up until Still's fonts are ready.
 void SplashScreen.preventAutoHideAsync();
+// Apply the saved Light, Dark, or System choice before the first render.
+applyStoredThemePreference();
 
 // Tabs sit at the root of the stack so Reader and Add can open above them.
 export default function RootLayout() {
